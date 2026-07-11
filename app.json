@@ -1,0 +1,73 @@
+{
+  "expo": {
+    "name": "Pine",
+    "slug": "morecode",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/pine_assets/icons/rounded/icon (1).png",
+    "scheme": "pine",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/pine_assets/logos/g8 1.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.pine.app"
+    },
+    "android": {
+      "package": "com.pine.app",
+      "softwareKeyboardLayoutMode": "pan",
+      "splash": {
+        "image": "./assets/pine_assets/logos/g8 1.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff",
+        "mdpi": "./assets/pine_assets/logos/g8 1.png",
+        "hdpi": "./assets/pine_assets/logos/g8 1.png",
+        "xhdpi": "./assets/pine_assets/logos/g8 1.png",
+        "xxhdpi": "./assets/pine_assets/logos/g8 1.png",
+        "xxxhdpi": "./assets/pine_assets/logos/g8 1.png"
+      },
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/pine_assets/icons/rounded/icon (1).png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/pine_assets/logos/g8 1.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/pine_assets/logos/g8 1.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "de8e5461-b683-4a7d-843e-9bfe56169a76"
+      }
+    },
+    "owner": "morecodes-team",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f70fcebd-909f-4a21-8b05-06a211c1757b"
+    }
+  }
+}
