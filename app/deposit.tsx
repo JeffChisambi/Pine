@@ -95,6 +95,11 @@ export default function DepositScreen() {
         currency: "MWK",
         purpose: "wallet_deposit",
       });
+
+      if (!session.checkoutUrl) {
+        throw new Error("Payment gateway did not return a checkout URL. Please try again.");
+      }
+
       router.push({
         pathname: "/trade/payment-webview" as any,
         params: {

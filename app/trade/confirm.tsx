@@ -91,6 +91,10 @@ export default function ConfirmScreen() {
           quantity,
         });
 
+        if (!session.checkoutUrl) {
+          throw new Error("Payment gateway did not return a checkout URL. Please try again.");
+        }
+
         // Navigate to payment webview with checkout URL
         router.push({
           pathname: "/trade/payment-webview" as any,
