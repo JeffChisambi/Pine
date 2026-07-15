@@ -6,7 +6,8 @@ export const stockKeys = {
   all: ['stocks'] as const,
   list: (sector?: string) => [...stockKeys.all, 'list', sector ?? 'all'] as const,
   search: (q: string) => [...stockKeys.all, 'search', q] as const,
-  detail: (symbol: string) => [...stockKeys.all, 'detail', symbol.toUpperCase()] as const,
+  detail: (symbol: string, period?: string) =>
+    [...stockKeys.all, 'detail', symbol.toUpperCase(), period ?? '1M'] as const,
   sectors: () => [...stockKeys.all, 'sectors'] as const,
 };
 
@@ -31,11 +32,14 @@ export function useStockSearch(query: string) {
   });
 }
 
-/** Fetch full detail + 30-day history for a single stock. */
-export function useStockDetail(symbol: string | undefined) {
+/**
+ * Fetch full detail + price history for a single stock.
+ * Re-fetches automatically when `period` changes (different query key per period).
+ */
+export function useStockDetail(symbol: string | undefined, period?: string) {
   return useQuery<ApiStockDetail, Error>({
-    queryKey: stockKeys.detail(symbol ?? ''),
-    queryFn: () => stocksApi.detail(symbol!),
+    queryKey: stockKeys.detail(symbol ?? '', period),
+    queryFn: () => stocksApi.detail(symbol!, period),
     enabled: !!symbol,
     staleTime: 5 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,

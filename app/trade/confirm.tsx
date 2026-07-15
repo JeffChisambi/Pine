@@ -9,11 +9,13 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { tradingApi, paymentsApi, ApiError } from "../../services/api";
+import { getStockLogo } from "../../utils/stock-logos";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";
@@ -71,7 +73,7 @@ export default function ConfirmScreen() {
   const stockName = params.name ?? "Stock";
   const isBuy = (params.side ?? "BUY") === "BUY";
   const pricePerShare = Number(params.price ?? 0);
-  const quantity = pricePerShare > 0 ? Math.max(1, Math.floor(Number(params.amount ?? 0) / pricePerShare)) : 1;
+  const quantity = Math.max(1, Number(params.amount ?? 0));
   const subtotal = quantity * pricePerShare;
   const fee = Math.round(subtotal * 0.015 * 100) / 100; // 1.5% fee
   const discount = savingRoutine ? -2.50 : 0;
@@ -137,15 +139,16 @@ export default function ConfirmScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Order Details */}
         <View style={styles.orderHeader}>
-          <View style={[styles.assetLogo, { backgroundColor: isBuy ? GREEN : "#EF4770" }]}>
-            <Text style={styles.assetLogoText}>{symbol.charAt(0)}</Text>
+          <View style={[styles.assetLogo, { backgroundColor: WHITE, overflow: "hidden", borderWidth: 1, borderColor: "#E5E7EB" }]}>
+            {getStockLogo(symbol) ? (
+              <Image source={getStockLogo(symbol)!} style={{ width: 48, height: 48, borderRadius: 24 }} resizeMode="contain" />
+            ) : (
+              <Text style={[styles.assetLogoText, { color: TEAL }]}>{symbol.charAt(0)}</Text>
+            )}
           </View>
           <View style={styles.orderHeaderInfo}>
             <Text style={styles.orderAssetName}>{stockName}</Text>
             <Text style={styles.orderAssetTicker}>{symbol} · Market {isBuy ? "Buy" : "Sell"}</Text>
-          </View>
-          <View style={styles.orderStatusBadge}>
-            <Text style={styles.orderStatusText}>Pending</Text>
           </View>
         </View>
 
@@ -165,74 +168,74 @@ export default function ConfirmScreen() {
             <Text style={styles.summaryLabel}>Order Type</Text>
             <Text style={styles.summaryValue}>Market</Text>
           </View>
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Estimated Fill</Text>
-            <Text style={styles.summaryValue}>Immediate</Text>
-          </View>
         </View>
 
-        {/* Payment Method */}
-        <Text style={styles.sectionLabel}>Payment Method</Text>
-        <View style={styles.paymentCard}>
-          <PayPalIcon />
-          <View style={styles.paymentInfo}>
-            <Text style={styles.paymentLabel}>PayPal</Text>
-            <Text style={styles.paymentSub}>paypal@example.com</Text>
-          </View>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.changeText}>Change</Text>
-          </TouchableOpacity>
-        </View>
+        {isBuy && (
+          <>
+            {/* Payment Method */}
+            <Text style={styles.sectionLabel}>Payment Method</Text>
+            <View style={styles.paymentCard}>
+              <PayPalIcon />
+              <View style={styles.paymentInfo}>
+                <Text style={styles.paymentLabel}>PayPal</Text>
+                <Text style={styles.paymentSub}>paypal@example.com</Text>
+              </View>
+              <TouchableOpacity onPress={() => router.back()}>
+                <Text style={styles.changeText}>Change</Text>
+              </TouchableOpacity>
+            </View>
 
-        {/* Promo applied */}
-        <View style={styles.promoApplied}>
-          <CheckCircleSmall />
-          <Text style={styles.promoAppliedText}>No promo code applied</Text>
-        </View>
+            {/* Promo applied */}
+            <View style={styles.promoApplied}>
+              <CheckCircleSmall />
+              <Text style={styles.promoAppliedText}>No promo code applied</Text>
+            </View>
 
-        {/* Saving Routine */}
-        <View style={styles.savingCard}>
-          <View style={styles.savingLeft}>
-            <Text style={styles.savingTitle}>Saving Routine</Text>
-            <Text style={styles.savingDesc}>Save K2.50 on this order</Text>
-          </View>
-          <Switch
-            value={savingRoutine}
-            onValueChange={setSavingRoutine}
-            trackColor={{ false: "#E5E7EB", true: "#D1FADF" }}
-            thumbColor={savingRoutine ? GREEN : "#9CA3AF"}
-            ios_backgroundColor="#E5E7EB"
-          />
-        </View>
+            {/* Saving Routine */}
+            <View style={styles.savingCard}>
+              <View style={styles.savingLeft}>
+                <Text style={styles.savingTitle}>Saving Routine</Text>
+                <Text style={styles.savingDesc}>Save K2.50 on this order</Text>
+              </View>
+              <Switch
+                value={savingRoutine}
+                onValueChange={setSavingRoutine}
+                trackColor={{ false: "#E5E7EB", true: "#D1FADF" }}
+                thumbColor={savingRoutine ? GREEN : "#9CA3AF"}
+                ios_backgroundColor="#E5E7EB"
+              />
+            </View>
+          </>
+        )}
 
         {/* Total Breakdown */}
-        <View style={styles.totalCard}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Subtotal</Text>
-            <Text style={styles.totalValue}>${subtotal.toFixed(2)}</Text>
+        {isBuy && (
+          <View style={styles.totalCard}>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Subtotal</Text>
+              <Text style={styles.totalValue}>K{subtotal.toFixed(2)}</Text>
+            </View>
+            <View style={styles.totalRowBorder} />
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Processing Fee</Text>
+              <Text style={styles.totalValue}>K{fee.toFixed(2)}</Text>
+            </View>
+            {savingRoutine && (
+              <>
+                <View style={styles.totalRowBorder} />
+                <View style={styles.totalRow}>
+                  <Text style={styles.totalLabel}>Saving Routine</Text>
+                  <Text style={[styles.totalValue, { color: GREEN }]}>K{Math.abs(discount).toFixed(2)}</Text>
+                </View>
+              </>
+            )}
+            <View style={[styles.totalRowBorder, { backgroundColor: "#D1D5DB" }]} />
+            <View style={styles.totalRow}>
+              <Text style={styles.totalFinalLabel}>Total</Text>
+              <Text style={styles.totalFinalValue}>K{total.toFixed(2)}</Text>
+            </View>
           </View>
-          <View style={styles.totalRowBorder} />
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Processing Fee</Text>
-            <Text style={styles.totalValue}>${fee.toFixed(2)}</Text>
-          </View>
-          {savingRoutine && (
-            <>
-              <View style={styles.totalRowBorder} />
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Saving Routine</Text>
-                <Text style={[styles.totalValue, { color: GREEN }]}>${discount.toFixed(2)}</Text>
-              </View>
-            </>
-          )}
-          <View style={[styles.totalRowBorder, { backgroundColor: "#D1D5DB" }]} />
-          <View style={styles.totalRow}>
-            <Text style={styles.totalFinalLabel}>Total</Text>
-            <Text style={styles.totalFinalValue}>${total.toFixed(2)}</Text>
-          </View>
-        </View>
-
+        )}
         {/* Disclaimer */}
         <Text style={styles.disclaimer}>
           By confirming, you agree to execute this order at market price. Orders are typically filled within seconds during market hours.
@@ -249,7 +252,7 @@ export default function ConfirmScreen() {
           {loading ? (
             <ActivityIndicator color={WHITE} />
           ) : (
-            <Text style={styles.ctaBtnText}>Confirm Order · K{total.toFixed(2)}</Text>
+            <Text style={styles.ctaBtnText}>Confirm</Text>
           )}
         </TouchableOpacity>
       </View>

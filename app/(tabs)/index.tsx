@@ -28,6 +28,7 @@ import {
   loadPendingDeposit,
   clearPendingDeposit,
   savePendingDeposit,
+  WALLET_BALANCE_QUERY_KEY,
 } from "../../services/wallet-queries";
 import { getStockLogo } from "../../utils/stock-logos";
 import Svg, {
@@ -372,6 +373,9 @@ export default function HomeScreen() {
   //      reflected — this smooths over any brief backend eventual-consistency.
   //   4. Clear the pending-deposit record + URL params.
   const reconcileRef = useRef(false);
+  // True while we are actively polling the server for the credit confirmation.
+  // Prevents useFocusEffect from overwriting the optimistic balance mid-poll.
+  const reconcilingRef = useRef(false);
 
   useEffect(() => {
     if (reconcileRef.current) return;
@@ -441,7 +445,13 @@ export default function HomeScreen() {
         }
       }
 
+      // Cancel any in-flight wallet balance fetches so that a concurrent
+      // React Query refetch (e.g. from useFocusEffect) cannot land after us
+      // and overwrite the optimistic value with a stale server response.
+      await qc.cancelQueries({ queryKey: WALLET_BALANCE_QUERY_KEY });
+
       // Optimistic bump — user sees the credit right away
+      reconcilingRef.current = true;
       const revertOptimistic = setOptimisticBalance(qc, amount);
 
       // Reconcile with the server
@@ -449,6 +459,7 @@ export default function HomeScreen() {
         expectedIncrement: amount,
         prevAvailable,
       });
+      reconcilingRef.current = false;
 
       if (outcome.status === "reflected") {
         // Server confirmed. Cache is already up to date; the optimistic overlay
@@ -490,11 +501,13 @@ export default function HomeScreen() {
     AsyncStorage.setItem(WATCHLIST_KEY, JSON.stringify([...tickers])).catch(() => { });
   }, []);
 
-  // Refresh balance every time this tab gains focus (React Query handles
-  // dedupe/caching so this is cheap even during rapid tab switches).
+  // Refresh balance every time this tab gains focus. Skip during active
+  // deposit reconciliation to prevent overwriting the optimistic balance.
   useFocusEffect(
     useCallback(() => {
-      refetchBalance();
+      if (!reconcilingRef.current) {
+        refetchBalance();
+      }
     }, [refetchBalance])
   );
 

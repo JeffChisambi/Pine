@@ -127,9 +127,6 @@ export default function PortfolioScreen() {
   const [totalGain, setTotalGain] = useState<string | null>(null);
   const [gainPositive, setGainPositive] = useState(true);
   const { data: walletBalance } = useWalletBalance();
-  const availableDividends = walletBalance
-    ? `K ${Number(walletBalance.availableBalance || 0).toLocaleString()}`
-    : null;
 
   // Fetch portfolio data
   useEffect(() => {
@@ -210,43 +207,16 @@ export default function PortfolioScreen() {
       <View style={styles.whiteSheet}>
         {/* Action Card */}
         <View style={styles.actionCard}>
-          <TouchableOpacity style={styles.actionItem} onPress={() => router.push("/trade/buy" as any)}>
-            <BuyIcon />
-            <Text style={styles.actionLabel}>Buy</Text>
-          </TouchableOpacity>
-          <View style={styles.actionDivider} />
+
           <TouchableOpacity style={styles.actionItem} onPress={() => router.push("/trade/sell" as any)}>
             <SellIcon />
             <Text style={styles.actionLabel}>Sell</Text>
-          </TouchableOpacity>
-          <View style={styles.actionDivider} />
-          <TouchableOpacity style={styles.actionItem} onPress={() => router.push("/trade/exchange" as any)}>
-            <ExchangeIcon />
-            <Text style={styles.actionLabel}>Exchange</Text>
           </TouchableOpacity>
         </View>
 
         {/* Assets List */}
         <ScrollView style={styles.listArea} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
           
-          {/* Dividends Section */}
-          {availableDividends !== null && (
-          <View style={styles.dividendsCard}>
-            <View style={styles.dividendsHeader}>
-              <Text style={styles.dividendsTitle}>Available Dividends</Text>
-              <Text style={styles.dividendsAmount}>{availableDividends}</Text>
-            </View>
-            <View style={styles.dividendsActions}>
-              <TouchableOpacity style={[styles.divBtn, styles.divBtnOutline]} onPress={() => router.push("/withdraw" as any)}>
-                <Text style={styles.divBtnOutlineText}>Withdraw</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.divBtn, styles.divBtnSolid]}>
-                <Text style={styles.divBtnSolidText}>Reinvest</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          )}
-
           {/* Your Assets header */}
           <View style={styles.sectionRow}>
             <Text style={styles.sectionTitle}>Your Assets</Text>

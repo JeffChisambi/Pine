@@ -126,15 +126,18 @@ export async function reconcileDepositCredit(
     try {
       const b = await walletApi.getBalance();
       last = b;
-      // Push into the cache so all consumers update
-      qc.setQueryData<WalletBalance>(WALLET_BALANCE_QUERY_KEY, b);
       onProgress?.(b);
 
       if (Number(b.availableBalance || 0) >= target) {
+        // Server confirmed the credit — safe to replace the optimistic value
+        // with the authoritative server value.
+        qc.setQueryData<WalletBalance>(WALLET_BALANCE_QUERY_KEY, b);
         // Also refresh history so recent-transactions views catch up
         qc.invalidateQueries({ queryKey: WALLET_HISTORY_QUERY_KEY }).catch(() => {});
         return { status: 'reflected', balance: b };
       }
+      // Server hasn't propagated the credit yet — do NOT overwrite the cache.
+      // The optimistic value stays visible to the user until we confirm.
     } catch {
       // swallow — we'll retry
     }

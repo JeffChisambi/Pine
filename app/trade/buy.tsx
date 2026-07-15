@@ -102,21 +102,7 @@ export default function BuyScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Toggle */}
-      <View style={styles.toggleWrap}>
-        <TouchableOpacity
-          style={[styles.toggleBtn, mode === "buy" && styles.toggleActive]}
-          onPress={() => setMode("buy")}
-        >
-          <Text style={[styles.toggleText, mode === "buy" && styles.toggleTextActive]}>Buy</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.toggleBtn, mode === "sell" && styles.toggleActive]}
-          onPress={() => setMode("sell")}
-        >
-          <Text style={[styles.toggleText, mode === "sell" && styles.toggleTextActive]}>Sell</Text>
-        </TouchableOpacity>
-      </View>
+
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         {/* Balance card */}
@@ -184,29 +170,20 @@ export default function BuyScreen() {
 
           {/* Amount */}
           <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>How much</Text>
+            <Text style={styles.fieldLabel}>How many</Text>
             <View style={styles.fieldRight}>
-              <Text style={styles.dollarSign}>MK</Text>
               <TextInput
                 style={styles.amountInput}
                 value={amount}
                 onChangeText={setAmount}
-                placeholder="0.00"
+                placeholder="0"
                 placeholderTextColor={MUTED}
-                keyboardType="decimal-pad"
+                keyboardType="number-pad"
               />
             </View>
           </View>
         </View>
 
-        {/* Percentage shortcuts */}
-        <View style={styles.pctRow}>
-          {PCT_BUTTONS.map((pct) => (
-            <TouchableOpacity key={pct} style={styles.pctBtn} onPress={() => handlePct(pct)}>
-              <Text style={styles.pctText}>{pct}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
 
         {/* Order summary preview */}
         {amount.length > 0 && (
@@ -224,7 +201,7 @@ export default function BuyScreen() {
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Estimated Amount</Text>
               <Text style={[styles.summaryValue, { color: isBuy ? GREEN : RED }]}>
-                {isBuy ? "+" : "-"}MK {amount}
+                {isBuy ? "+" : "-"}MK {selectedStock?.price ? (Number(amount) * Number(selectedStock.price)).toLocaleString() : "0"}
               </Text>
             </View>
           </View>

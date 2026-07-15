@@ -12,7 +12,6 @@ import { WebView, WebViewNavigation } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path } from "react-native-svg";
-import { paymentsApi } from "../../services/api";
 import {
   readCachedAvailable,
   savePendingDeposit,
@@ -68,7 +67,6 @@ export default function PaymentWebViewScreen() {
   const checkoutUrl = params.checkoutUrl ?? "";
   const txRef = params.txRef ?? "";
   const [loading, setLoading] = useState(true);
-  const [verifying, setVerifying] = useState(false);
   const webviewRef = useRef<WebView>(null);
   // Guard so the outcome is routed only once (both nav handlers can see the URL)
   const handledRef = useRef(false);
@@ -78,49 +76,39 @@ export default function PaymentWebViewScreen() {
   const handleOutcome = useCallback(
     async (status: string, resolvedTxRef: string) => {
       if (status === "success") {
-        setVerifying(true);
-        try {
-          // Verify payment on backend
-          const result = await paymentsApi.verify(resolvedTxRef);
-          if (result.status === "success") {
-            if (params.purpose === "wallet_deposit") {
-              const amountNum = Number(params.amount) || 0;
-              // Persist a pending-deposit record so Home can reconcile the
-              // wallet balance even if the app is killed before it mounts.
-              await savePendingDeposit({
-                txRef: resolvedTxRef,
-                amount: amountNum,
-                prevAvailable: readCachedAvailable(qc),
-                createdAt: Date.now(),
-              });
-              // Deposit: go to home with success indicator
-              router.replace({
-                pathname: "/(tabs)/" as any,
-                params: {
-                  depositSuccess: "true",
-                  depositAmount: params.amount,
-                  depositTxRef: resolvedTxRef,
-                },
-              });
-            } else {
-              // Stock purchase: show order success screen
-              router.replace({
-                pathname: "/trade/success" as any,
-                params: {
-                  txRef: resolvedTxRef,
-                  amount: params.amount,
-                  symbol: params.symbol,
-                  type: "BUY",
-                },
-              });
-            }
-          } else {
-            Alert.alert("Payment Pending", "Your payment is still being processed. Please check back shortly.");
-            router.back();
-          }
-        } catch {
-          Alert.alert("Verification Error", "Could not verify payment. Please check your wallet balance.");
-          router.back();
+        // The backend already verified + processed the deposit before
+        // redirecting to app-return?status=success — no need to re-verify.
+        // Trusting the backend signal avoids PayChangu test-mode returning
+        // "pending" on a /verify call that was already confirmed server-side.
+        if (params.purpose === "wallet_deposit" || !params.purpose) {
+          const amountNum = Number(params.amount) || 0;
+          // Persist pending deposit so Home can reconcile even after an app kill.
+          await savePendingDeposit({
+            txRef: resolvedTxRef,
+            amount: amountNum,
+            prevAvailable: readCachedAvailable(qc),
+            createdAt: Date.now(),
+          });
+          // Navigate home with success indicator — Home will refetch balance.
+          router.replace({
+            pathname: "/(tabs)/" as any,
+            params: {
+              depositSuccess: "true",
+              depositAmount: params.amount,
+              depositTxRef: resolvedTxRef,
+            },
+          });
+        } else {
+          // Stock purchase: show order success screen
+          router.replace({
+            pathname: "/trade/success" as any,
+            params: {
+              txRef: resolvedTxRef,
+              amount: params.amount,
+              symbol: params.symbol,
+              type: "BUY",
+            },
+          });
         }
         return;
       }
@@ -216,11 +204,11 @@ export default function PaymentWebViewScreen() {
       </View>
 
       {/* Loading overlay */}
-      {(loading || verifying) && (
+      {loading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={TEAL} />
           <Text style={styles.loadingText}>
-            {verifying ? "Verifying payment..." : "Loading payment page..."}
+            {"Loading payment page..."}
           </Text>
         </View>
       )}

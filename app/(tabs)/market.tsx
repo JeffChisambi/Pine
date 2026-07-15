@@ -5,13 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   Platform,
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import Svg, { Path, Circle, Defs, LinearGradient, Stop } from "react-native-svg";
+import Svg, { Path, Circle } from "react-native-svg";
 import { getStockLogo } from "../../utils/stock-logos";
 
 const TEAL = "#164951";
@@ -23,34 +22,11 @@ const MUTED = "#9CA3AF";
 const CARD_BG = "#F9FAFB";
 const CARD_BORDER = "#F3F4F6";
 const DIVIDER = "#EBECEF";
-const SECTOR_BG = "#F3F6F6";
-const SECTOR_BORDER = "#D0DBDC";
 
 import { useState } from "react";
 import { useStocks } from "../../hooks/useStocks";
-import { ApiStock } from "../../services/api";
 
 
-function MiniChart({ path, fill, positive }: { path: string; fill: string; positive: boolean }) {
-  const color = positive ? GREEN : RED;
-  const fillId = positive ? "greenGrad" : "redGrad";
-  return (
-    <Svg width={92} height={50} viewBox="0 0 96 52">
-      <Defs>
-        <LinearGradient id="greenGrad" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0%" stopColor={GREEN} stopOpacity="0.3" />
-          <Stop offset="100%" stopColor={GREEN} stopOpacity="0" />
-        </LinearGradient>
-        <LinearGradient id="redGrad" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0%" stopColor={RED} stopOpacity="0.3" />
-          <Stop offset="100%" stopColor={RED} stopOpacity="0" />
-        </LinearGradient>
-      </Defs>
-      <Path d={fill} fill={`url(#${fillId})`} />
-      <Path d={path} stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
 
 function ArrowCircle({ positive }: { positive: boolean }) {
   const color = positive ? GREEN : RED;
@@ -145,9 +121,13 @@ export default function MarketScreen() {
 
   const { data: stocks = [], isLoading, error, refetch, isRefetching } = useStocks();
 
-  // Top 4 stocks shown as "index" cards
-  const featuredStocks = stocks.slice(0, 4);
-  // Remaining stocks in list
+  // Gainers: stocks with positive change today, sorted best-first (max 6 shown)
+  const gainers = [...stocks]
+    .filter((s) => s.positive && s.changePct > 0)
+    .sort((a, b) => b.changePct - a.changePct)
+    .slice(0, 6);
+
+  // All stocks list
   const allStocks = stocks;
 
   return (
@@ -172,7 +152,7 @@ export default function MarketScreen() {
 
       {/* Featured cards */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Stocks</Text>
+        <Text style={styles.sectionTitle}>Gainers</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.indicesScroll}>
@@ -184,8 +164,14 @@ export default function MarketScreen() {
           <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
             <Text style={{ color: RED, fontFamily: "Poppins_400Regular" }}>Could not load prices</Text>
           </View>
+        ) : gainers.length === 0 ? (
+          <View style={{ width: 300, paddingVertical: 24, alignItems: "center", justifyContent: "center" }}>
+            <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", fontSize: 13 }}>
+              No gainers today
+            </Text>
+          </View>
         ) : (
-          featuredStocks.map((s) => (
+          gainers.map((s) => (
             <TouchableOpacity
               key={s.id}
               style={styles.indexCard}
@@ -204,7 +190,7 @@ export default function MarketScreen() {
                   <Text style={styles.indexPrice}>{s.price}</Text>
                   <View style={styles.indexChangeRow}>
                     <ArrowCircle positive={s.positive} />
-                    <Text style={[styles.indexChange, { color: s.positive ? GREEN : RED }]}>
+                    <Text style={[styles.indexChange, { color: GREEN }]}>
                       {s.change}
                     </Text>
                   </View>

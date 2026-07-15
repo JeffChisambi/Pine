@@ -479,6 +479,7 @@ export interface ApiStockDetail extends ApiStock {
   highPrice: string;
   lowPrice: string;
   listedShares: string | null;
+  period: string;
   priceHistory: Array<{
     date: string;
     close: number;
@@ -486,6 +487,7 @@ export interface ApiStockDetail extends ApiStock {
     high: number;
     low: number;
     volume: number;
+    changePct: number | null;
   }>;
 }
 
@@ -498,8 +500,10 @@ export const stocksApi = {
   search: (q: string): Promise<ApiStock[]> =>
     request<ApiStock[]>(`/stocks/search?q=${encodeURIComponent(q)}`),
 
-  detail: (symbol: string): Promise<ApiStockDetail> =>
-    request<ApiStockDetail>(`/stocks/${encodeURIComponent(symbol.toUpperCase())}`),
+  detail: (symbol: string, period?: string): Promise<ApiStockDetail> => {
+    const qs = period ? `?period=${encodeURIComponent(period)}` : '';
+    return request<ApiStockDetail>(`/stocks/${encodeURIComponent(symbol.toUpperCase())}${qs}`);
+  },
 
   sectors: (): Promise<string[]> =>
     request<string[]>('/stocks/sectors'),
