@@ -1,8 +1,17 @@
-import React from "react";
-import { Platform, StyleSheet, Text } from "react-native";
+import React, { useEffect } from "react";
+import { Platform, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { Tabs } from "expo-router";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import Svg, { Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  Easing,
+  interpolate,
+} from "react-native-reanimated";
 
 const TEAL = "#164951";
 const MUTED = "#9CA3AF";
@@ -108,85 +117,220 @@ function TabLabel({ label, color }: { label: string; color: string }) {
   return <Text style={[styles.tabLabel, { color }]}>{label}</Text>;
 }
 
-export default function TabLayout() {
-  const insets = useSafeAreaInsets();
+// ─── Animated custom tab bar ──────────────────────────────────────────────────
 
-  // Bottom inset accounts for:
-  //   • Android button nav  → insets.bottom ≈ 48 dp
-  //   • Android gesture nav → insets.bottom ≈ 0–16 dp
-  //   • iOS home indicator  → insets.bottom ≈ 34 pt
-  //   • Old Android/iOS     → insets.bottom = 0
-  const bottomInset = insets.bottom;
-  const TAB_CONTENT_HEIGHT = 56; // icon + label area
-  const tabBarHeight = TAB_CONTENT_HEIGHT + bottomInset;
+const VISIBLE_TABS = 4; // Home, Market, Portfolio, Profile (news is hidden)
+
+interface TabItemConfig {
+  name: string;
+  label: string;
+  Icon: React.ComponentType<{ color: string }>;
+}
+
+const TAB_ITEMS: TabItemConfig[] = [
+  { name: "index", label: "Home", Icon: HomeIcon },
+  { name: "market", label: "Market", Icon: MarketIcon },
+  { name: "portfolio", label: "Portfolio", Icon: PortfolioIcon },
+  { name: "profile", label: "Profile", Icon: ProfileIcon },
+];
+
+function AnimatedTabItem({
+  item,
+  isFocused,
+  onPress,
+  onLongPress,
+  tabWidth,
+}: {
+  item: TabItemConfig;
+  isFocused: boolean;
+  onPress: () => void;
+  onLongPress: () => void;
+  tabWidth: number;
+}) {
+  const scale = useSharedValue(1);
+  const labelOpacity = useSharedValue(isFocused ? 1 : 0.55);
+
+  useEffect(() => {
+    scale.value = withSpring(isFocused ? 1.12 : 1, {
+      damping: 14,
+      stiffness: 180,
+    });
+    labelOpacity.value = withTiming(isFocused ? 1 : 0.55, {
+      duration: 200,
+      easing: Easing.out(Easing.quad),
+    });
+  }, [isFocused]);
+
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const labelStyle = useAnimatedStyle(() => ({
+    opacity: labelOpacity.value,
+  }));
 
   return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityState={isFocused ? { selected: true } : {}}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={[styles.tabItem, { width: tabWidth }]}
+      activeOpacity={0.7}
+    >
+      <Animated.View style={iconStyle}>
+        <item.Icon color={isFocused ? TEAL : MUTED} />
+      </Animated.View>
+      <Animated.View style={labelStyle}>
+        <Text style={[styles.tabLabel, { color: isFocused ? TEAL : MUTED }]}>
+          {item.label}
+        </Text>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
+
+function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+
+  const TAB_CONTENT_HEIGHT = 56;
+  const tabBarHeight = TAB_CONTENT_HEIGHT + insets.bottom;
+  const tabWidth = width / VISIBLE_TABS;
+
+  // Map route index → visible tab index (skip hidden "news" tab)
+  const visibleRoutes = state.routes.filter(
+    (r) => descriptors[r.key]?.options?.href !== null
+  );
+  const focusedVisibleIndex = visibleRoutes.findIndex(
+    (r) => r.key === state.routes[state.index].key
+  );
+
+  // Sliding indicator — springs to the centre of the focused tab
+  const indicatorX = useSharedValue(focusedVisibleIndex * tabWidth);
+
+  useEffect(() => {
+    indicatorX.value = withSpring(focusedVisibleIndex * tabWidth, {
+      damping: 18,
+      stiffness: 200,
+      mass: 0.8,
+    });
+  }, [focusedVisibleIndex, tabWidth]);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: indicatorX.value }],
+  }));
+
+  return (
+    <View
+      style={[
+        styles.tabBar,
+        {
+          height: tabBarHeight,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : Platform.OS === "ios" ? 0 : 8,
+        },
+      ]}
+    >
+      {/* Sliding teal indicator dot */}
+      <Animated.View
+        style={[styles.indicatorTrack, indicatorStyle, { width: tabWidth }]}
+        pointerEvents="none"
+      >
+        <View style={styles.indicatorDot} />
+      </Animated.View>
+
+      {/* Tab items */}
+      {TAB_ITEMS.map((item, visibleIndex) => {
+        const route = state.routes.find((r) => {
+          const routeName = r.name;
+          // "(tabs)" uses "index" as the home route name
+          return routeName === item.name;
+        });
+        if (!route) return null;
+
+        const isFocused = state.index === state.routes.indexOf(route);
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: "tabPress",
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name, route.params);
+          }
+        };
+
+        const onLongPress = () => {
+          navigation.emit({ type: "tabLongPress", target: route.key });
+        };
+
+        return (
+          <AnimatedTabItem
+            key={item.name}
+            item={item}
+            isFocused={isFocused}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            tabWidth={tabWidth}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+// ─── Tab layout ───────────────────────────────────────────────────────────────
+
+export default function TabLayout() {
+  return (
     <Tabs
+      tabBar={(props) => <AnimatedTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: WHITE,
-          borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0,
-          height: tabBarHeight,
-          paddingTop: 8,
-          // Push content above the system nav bar
-          paddingBottom: bottomInset > 0 ? bottomInset : Platform.OS === "ios" ? 0 : 8,
-        },
-        tabBarActiveTintColor: TEAL,
-        tabBarInactiveTintColor: MUTED,
-        tabBarShowLabel: true,
-        tabBarLabelStyle: styles.tabLabel,
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => <HomeIcon color={color} />,
-          tabBarLabel: ({ color }) => <TabLabel label="Home" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="market"
-        options={{
-          title: "Market",
-          tabBarIcon: ({ color }) => <MarketIcon color={color} />,
-          tabBarLabel: ({ color }) => <TabLabel label="Market" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="portfolio"
-        options={{
-          title: "Portfolio",
-          tabBarIcon: ({ color }) => <PortfolioIcon color={color} />,
-          tabBarLabel: ({ color }) => <TabLabel label="Portfolio" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color }) => <ProfileIcon color={color} />,
-          tabBarLabel: ({ color }) => <TabLabel label="Profile" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="news"
-        options={{
-          href: null,
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: "Home" }} />
+      <Tabs.Screen name="market" options={{ title: "Market" }} />
+      <Tabs.Screen name="portfolio" options={{ title: "Portfolio" }} />
+      <Tabs.Screen name="profile" options={{ title: "Profile" }} />
+      <Tabs.Screen name="news" options={{ href: null }} />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
+  tabBar: {
+    flexDirection: "row",
+    backgroundColor: WHITE,
+    borderTopWidth: 0,
+    elevation: 0,
+    shadowOpacity: 0,
+    paddingTop: 8,
+    position: "relative",
+  },
+  tabItem: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 4,
+    gap: 3,
+  },
   tabLabel: {
     fontSize: 10,
     fontFamily: "Inter_500Medium",
-    marginTop: 4,
+    marginTop: 2,
+  },
+  indicatorTrack: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    alignItems: "center",
+  },
+  indicatorDot: {
+    width: 20,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: TEAL,
   },
 });
 

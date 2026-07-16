@@ -95,30 +95,74 @@ function RootLayoutNav() {
           headerShown: false,
           navigationBarColor: "transparent",
           statusBarTranslucent: true,
+          // Default: smooth right-slide for all push navigations
+          animation: "slide_from_right",
+          animationDuration: 280,
         }}
       >
-        {/* gestureEnabled:false prevents back-swiping from (tabs) → onboarding/login */}
-        <Stack.Screen name="index" options={{ headerShown: false, gestureEnabled: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false, gestureEnabled: false }} />
-        <Stack.Screen name="signup" options={{ headerShown: false, gestureEnabled: false }} />
-        <Stack.Screen name="phone-number" options={{ headerShown: false }} />
-        <Stack.Screen name="verify-code" options={{ headerShown: false }} />
-        <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
-        <Stack.Screen name="create-pin" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false, gestureEnabled: false }} />
-        <Stack.Screen name="stock-search" options={{ headerShown: false }} />
-        <Stack.Screen name="stock/[ticker]" options={{ headerShown: false }} />
-        <Stack.Screen name="trade/buy" options={{ headerShown: false }} />
-        <Stack.Screen name="trade/sell" options={{ headerShown: false }} />
-        <Stack.Screen name="trade/exchange" options={{ headerShown: false }} />
-        <Stack.Screen name="trade/payment" options={{ headerShown: false }} />
-        <Stack.Screen name="trade/confirm" options={{ headerShown: false }} />
-        <Stack.Screen name="trade/payment-webview" options={{ headerShown: false }} />
-        <Stack.Screen name="trade/success" options={{ headerShown: false }} />
-        <Stack.Screen name="trade/history" options={{ headerShown: false }} />
-        <Stack.Screen name="profile/notifications" options={{ headerShown: false }} />
-        <Stack.Screen name="profile/personal-data" options={{ headerShown: false }} />
-        <Stack.Screen name="profile/push-notifications" options={{ headerShown: false }} />
+        {/* Auth / onboarding screens — fade so replacements feel seamless */}
+        <Stack.Screen
+          name="index"
+          options={{ headerShown: false, gestureEnabled: false, animation: "fade", animationDuration: 260 }}
+        />
+        <Stack.Screen
+          name="login"
+          options={{ headerShown: false, gestureEnabled: false, animation: "fade", animationDuration: 240 }}
+        />
+        <Stack.Screen
+          name="signup"
+          options={{ headerShown: false, gestureEnabled: false, animation: "fade", animationDuration: 240 }}
+        />
+        <Stack.Screen name="phone-number" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="verify-code" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="forgot-password" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="create-pin" options={{ headerShown: false, animationDuration: 260 }} />
+
+        {/* Tabs — fade so the jump from auth feels instant, not jarring */}
+        <Stack.Screen
+          name="(tabs)"
+          options={{ headerShown: false, gestureEnabled: false, animation: "fade", animationDuration: 300 }}
+        />
+
+        {/* Discovery screens — slide in from right */}
+        <Stack.Screen name="stock-search" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="stock/[ticker]" options={{ headerShown: false, animationDuration: 260 }} />
+
+        {/* Trade flow — bottom sheet style for a transactional feel */}
+        <Stack.Screen
+          name="trade/buy"
+          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 340 }}
+        />
+        <Stack.Screen
+          name="trade/sell"
+          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 340 }}
+        />
+        <Stack.Screen
+          name="trade/exchange"
+          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 340 }}
+        />
+        <Stack.Screen
+          name="trade/payment"
+          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 320 }}
+        />
+        <Stack.Screen
+          name="trade/confirm"
+          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 320 }}
+        />
+        <Stack.Screen
+          name="trade/payment-webview"
+          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 320 }}
+        />
+        <Stack.Screen
+          name="trade/success"
+          options={{ headerShown: false, animation: "fade", animationDuration: 300 }}
+        />
+        <Stack.Screen name="trade/history" options={{ headerShown: false, animationDuration: 260 }} />
+
+        {/* Profile sub-screens */}
+        <Stack.Screen name="profile/notifications" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="profile/personal-data" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="profile/push-notifications" options={{ headerShown: false, animationDuration: 260 }} />
       </Stack>
     </AuthGate>
   );
