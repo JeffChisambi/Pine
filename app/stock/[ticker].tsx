@@ -21,7 +21,6 @@ import Svg, {
   Defs,
   LinearGradient,
   Stop,
-  Text as SvgText,
 } from "react-native-svg";
 import { useStockDetail } from "../../hooks/useStocks";
 import { getStockLogo } from "../../utils/stock-logos";
@@ -105,23 +104,25 @@ interface PriceChartProps {
   period: string;
 }
 
+const CHART_H = 200;
+const TOOLTIP_W = 196;
+
 function PriceChart({ data, positive, period }: PriceChartProps) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
-  const chartW = SCREEN_W;
-  const chartH = 180;
-  const padL = 4;
-  const padR = 4;
-  const padTop = 16;
-  const padBottom = 24;
+  const padL = 0;
+  const padR = 0;
+  const padTop = 12;
+  const padBottom = 4;
 
-  const lineColor = positive ? GREEN : RED;
+  const lineColor = positive ? "#3DDC7F" : RED;
+  const glowColor = positive ? "#3DDC7F" : RED;
 
   if (!data || data.length < 2) {
     return (
-      <View style={{ width: chartW, height: chartH, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Poppins_400Regular", fontSize: 12 }}>
-          {data.length < 2 ? "Insufficient data for this period" : "Loading chart…"}
+      <View style={{ width: SCREEN_W, height: CHART_H, alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ color: "rgba(255,255,255,0.35)", fontFamily: "Poppins_400Regular", fontSize: 12 }}>
+          Insufficient data for this period
         </Text>
       </View>
     );
@@ -132,144 +133,111 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   const maxPrice = Math.max(...prices);
   const priceRange = maxPrice - minPrice || 1;
 
-  const plotW = chartW - padL - padR;
-  const plotH = chartH - padTop - padBottom;
+  const plotW = SCREEN_W - padL - padR;
+  const plotH = CHART_H - padTop - padBottom;
 
-  function xFor(i: number): number {
+  function xFor(i: number) {
     return padL + (i / (data.length - 1)) * plotW;
   }
-  function yFor(price: number): number {
+  function yFor(price: number) {
     return padTop + (1 - (price - minPrice) / priceRange) * plotH;
   }
 
-  // Build SVG path for line and fill
-  const lineParts = data.map((d, i) => {
-    const x = xFor(i);
-    const y = yFor(d.close);
-    return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-  });
+  // SVG paths
+  const lineParts = data.map((d, i) =>
+    `${i === 0 ? "M" : "L"}${xFor(i).toFixed(1)},${yFor(d.close).toFixed(1)}`
+  );
   const linePath = lineParts.join(" ");
-
   const fillPath =
     linePath +
-    ` L${xFor(data.length - 1).toFixed(1)},${(padTop + plotH).toFixed(1)}` +
-    ` L${xFor(0).toFixed(1)},${(padTop + plotH).toFixed(1)} Z`;
+    ` L${xFor(data.length - 1).toFixed(1)},${CHART_H}` +
+    ` L${xFor(0).toFixed(1)},${CHART_H} Z`;
 
-  // Y-axis tick labels (3 evenly spaced)
-  const yTicks = [maxPrice, (maxPrice + minPrice) / 2, minPrice];
-
-  // Selected point info
+  // Active point
   const activePt = selectedIdx !== null ? data[selectedIdx] : data[data.length - 1];
   const activeX = selectedIdx !== null ? xFor(selectedIdx) : xFor(data.length - 1);
   const activeY = yFor(activePt.close);
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
-  };
+  const formatPrice = (p: number) =>
+    `MWK ${p.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  const formatPrice = (p: number) => `MWK ${p.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  // Tooltip: centre on crosshair, clamp to screen
+  const tooltipLeft = Math.max(12, Math.min(SCREEN_W - TOOLTIP_W - 12, activeX - TOOLTIP_W / 2));
+  const changePct = activePt.changePct ?? 0;
+  const changePositive = changePct >= 0;
 
-  // Touch handling — compute nearest data point from touch x
   const handleTouch = useCallback((evt: any) => {
-    const touchX = evt?.nativeEvent?.locationX ?? evt?.nativeEvent?.pageX ?? 0;
-    const ratio = Math.max(0, Math.min(1, (touchX - padL) / plotW));
-    const idx = Math.round(ratio * (data.length - 1));
-    setSelectedIdx(Math.max(0, Math.min(data.length - 1, idx)));
+    const touchX = evt?.nativeEvent?.locationX ?? 0;
+    const ratio = Math.max(0, Math.min(1, touchX / plotW));
+    setSelectedIdx(Math.round(ratio * (data.length - 1)));
   }, [data.length, plotW]);
 
-  const handleTouchEnd = useCallback(() => {
-    setSelectedIdx(null);
-  }, []);
+  const handleTouchEnd = useCallback(() => setSelectedIdx(null), []);
 
   return (
-    <View style={{ width: chartW, height: chartH + 60 }}>
-      {/* Tooltip */}
-      <View style={styles.chartTooltip}>
-        <Text style={styles.chartTooltipPrice}>{formatPrice(activePt.close)}</Text>
-        <Text style={styles.chartTooltipDate}>{formatDate(activePt.date)}</Text>
-        {activePt.changePct != null && (
-          <Text style={[styles.chartTooltipChange, { color: activePt.changePct >= 0 ? GREEN : RED }]}>
-            {activePt.changePct >= 0 ? "+" : ""}{activePt.changePct.toFixed(2)}%
+    <View style={{ width: SCREEN_W, height: CHART_H + 64 }}>
+
+      {/* ── Floating pill tooltip ─────────────────────────── */}
+      <View style={[styles.floatingTooltip, { left: tooltipLeft }]}>
+        <Text style={styles.tooltipPrice}>{formatPrice(activePt.close)}</Text>
+        <View style={[
+          styles.tooltipBadge,
+          { backgroundColor: changePositive ? "rgba(61,220,127,0.18)" : "rgba(239,71,112,0.18)" },
+        ]}>
+          <Text style={[styles.tooltipBadgeText, { color: changePositive ? "#3DDC7F" : RED }]}>
+            {changePositive ? "+" : ""}{changePct.toFixed(2)}%
           </Text>
-        )}
+        </View>
       </View>
 
-      {/* Touch-intercepting View over the SVG */}
+      {/* ── Chart ────────────────────────────────────────── */}
       <View
-        style={{ width: chartW, height: chartH }}
+        style={{ width: SCREEN_W, height: CHART_H, marginTop: 44 }}
         onStartShouldSetResponder={() => true}
         onMoveShouldSetResponder={() => true}
         onResponderGrant={handleTouch}
         onResponderMove={handleTouch}
         onResponderRelease={handleTouchEnd}
       >
-        <Svg width={chartW} height={chartH}>
+        <Svg width={SCREEN_W} height={CHART_H}>
           <Defs>
-            <LinearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor={lineColor} stopOpacity="0.4" />
-              <Stop offset="100%" stopColor={lineColor} stopOpacity="0.02" />
+            {/* Rich 3-stop gradient: strong at top, invisible at bottom */}
+            <LinearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0%"   stopColor={glowColor} stopOpacity="0.55" />
+              <Stop offset="60%"  stopColor={glowColor} stopOpacity="0.1"  />
+              <Stop offset="100%" stopColor={glowColor} stopOpacity="0"    />
             </LinearGradient>
           </Defs>
 
-          {/* Horizontal grid lines */}
-          {yTicks.map((price, idx) => {
-            const y = yFor(price);
-            return (
-              <Line
-                key={idx}
-                x1={padL} y1={y} x2={chartW - padR} y2={y}
-                stroke="rgba(255,255,255,0.1)" strokeWidth={0.8}
-                strokeDasharray="4 4"
-              />
-            );
-          })}
+          {/* Fill */}
+          <Path d={fillPath} fill="url(#chartFill)" />
 
-          {/* Gradient fill */}
-          <Path d={fillPath} fill="url(#chartGrad)" />
-
-          {/* Price line */}
+          {/* Line */}
           <Path
             d={linePath}
             stroke={lineColor}
-            strokeWidth={2}
+            strokeWidth={2.4}
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
           />
 
-          {/* Active vertical crosshair */}
+          {/* Dashed vertical crosshair */}
           <Line
             x1={activeX} y1={padTop}
             x2={activeX} y2={padTop + plotH}
-            stroke="rgba(255,255,255,0.35)"
+            stroke="rgba(255,255,255,0.6)"
             strokeWidth={1}
-            strokeDasharray="4 3"
+            strokeDasharray="3 4"
           />
 
-          {/* Active dot */}
-          <Circle cx={activeX} cy={activeY} r={5} fill={TEAL} stroke={lineColor} strokeWidth={2.5} />
-          <Circle cx={activeX} cy={activeY} r={2} fill={lineColor} />
+          {/* Glow halos (outermost → innermost) */}
+          <Circle cx={activeX} cy={activeY} r={18} fill={glowColor} opacity={0.07} />
+          <Circle cx={activeX} cy={activeY} r={11} fill={glowColor} opacity={0.14} />
 
-          {/* Y-axis price labels */}
-          {yTicks.map((price, idx) => {
-            const y = yFor(price);
-            const label = price >= 1000
-              ? `${(price / 1000).toFixed(1)}K`
-              : price.toFixed(0);
-            return (
-              <SvgText
-                key={idx}
-                x={padL + 4}
-                y={y - 4}
-                fill="rgba(255,255,255,0.45)"
-                fontSize={9}
-                fontFamily="Poppins_400Regular"
-              >
-                {label}
-              </SvgText>
-            );
-          })}
+          {/* White dot with coloured core */}
+          <Circle cx={activeX} cy={activeY} r={5.5} fill={WHITE} />
+          <Circle cx={activeX} cy={activeY} r={3}   fill={lineColor} />
         </Svg>
       </View>
     </View>
@@ -426,7 +394,16 @@ export default function StockDetailScreen() {
           </View>
         </View>
 
-        {/* Period selector tabs — matching MSE website */}
+        {/* Real price chart */}
+        <View style={{ marginTop: 8 }}>
+          <PriceChart
+            data={chartData}
+            positive={stock.positive}
+            period={activeTimeTab}
+          />
+        </View>
+
+        {/* Period selector tabs — below the chart */}
         <View style={styles.periodTabsRow}>
           {TIME_TABS.map((tab) => (
             <TouchableOpacity
@@ -440,15 +417,6 @@ export default function StockDetailScreen() {
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
-
-        {/* Real price chart */}
-        <View style={{ marginTop: 8, marginBottom: 4 }}>
-          <PriceChart
-            data={chartData}
-            positive={stock.positive}
-            period={activeTimeTab}
-          />
         </View>
       </View>
 
@@ -610,61 +578,66 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-  // Period tabs (1M 3M 6M 1Y 2Y 5Y)
+  // Period tabs — below chart, darker pill container
   periodTabsRow: {
     flexDirection: "row",
-    marginHorizontal: 24,
-    marginBottom: 4,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 10,
-    padding: 3,
+    marginHorizontal: 20,
+    marginTop: 4,
+    marginBottom: 16,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    borderRadius: 12,
+    padding: 4,
     gap: 2,
   },
   periodTab: {
     flex: 1,
-    paddingVertical: 7,
+    paddingVertical: 8,
     alignItems: "center",
-    borderRadius: 7,
+    borderRadius: 9,
   },
   periodTabActive: {
-    backgroundColor: WHITE,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: "rgba(255,255,255,0.14)",
   },
   periodTabText: {
     fontFamily: "Poppins_500Medium",
     fontSize: 12,
-    color: "rgba(255,255,255,0.55)",
+    color: "rgba(255,255,255,0.45)",
   },
   periodTabTextActive: {
-    color: TEAL,
-    fontFamily: "Poppins_700Bold",
+    color: WHITE,
+    fontFamily: "Poppins_600SemiBold",
   },
 
-  // Chart tooltip
-  chartTooltip: {
+  // Floating pill tooltip (absolute, moves with crosshair)
+  floatingTooltip: {
+    position: "absolute",
+    top: 12,
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    gap: 1,
+    gap: 8,
+    backgroundColor: "rgba(10,18,26,0.82)",
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    // subtle border
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
-  chartTooltipPrice: {
-    fontFamily: "Poppins_700Bold",
-    fontSize: 18,
-    color: WHITE,
-  },
-  chartTooltipDate: {
-    fontFamily: "Poppins_400Regular",
-    fontSize: 11,
-    color: "rgba(255,255,255,0.55)",
-  },
-  chartTooltipChange: {
+  tooltipPrice: {
     fontFamily: "Poppins_600SemiBold",
-    fontSize: 12,
-    marginTop: 1,
+    fontSize: 13,
+    color: WHITE,
+    letterSpacing: 0.1,
+  },
+  tooltipBadge: {
+    borderRadius: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 7,
+  },
+  tooltipBadgeText: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 11,
+    letterSpacing: 0.2,
   },
 
   // Bottom section
