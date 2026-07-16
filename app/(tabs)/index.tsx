@@ -11,9 +11,17 @@ import {
   ActivityIndicator,
   useWindowDimensions,
   Alert,
-  Animated,
-  PanResponder,
 } from "react-native";
+import ReAnimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  interpolate,
+  Extrapolation,
+  runOnJS,
+} from "react-native-reanimated";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
@@ -196,91 +204,138 @@ function TrashIcon() {
   );
 }
 
-function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positive, onDelete }: WatchCardProps) {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const isOpen = useRef(false);
+const REVEAL_WIDTH = 88; // px width of the revealed delete zone
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 5 && Math.abs(g.dx) > Math.abs(g.dy * 1.5),
-      onPanResponderMove: (_, g) => {
-        const base = isOpen.current ? -80 : 0;
-        translateX.setValue(Math.min(0, Math.max(-80, base + g.dx)));
-      },
-      onPanResponderRelease: (_, g) => {
-        const base = isOpen.current ? -80 : 0;
-        if (base + g.dx < -35) {
-          Animated.spring(translateX, { toValue: -80, useNativeDriver: true }).start();
-          isOpen.current = true;
-        } else {
-          Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
-          isOpen.current = false;
-        }
-      },
+function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positive, onDelete }: WatchCardProps) {
+  const translateX = useSharedValue(0);
+  const isOpen = useSharedValue(false);
+
+  // ── dismiss helper (called from JS thread via runOnJS) ──
+  const dismiss = useCallback(() => {
+    translateX.value = withSpring(0, { damping: 20, stiffness: 260 });
+    isOpen.value = false;
+  }, []);
+
+  const open = useCallback(() => {
+    translateX.value = withSpring(-REVEAL_WIDTH, { damping: 20, stiffness: 260 });
+    isOpen.value = true;
+  }, []);
+
+  const collapse = useCallback(() => {
+    // Fly the card fully off-screen, then call onDelete
+    translateX.value = withTiming(-500, { duration: 220 }, () => {
+      runOnJS(onDelete ?? (() => {}))();
+    });
+  }, [onDelete]);
+
+  // ── pan gesture ──────────────────────────────────────────
+  const pan = Gesture.Pan()
+    .activeOffsetX([-6, 6])
+    .failOffsetY([-10, 10])
+    .onUpdate((e) => {
+      const base = isOpen.value ? -REVEAL_WIDTH : 0;
+      // Clamp: no right-swipe beyond 0, no left-swipe beyond REVEAL_WIDTH
+      translateX.value = Math.min(0, Math.max(-REVEAL_WIDTH, base + e.translationX));
     })
-  ).current;
+    .onEnd((e) => {
+      const base = isOpen.value ? -REVEAL_WIDTH : 0;
+      const projected = base + e.translationX + e.velocityX * 0.12;
+      if (projected < -REVEAL_WIDTH / 2) {
+        runOnJS(open)();
+      } else {
+        runOnJS(dismiss)();
+      }
+    });
+
+  // ── card slide ───────────────────────────────────────────
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  // ── delete button: scale + opacity in as card slides left ─
+  const buttonStyle = useAnimatedStyle(() => {
+    const progress = interpolate(
+      translateX.value,
+      [-REVEAL_WIDTH, 0],
+      [1, 0],
+      Extrapolation.CLAMP,
+    );
+    return {
+      opacity: progress,
+      transform: [{ scale: interpolate(progress, [0, 1], [0.7, 1], Extrapolation.CLAMP) }],
+    };
+  });
 
   return (
-    <View style={{ overflow: "hidden", borderRadius: 12, marginBottom: 12 }}>
-      {/* Delete button behind */}
-      <TouchableOpacity
-        onPress={() => {
-          Animated.timing(translateX, { toValue: -400, duration: 200, useNativeDriver: true }).start(() => onDelete?.());
-        }}
-        activeOpacity={0.8}
+    <View style={{ overflow: "hidden", borderRadius: 16, marginBottom: 12 }}>
+      {/* Delete button sits behind the card, right-aligned */}
+      <View
         style={{
-          position: "absolute", right: 0, top: 0, bottom: 0, width: 80,
-          backgroundColor: "#EF4770", alignItems: "center", justifyContent: "center",
-          borderTopRightRadius: 12, borderBottomRightRadius: 12,
+          position: "absolute", right: 0, top: 0, bottom: 0, width: REVEAL_WIDTH,
+          backgroundColor: "#EF4770",
+          alignItems: "center", justifyContent: "center",
+          borderTopRightRadius: 16, borderBottomRightRadius: 16,
         }}
       >
-        <TrashIcon />
-        <Text style={{ color: WHITE, fontFamily: "Poppins_500Medium", fontSize: 11, marginTop: 4 }}>Remove</Text>
-      </TouchableOpacity>
+        <ReAnimated.View style={[{ alignItems: "center" }, buttonStyle]}>
+          <TouchableOpacity
+            onPress={collapse}
+            activeOpacity={0.75}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={{ alignItems: "center" }}
+          >
+            <TrashIcon />
+            <Text style={{ color: WHITE, fontFamily: "Poppins_600SemiBold", fontSize: 11, marginTop: 5, letterSpacing: 0.2 }}>
+              Remove
+            </Text>
+          </TouchableOpacity>
+        </ReAnimated.View>
+      </View>
 
       {/* Swipeable card */}
-      <Animated.View style={{ transform: [{ translateX }] }} {...panResponder.panHandlers}>
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => {
-            if (isOpen.current) {
-              Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
-              isOpen.current = false;
-            } else {
-              router.push(`/stock/${symbol}`);
-            }
-          }}
-        >
-          <View style={styles.watchCard}>
-            <View style={styles.watchLeft}>
-              <View style={styles.watchLogoBox}>
-                {logoImg ? (
-                  <Image source={logoImg} style={styles.watchLogoImg} resizeMode="contain" />
-                ) : (
-                  <View style={[styles.watchLogoImg, { backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderRadius: 20 }]}>
-                    <Text style={{ color: WHITE, fontFamily: "Poppins_700Bold", fontSize: 11 }}>{symbol.slice(0, 3)}</Text>
-                  </View>
-                )}
+      <GestureDetector gesture={pan}>
+        <ReAnimated.View style={cardStyle}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => {
+              if (isOpen.value) {
+                dismiss();
+              } else {
+                router.push(`/stock/${symbol}`);
+              }
+            }}
+          >
+            <View style={styles.watchCard}>
+              <View style={styles.watchLeft}>
+                <View style={styles.watchLogoBox}>
+                  {logoImg ? (
+                    <Image source={logoImg} style={styles.watchLogoImg} resizeMode="contain" />
+                  ) : (
+                    <View style={[styles.watchLogoImg, { backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderRadius: 20 }]}>
+                      <Text style={{ color: WHITE, fontFamily: "Poppins_700Bold", fontSize: 11 }}>{symbol.slice(0, 3)}</Text>
+                    </View>
+                  )}
+                </View>
+                <View style={{ gap: 3 }}>
+                  <Text style={styles.watchSymbol}>{symbol}</Text>
+                  <Text style={styles.watchSub}>
+                    {name}
+                    <Text style={{ color: MUTED }}> · </Text>
+                    {type}
+                  </Text>
+                </View>
               </View>
-              <View style={{ gap: 3 }}>
-                <Text style={styles.watchSymbol}>{symbol}</Text>
-                <Text style={styles.watchSub}>
-                  {name}
-                  <Text style={{ color: MUTED }}> · </Text>
-                  {type}
-                </Text>
+              <View style={styles.watchRight}>
+                <Text style={styles.watchPrice}>{price}</Text>
+                <View style={styles.statRow}>
+                  {positive ? <ArrowCircleUp color={GREEN} size={12} /> : <ArrowCircleDown size={12} />}
+                  <Text style={[styles.watchChange, { color: positive ? GREEN : RED }]}> {change}</Text>
+                </View>
               </View>
             </View>
-            <View style={styles.watchRight}>
-              <Text style={styles.watchPrice}>{price}</Text>
-              <View style={styles.statRow}>
-                {positive ? <ArrowCircleUp color={GREEN} size={12} /> : <ArrowCircleDown size={12} />}
-                <Text style={[styles.watchChange, { color: positive ? GREEN : RED }]}> {change}</Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
+          </TouchableOpacity>
+        </ReAnimated.View>
+      </GestureDetector>
     </View>
   );
 }
