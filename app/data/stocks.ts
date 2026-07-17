@@ -11,6 +11,7 @@ export interface StockData {
   shares?: string;
   value?: string;
   changePct?: string;
+  changePctNum?: number;
 }
 
 // Empty — filled by the API

@@ -45,6 +45,7 @@ import Svg, {
   Rect,
   Line,
   Defs,
+  ClipPath,
   LinearGradient,
   RadialGradient,
   Stop,
@@ -340,42 +341,83 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
   );
 }
 
+// ─── Trending card sparklines (matches market.tsx featureCard design) ───────────
+const SPARKLINES_UP = [
+  "M0.5 25 L5 17 L7 20 L10 13 L15 8 L17 37 L19 31 H30 L33 21 L35 23 L37 15 L40 18 L44 19 L47 28 L51 0 L52 9 L55 12 L56 21 L58 16 H63 L64 33 L66 36 L68 52 L70 44 L72 42 L73 36 L76 34 L77 28 L80 27 L82 19 L84 22 H88",
+  "M0 30 L8 25 L15 28 L20 20 L28 15 L35 18 L40 10 L47 15 L54 8 L58 5 L65 12 L70 8 L76 18 L82 12 L88 8",
+];
+const SPARKLINES_DOWN = [
+  "M0 10 L8 15 L15 12 L20 22 L28 28 L35 25 L40 35 L47 30 L54 40 L58 45 L65 38 L70 44 L76 36 L82 42 L88 48",
+  "M0 5 L8 12 L15 10 L20 18 L28 25 L35 22 L40 30 L44 24 L50 35 L58 42 L65 38 L70 45 L76 40 L82 46 L88 52",
+];
+
+function TrendSparkline({ positive, idx }: { positive: boolean; idx: number }) {
+  const paths = positive ? SPARKLINES_UP : SPARKLINES_DOWN;
+  const path = paths[idx % paths.length];
+  const topId = `tc-top-${idx}`;
+  const botId = `tc-bot-${idx}`;
+  return (
+    <Svg width={88} height={52} viewBox="0 0 88 52" fill="none">
+      <Defs>
+        <ClipPath id={topId}><Rect x="0" y="0" width="88" height="26" /></ClipPath>
+        <ClipPath id={botId}><Rect x="0" y="26" width="88" height="26" /></ClipPath>
+      </Defs>
+      <Line x1="0" y1="26" x2="88" y2="26" stroke="#D1D5DB" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" />
+      <Path d={path} stroke={GREEN} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" clipPath={`url(#${topId})`} />
+      <Path d={path} stroke={RED}   strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" clipPath={`url(#${botId})`} />
+    </Svg>
+  );
+}
+
 // ─── Trending card ─────────────────────────────────────────────────────────────
 interface TrendCardProps {
   logoImg: ImageSourcePropType;
   symbol: string;
   name: string;
   price: string;
+  changePctNum?: number;
   change: string;
   positive: boolean;
-  cardWidth?: number;
+  idx: number;
 }
-function TrendCard({ logoImg, symbol, name, price, change, positive, cardWidth }: TrendCardProps) {
+function TrendCard({ logoImg, symbol, name, price, changePctNum, change, positive, idx }: TrendCardProps) {
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
+      activeOpacity={0.85}
       onPress={() => router.push(`/stock/${symbol}`)}
-      style={[styles.trendCard, cardWidth ? { width: cardWidth } : {}]}
+      style={styles.trendCard}
     >
-      <View style={styles.trendLogoBox}>
-        {logoImg ? (
-          <Image source={logoImg} style={styles.trendLogoImg} resizeMode="contain" />
-        ) : (
-          <View style={[styles.trendLogoImg, { backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderRadius: 18 }]}>
-            <Text style={{ color: WHITE, fontFamily: "Poppins_700Bold", fontSize: 10 }}>{symbol.slice(0, 2)}</Text>
-          </View>
-        )}
-      </View>
-      <View style={{ flex: 1, justifyContent: "center" }}>
-        <Text style={styles.trendSymbol} numberOfLines={1}>{symbol}</Text>
-        <Text style={styles.trendName} numberOfLines={1}>{name}</Text>
-      </View>
-      <View>
-        <Text style={styles.trendPrice} numberOfLines={1}>{price}</Text>
-        <View style={styles.statRow}>
-          {positive ? <ArrowCircleUp color={GREEN} size={10} /> : <ArrowCircleDown size={10} />}
-          <Text style={[styles.trendChange, { color: positive ? GREEN : RED }]}> {change}</Text>
+      {/* Top: logo + symbol + name */}
+      <View style={styles.trendCardTop}>
+        <View style={styles.trendLogoBox}>
+          {logoImg ? (
+            <Image source={logoImg} style={styles.trendLogoImg} resizeMode="contain" />
+          ) : (
+            <View style={[styles.trendLogoImg, { backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderRadius: 18 }]}>
+              <Text style={{ color: WHITE, fontFamily: "Poppins_700Bold", fontSize: 10 }}>{symbol.slice(0, 2)}</Text>
+            </View>
+          )}
         </View>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={styles.trendSymbol} numberOfLines={1}>{symbol}</Text>
+          <Text style={styles.trendName} numberOfLines={1}>{name}</Text>
+        </View>
+      </View>
+
+      {/* Bottom: price + change (left) · sparkline (right) */}
+      <View style={styles.trendCardBottom}>
+        <View style={styles.trendCardLeft}>
+          <Text style={styles.trendPrice} numberOfLines={1}>{price}</Text>
+          <View style={styles.trendChangeRow}>
+            {positive ? <ArrowCircleUp color={GREEN} size={14} /> : <ArrowCircleDown size={14} />}
+            <Text style={[styles.trendChange, { color: positive ? GREEN : RED }]}>
+              {changePctNum !== undefined
+                ? `${changePctNum > 0 ? "+" : ""}${changePctNum.toFixed(2)}%`
+                : change}
+            </Text>
+          </View>
+        </View>
+        <TrendSparkline positive={positive} idx={idx} />
       </View>
     </TouchableOpacity>
   );
@@ -386,8 +428,6 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
   const { width: screenWidth } = useWindowDimensions();
-  // Scale trend card width: ~40% of screen, min 130, max 160
-  const trendCardWidth = Math.min(Math.max(screenWidth * 0.4, 150), 172);
   const [balanceVisible, setBalanceVisible] = useState(true);
 
   // Deposit success toast state
@@ -578,6 +618,7 @@ export default function HomeScreen() {
           price: s.price,
           change: s.change,
           positive: s.positive,
+          changePctNum: s.changePct,
         }));
         setAllStocks(mapped);
         setTrending(mapped.slice(0, 6));
@@ -722,13 +763,13 @@ export default function HomeScreen() {
               <TouchableOpacity><Text style={styles.sectionAction}>See all</Text></TouchableOpacity>
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingRight: 24 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingLeft: 24, paddingRight: 8 }}>
               {trending.length === 0 ? (
                 <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
                   <Text style={{ color: MUTED }}>Loading trending stocks...</Text>
                 </View>
               ) : (
-                trending.map((item) => (
+                trending.map((item, idx) => (
                   <TrendCard
                     key={item.ticker}
                     logoImg={item.logo}
@@ -736,8 +777,9 @@ export default function HomeScreen() {
                     name={item.name}
                     price={item.price}
                     change={item.change}
+                    changePctNum={item.changePctNum}
                     positive={item.positive}
-                    cardWidth={trendCardWidth}
+                    idx={idx}
                   />
                 ))
               )}
@@ -931,21 +973,34 @@ const styles = StyleSheet.create({
   watchPrice: { fontFamily: "Poppins_700Bold", fontSize: 16, color: DARK },
   watchChange: { fontFamily: "Poppins_500Medium", fontSize: 12 },
 
-  // ─── Trending cards
+  // ─── Trending cards (mirrors market.tsx featureCard exactly)
   trendCard: {
-    backgroundColor: LIGHT_BG,
-    borderRadius: 14,
+    width: 240,
+    height: 134,
+    backgroundColor: "#F9FAFB",
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: LIGHT_BORDER,
-    width: 160,
-    height: 170,
-    padding: 14,
+    borderColor: "#F3F4F6",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     justifyContent: "space-between",
   },
+  trendCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  trendCardBottom: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+  },
+  trendCardLeft: {
+    flex: 1,
+  },
   trendLogoBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: WHITE,
     borderWidth: 1,
     borderColor: "#E5E7EB",
@@ -953,11 +1008,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden",
   },
-  trendLogoImg: { width: 36, height: 36, borderRadius: 18 },
-  trendSymbol: { fontFamily: "Poppins_700Bold", fontSize: 14, color: DARK },
-  trendName: { fontFamily: "Poppins_400Regular", fontSize: 11, color: MUTED },
-  trendPrice: { fontFamily: "Poppins_600SemiBold", fontSize: 14, color: DARK },
-  trendChange: { fontFamily: "Poppins_500Medium", fontSize: 11 },
+  trendLogoImg: { width: 32, height: 32, borderRadius: 16 },
+  trendSymbol: { fontFamily: "Poppins_600SemiBold", fontSize: 14, color: DARK },
+  trendName: { fontFamily: "Poppins_400Regular", fontSize: 11, color: MUTED, marginTop: 1 },
+  trendPrice: { fontFamily: "Poppins_700Bold", fontSize: 17, color: DARK, marginBottom: 5 },
+  trendChangeRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  trendChange: { fontFamily: "Poppins_600SemiBold", fontSize: 12 },
 
   // ─── Banner
   banner: {
