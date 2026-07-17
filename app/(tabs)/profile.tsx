@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -24,28 +25,6 @@ const DIVIDER = "#EBECEF";
 const CARD_BG = "#F9FAFB";
 const CARD_BORDER = "#F3F4F6";
 const RED = "#EF4770";
-
-function AvatarFigure({ size }: { size: number }) {
-  const r = size / 2;
-  const faceR = r * 0.36;
-  const faceY = r * 0.78;
-  return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <Circle cx={r} cy={r} r={r} fill={GREEN_AVATAR} />
-      <Circle cx={r} cy={faceY} r={faceR} fill="#C2837B" />
-      <Path
-        d={`M${r * 0.3} ${size - 2} Q${r} ${r * 1.38} ${r * 1.7} ${size - 2}`}
-        fill="#9E7D84"
-      />
-      <Path
-        d={`M${r * 0.38} ${r * 0.52} Q${r} ${r * 0.2} ${r * 1.62} ${r * 0.52}`}
-        fill="#AC7080"
-        stroke="#AC7080"
-        strokeWidth={r * 0.18}
-      />
-    </Svg>
-  );
-}
 
 function EditIcon() {
   return (
@@ -197,7 +176,11 @@ export default function ProfileScreen() {
           {/* Avatar + text row */}
           <View style={styles.profileHeaderRow}>
             <View style={styles.avatarCircle}>
-              <AvatarFigure size={56} />
+              <Image
+                source={require("../../attached_assets/Designer_1784289079544.png")}
+                style={styles.avatarImage}
+                resizeMode="cover"
+              />
             </View>
             <View style={styles.profileTextBlock}>
               <Text style={styles.profileName}>{userName ?? "—"}</Text>
@@ -361,30 +344,36 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingTop: 20,
     paddingHorizontal: 20,
+    paddingBottom: 20,
+    gap: 20,
   },
   profileHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    marginBottom: 20,
+    gap: 18,
   },
   avatarCircle: {
     width: 56,
     height: 56,
     borderRadius: 28,
+    backgroundColor: GREEN_AVATAR,
     overflow: "hidden",
+  },
+  avatarImage: {
+    width: 56,
+    height: 56,
   },
   profileTextBlock: { flex: 1 },
   profileName: {
     fontFamily: "Poppins_700Bold",
-    fontSize: 17,
+    fontSize: 16,
     color: DARK,
-    marginBottom: 3,
+    marginBottom: 2,
   },
   profilePhone: {
     fontFamily: "Poppins_400Regular",
     fontSize: 13,
-    color: MUTED,
+    color: "#6B7280",
     marginBottom: 6,
   },
   verifiedChip: {
@@ -416,7 +405,7 @@ const styles = StyleSheet.create({
   /* Cash card */
   cashCard: {
     backgroundColor: TEAL,
-    marginHorizontal: -20,
+    borderRadius: 10,
     height: 69,
     flexDirection: "row",
     alignItems: "center",

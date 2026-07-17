@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="56" height="56" viewBox="0 0 56 56" fill="none">
+<g id="Avatar">
+<rect width="56" height="56" rx="28" fill="#8FD1A5"/>
+<g id="Designer">
+<g id="Beard">
+<rect id="Beard_2" x="1" y="2" width="54" height="54" fill="url(#pattern0_180_8269)"/>
+<g id="Mask Group">
+<mask id="mask0_180_8269" maskUnits="userSpaceOnUse" x="1" y="2" width="54" height="54">
+<rect id="Beard_3" x="1" y="2" width="54" height="54" fill="url(#pattern1_180_8269)"/>
+</mask>
+<g mask="url(#mask0_180_8269)">
+<g id="Change Color">
+<rect x="1" y="2" width="54" height="54" fill="#AC7080"/>
+</g>
+</g>
+</g>
+</g>
+<g id="Eye &amp; Eyebrow">
+<rect id="Eye &amp; Eyebrow_2" x="1" y="2" width="54" height="54" fill="url(#pattern2_180_8269)"/>
+<g id="Mask Group_2">
+<mask id="mask1_180_8269" maskUnits="userSpaceOnUse" x="1" y="2" width="54" height="54">
+<rect id="Eye &amp; Eyebrow_3" x="1" y="2" width="54" height="54" fill="url(#pattern3_180_8269)"/>
+</mask>
+<g mask="url(#mask1_180_8269)">
+<g id="Change Color_2">
+<rect x="1" y="2" width="54" height="54" fill="#AC7080"/>
+</g>
+</g>
+</g>
+</g>
+<g id="Face">
+<rect id="Face_2" x="1" y="2" width="54" height="54" fill="url(#pattern4_180_8269)"/>
+<g id="Mask Group_3">
+<mask id="mask2_180_8269" maskUnits="userSpaceOnUse" x="1" y="2" width="54" height="54">
+<rect id="Face_3" x="1" y="2" width="54" height="54" fill="url(#pattern5_180_8269)"/>
+</mask>
+<g mask="url(#mask2_180_8269)">
+<g id="Change Color_3">
+<rect x="1" y="2" width="54" height="54" fill="#C2837B"/>
+</g>
+</g>
+</g>
+</g>
+<g id="Frame">
+<rect id="Frame_2" x="1" y="2" width="54" height="54" fill="url(#pattern6_180_8269)"/>
+<g id="Mask Group_4">
+<mask id="mask3_180_8269" maskUnits="userSpaceOnUse" x="1" y="2" width="54" height="54">
+<rect id="Frame_3" x="1" y="2" width="54" height="54" fill="url(#pattern7_180_8269)"/>
+</mask>
+<g mask="url(#mask3_180_8269)">
+<g id="Change Color_4">
+<rect x="1" y="2" width="54" height="54" fill="#9E7D84"/>
+</g>
+</g>
+</g>
+</g>
+<g id="Hair">
+<rect id="Hair_2" x="1" y="2" width="54" height="54" fill="url(#pattern8_180_8269)"/>
+<g id="Mask Group_5">
+<mask id="mask4_180_8269" maskUnits="userSpaceOnUse" x="1" y="2" width="54" height="54">
+<rect id="Hair_3" x="1" y="2" width="54" height="54" fill="url(#pattern9_180_8269)"/>
+</mask>
+<g mask="url(#mask4_180_8269)">
+<g id="Change Color_5">
+<rect x="1" y="2" width="54" height="54" fill="#AC7080"/>
+</g>
+</g>
+</g>
+</g>
+<g id="Mouth">
+<rect id="Mouth_2" x="1" y="2" width="54" height="54" fill="url(#pattern10_180_8269)"/>
+<g id="Mask Group_6">
+<mask id="mask5_180_8269" maskUnits="userSpaceOnUse" x="1" y="2" width="54" height="54">
+<rect id="Mouth_3" x="1" y="2" width="54" height="54" fill="url(#pattern11_180_8269)"/>
+</mask>
+<g mask="url(#mask5_180_8269)">
+<rect id="Change Color_6" x="1" y="2" width="54" height="54" fill="url(#pattern12_180_8269)"/>
+</g>
+</g>
+</g>
+<g id="Outer">
+<rect id="Outer_2" x="1" y="2" width="54" height="54" fill="url(#pattern13_180_8269)"/>
+<g id="Mask Group_7">
+<mask id="mask6_180_8269" maskUnits="userSpaceOnUse" x="1" y="2" width="54" height="54">
+<rect id="Outer_3" x="1" y="2" width="54" height="54" fill="url(#pattern14_180_8269)"/>
+</mask>
+<g mask="url(#mask6_180_8269)">
+<g id="Change Color_7">
+<rect x="1" y="2" width="54" height="54" fill="#C4948E"/>
+</g>
+</g>
+</g>
+</g>
+<g id="Pen">
+<rect id="Pen_2" x="1" y="2" width="54" height="54" fill="url(#pattern15_180_8269)"/>
+<g id="Mask Group_8">
+<mask id="mask7_180_8269" maskUnits="userSpaceOnUse" x="1" y="2" width="54" height="54">
+<rect id="Pen_3" x="1" y="2" width="54" height="54" fill="url(#pattern16_180_8269)"/>
+</mask>
+<g mask="url(#mask7_180_8269)">
+<g id="Change Color_8">
+<rect x="1" y="2" width="54" height="54" fill="#DACDCC"/>
+</g>
+</g>
+</g>
+</g>
+<g id="T-shirt">
+<rect id="T-shirt_2" x="1" y="2" width="54" height="54" fill="url(#pattern17_180_8269)"/>
+<g id="Mask Group_9">
+<mask id="mask8_180_8269" maskUnits="userSpaceOnUse" x="1" y="2" width="54" height="54">
+<rect id="T-shirt_3" x="1" y="2" width="54" height="54" fill="url(#pattern18_180_8269)"/>
+</mask>
+<g mask="url(#mask8_180_8269)">
+<g id="Change Color_9">
+<rect x="1" y="2" width="54" height="54" fill="#9E7D84"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<defs>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</defs>
+</svg>
