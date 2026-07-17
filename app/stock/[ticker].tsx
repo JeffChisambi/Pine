@@ -21,6 +21,7 @@ import Svg, {
   Defs,
   LinearGradient,
   Stop,
+  Text as SvgText,
 } from "react-native-svg";
 import { useStockDetail } from "../../hooks/useStocks";
 import { getStockLogo } from "../../utils/stock-logos";
@@ -73,19 +74,28 @@ interface PriceChartProps {
   period: string;
 }
 
-const CHART_H = 200;
-const TOOLTIP_W = 196;
+// ─── Exact colors from SVG design ─────────────────────────────────────────────
+const SVG_GREEN       = "#45B369";   // chart line (positive)
+const SVG_RED         = "#EF4770";   // chart line (negative)
+const SVG_TEAL        = "#164951";   // crosshair lines & tooltip background
+const SVG_GRID        = "#EBECEF";   // horizontal grid lines
+const SVG_LABEL       = "#9CA3AF";   // axis labels
+
+const CHART_H   = 210;
+const PAD_TOP   = 14;
+const PAD_BTM   = 6;
+const PAD_L     = 0;
+const PAD_R     = 0;
+// Tooltip dimensions (SVG-rendered inside chart)
+const TT_W      = 172;
+const TT_H      = 44;
+const TT_RX     = 6;
+const TT_PAD_X  = 12;
 
 function PriceChart({ data, positive, period }: PriceChartProps) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
-  const padL = 0;
-  const padR = 0;
-  const padTop = 12;
-  const padBottom = 4;
-
-  const lineColor = positive ? "#3DDC7F" : RED;
-  const glowColor = positive ? "#3DDC7F" : RED;
+  const lineColor = positive ? SVG_GREEN : SVG_RED;
 
   if (!data || data.length < 2) {
     return (
@@ -97,20 +107,15 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
     );
   }
 
-  const prices = data.map((d) => d.close);
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
-  const priceRange = maxPrice - minPrice || 1;
+  const prices  = data.map((d) => d.close);
+  const minP    = Math.min(...prices);
+  const maxP    = Math.max(...prices);
+  const range   = maxP - minP || 1;
+  const plotW   = SCREEN_W - PAD_L - PAD_R;
+  const plotH   = CHART_H - PAD_TOP - PAD_BTM;
 
-  const plotW = SCREEN_W - padL - padR;
-  const plotH = CHART_H - padTop - padBottom;
-
-  function xFor(i: number) {
-    return padL + (i / (data.length - 1)) * plotW;
-  }
-  function yFor(price: number) {
-    return padTop + (1 - (price - minPrice) / priceRange) * plotH;
-  }
+  const xFor = (i: number)     => PAD_L + (i / (data.length - 1)) * plotW;
+  const yFor = (p: number)     => PAD_TOP + (1 - (p - minP) / range) * plotH;
 
   // SVG paths
   const lineParts = data.map((d, i) =>
@@ -122,93 +127,129 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
     ` L${xFor(data.length - 1).toFixed(1)},${CHART_H}` +
     ` L${xFor(0).toFixed(1)},${CHART_H} Z`;
 
-  // Active point
-  const activePt = selectedIdx !== null ? data[selectedIdx] : data[data.length - 1];
-  const activeX = selectedIdx !== null ? xFor(selectedIdx) : xFor(data.length - 1);
-  const activeY = yFor(activePt.close);
+  // 3 evenly-spaced Y-axis grid prices
+  const yTicks = [maxP, minP + range * 0.5, minP];
 
-  const formatPrice = (p: number) =>
+  // Active point
+  const activePt  = selectedIdx !== null ? data[selectedIdx] : data[data.length - 1];
+  const activeX   = selectedIdx !== null ? xFor(selectedIdx) : xFor(data.length - 1);
+  const activeY   = yFor(activePt.close);
+  const changePct = activePt.changePct ?? 0;
+
+  const fmtPrice = (p: number) =>
     `MWK ${p.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  // Tooltip: centre on crosshair, clamp to screen
-  const tooltipLeft = Math.max(12, Math.min(SCREEN_W - TOOLTIP_W - 12, activeX - TOOLTIP_W / 2));
-  const changePct = activePt.changePct ?? 0;
-  const changePositive = changePct >= 0;
+  // Tooltip: centre on crosshair, clamp inside chart
+  const ttX   = Math.max(PAD_L + 4, Math.min(SCREEN_W - TT_W - 4, activeX - TT_W / 2));
+  const ttY   = PAD_TOP + 4;          // fixed near chart top
+  const priceTxt  = fmtPrice(activePt.close);
+  const changeTxt = `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`;
+  const changeColor = changePct >= 0 ? SVG_GREEN : SVG_RED;
 
   const handleTouch = useCallback((evt: any) => {
     const touchX = evt?.nativeEvent?.locationX ?? 0;
-    const ratio = Math.max(0, Math.min(1, touchX / plotW));
+    const ratio  = Math.max(0, Math.min(1, touchX / plotW));
     setSelectedIdx(Math.round(ratio * (data.length - 1)));
   }, [data.length, plotW]);
 
   const handleTouchEnd = useCallback(() => setSelectedIdx(null), []);
 
   return (
-    <View style={{ width: SCREEN_W, height: CHART_H + 64 }}>
+    <View
+      style={{ width: SCREEN_W, height: CHART_H }}
+      onStartShouldSetResponder={() => true}
+      onMoveShouldSetResponder={() => true}
+      onResponderGrant={handleTouch}
+      onResponderMove={handleTouch}
+      onResponderRelease={handleTouchEnd}
+    >
+      <Svg width={SCREEN_W} height={CHART_H}>
+        <Defs>
+          {/* Exact gradient from SVG: #45B369 at 0.19 → 0, always green */}
+          <LinearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0%"   stopColor={SVG_GREEN} stopOpacity="0.19" />
+            <Stop offset="100%" stopColor={SVG_GREEN} stopOpacity="0"    />
+          </LinearGradient>
+        </Defs>
 
-      {/* ── Floating pill tooltip ─────────────────────────── */}
-      <View style={[styles.floatingTooltip, { left: tooltipLeft }]}>
-        <Text style={styles.tooltipPrice}>{formatPrice(activePt.close)}</Text>
-        <View style={[
-          styles.tooltipBadge,
-          { backgroundColor: changePositive ? "rgba(61,220,127,0.18)" : "rgba(239,71,112,0.18)" },
-        ]}>
-          <Text style={[styles.tooltipBadgeText, { color: changePositive ? "#3DDC7F" : RED }]}>
-            {changePositive ? "+" : ""}{changePct.toFixed(2)}%
-          </Text>
-        </View>
-      </View>
+        {/* ── Horizontal grid lines: #EBECEF, dasharray "3 3" ── */}
+        {yTicks.map((price, i) => {
+          const y = yFor(price);
+          return (
+            <Line
+              key={i}
+              x1={PAD_L} y1={y} x2={SCREEN_W - PAD_R} y2={y}
+              stroke={SVG_GRID}
+              strokeWidth={1}
+              strokeLinecap="round"
+              strokeDasharray="3 3"
+            />
+          );
+        })}
 
-      {/* ── Chart ────────────────────────────────────────── */}
-      <View
-        style={{ width: SCREEN_W, height: CHART_H, marginTop: 44 }}
-        onStartShouldSetResponder={() => true}
-        onMoveShouldSetResponder={() => true}
-        onResponderGrant={handleTouch}
-        onResponderMove={handleTouch}
-        onResponderRelease={handleTouchEnd}
-      >
-        <Svg width={SCREEN_W} height={CHART_H}>
-          <Defs>
-            {/* Rich 3-stop gradient: strong at top, invisible at bottom */}
-            <LinearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%"   stopColor={glowColor} stopOpacity="0.55" />
-              <Stop offset="60%"  stopColor={glowColor} stopOpacity="0.1"  />
-              <Stop offset="100%" stopColor={glowColor} stopOpacity="0"    />
-            </LinearGradient>
-          </Defs>
+        {/* ── Fill ── */}
+        <Path d={fillPath} fill="url(#chartFill)" />
 
-          {/* Fill */}
-          <Path d={fillPath} fill="url(#chartFill)" />
+        {/* ── Price line: 1.5px, rounded ── */}
+        <Path
+          d={linePath}
+          stroke={lineColor}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
 
-          {/* Line */}
-          <Path
-            d={linePath}
-            stroke={lineColor}
-            strokeWidth={2.4}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          />
+        {/* ── Vertical crosshair: #164951, 0.5px, dasharray "2 2" ── */}
+        <Line
+          x1={activeX} y1={PAD_TOP}
+          x2={activeX} y2={PAD_TOP + plotH}
+          stroke={SVG_TEAL}
+          strokeWidth={0.5}
+          strokeLinecap="round"
+          strokeDasharray="2 2"
+        />
 
-          {/* Dashed vertical crosshair */}
-          <Line
-            x1={activeX} y1={padTop}
-            x2={activeX} y2={padTop + plotH}
-            stroke="rgba(255,255,255,0.6)"
-            strokeWidth={1}
-            strokeDasharray="3 4"
-          />
+        {/* ── Horizontal crosshair: #164951, 0.5px, dasharray "2 2" ── */}
+        <Line
+          x1={PAD_L} y1={activeY}
+          x2={SCREEN_W - PAD_R} y2={activeY}
+          stroke={SVG_TEAL}
+          strokeWidth={0.5}
+          strokeLinecap="round"
+          strokeDasharray="2 2"
+        />
 
-          {/* Glow halos (outermost → innermost) */}
-          <Circle cx={activeX} cy={activeY} r={18} fill={glowColor} opacity={0.07} />
-          <Circle cx={activeX} cy={activeY} r={11} fill={glowColor} opacity={0.14} />
+        {/* ── Active dot: white fill, #45B369 stroke, r=4, sw=2 ── */}
+        <Circle cx={activeX} cy={activeY} r={4} fill={WHITE} stroke={SVG_GREEN} strokeWidth={2} />
 
-          {/* White dot with coloured core */}
-          <Circle cx={activeX} cy={activeY} r={5.5} fill={WHITE} />
-          <Circle cx={activeX} cy={activeY} r={3}   fill={lineColor} />
-        </Svg>
-      </View>
+        {/* ── Tooltip: #164951 rect, white text, rx=6 ── */}
+        {/* Background rect */}
+        <Path
+          d={`M${ttX + TT_RX},${ttY} h${TT_W - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 ${TT_RX},${TT_RX} v${TT_H - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 -${TT_RX},${TT_RX} h-${TT_W - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 -${TT_RX},-${TT_RX} v-${TT_H - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 ${TT_RX},-${TT_RX} Z`}
+          fill={SVG_TEAL}
+        />
+        {/* Price text */}
+        <SvgText
+          x={ttX + TT_PAD_X}
+          y={ttY + 18}
+          fill={WHITE}
+          fontSize={12}
+          fontFamily="Poppins_600SemiBold"
+        >
+          {priceTxt}
+        </SvgText>
+        {/* Change % text */}
+        <SvgText
+          x={ttX + TT_PAD_X}
+          y={ttY + 34}
+          fill={changeColor}
+          fontSize={11}
+          fontFamily="Poppins_500Medium"
+        >
+          {changeTxt}
+        </SvgText>
+      </Svg>
     </View>
   );
 }
@@ -448,12 +489,6 @@ const styles = StyleSheet.create({
   periodTabActive:     { backgroundColor: "rgba(255,255,255,0.14)" },
   periodTabText:       { fontFamily: "Poppins_500Medium", fontSize: 12, color: "rgba(255,255,255,0.45)" },
   periodTabTextActive: { color: WHITE, fontFamily: "Poppins_600SemiBold" },
-
-  // ── Tooltip
-  floatingTooltip:  { position: "absolute", top: 12, flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(10,18,26,0.82)", borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
-  tooltipPrice:     { fontFamily: "Poppins_600SemiBold", fontSize: 13, color: WHITE, letterSpacing: 0.1 },
-  tooltipBadge:     { borderRadius: 6, paddingVertical: 3, paddingHorizontal: 7 },
-  tooltipBadgeText: { fontFamily: "Poppins_600SemiBold", fontSize: 11, letterSpacing: 0.2 },
 
   // ── Bottom white
   bottomSection: { backgroundColor: WHITE, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: 0, paddingTop: 8 },
