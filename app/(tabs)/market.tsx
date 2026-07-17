@@ -135,7 +135,7 @@ function MiniSparkline({ positive, idx }: { positive: boolean; idx: number }) {
 }
 
 // ─── Sector icons (all brand GREEN) ────────────────────────────────────────────
-const ICON_COLOR = "#45B369";
+const ICON_COLOR = "#FFFFFF";
 
 function SectorBankIcon() {
   return (
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#EEF8F2",
+    backgroundColor: "#164951",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
