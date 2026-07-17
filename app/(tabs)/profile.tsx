@@ -147,9 +147,9 @@ const SETTINGS_GROUP_1 = [
 ];
 
 const SETTINGS_GROUP_2 = [
-  { icon: <FingerprintIcon />, label: "Fingerprint", sub: "Biometric authentication", route: null },
-  { icon: <MoonIcon />, label: "Dark Mode", sub: "Switch app appearance", route: null },
-  { icon: <BellMenuIcon />, label: "Notifications", sub: "Manage alerts & sounds", route: "/profile/push-notifications" },
+  { icon: <FingerprintIcon />, label: "Fingerprint", sub: "Biometric authentication", route: null, toggle: false },
+  { icon: <MoonIcon />, label: "Dark Mode", sub: "Switch app appearance", route: null, toggle: true },
+  { icon: <BellMenuIcon />, label: "Notifications", sub: "Manage alerts & sounds", route: "/profile/push-notifications", toggle: false },
 ];
 
 const SETTINGS_GROUP_3 = [
@@ -157,9 +157,49 @@ const SETTINGS_GROUP_3 = [
   { icon: <TicketIcon />, label: "Vouchers", sub: "Promo codes & offers", route: null },
 ];
 
+function DarkModeToggle({ value, onChange }: { value: boolean; onChange: () => void }) {
+  const TRACK_W = 46;
+  const TRACK_H = 26;
+  const THUMB = 22;
+  const MARGIN = 2;
+  const tx = value ? TRACK_W - THUMB - MARGIN : MARGIN;
+  return (
+    <TouchableOpacity onPress={onChange} activeOpacity={0.85}>
+      <View style={{
+        width: TRACK_W, height: TRACK_H, borderRadius: TRACK_H / 2,
+        backgroundColor: value ? "#164951" : "#EBECEF",
+        justifyContent: "center",
+      }}>
+        <View style={{
+          width: THUMB, height: THUMB, borderRadius: THUMB / 2,
+          backgroundColor: "#FFFFFF",
+          transform: [{ translateX: tx }],
+          alignItems: "center", justifyContent: "center",
+          borderWidth: 1,
+          borderColor: value ? "#164951" : "#EBECEF",
+          shadowColor: "#000", shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.1, shadowRadius: 2, elevation: 2,
+        }}>
+          {value ? (
+            <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
+              <Path d="M3 7l3 3 5-5" stroke="#164951" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          ) : (
+            <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
+              <Path d="M4 4l6 6M10 4L4 10" stroke="#9CA3AF" strokeWidth={1.4} strokeLinecap="round" />
+            </Svg>
+          )}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+
+  const [darkMode, setDarkMode] = useState(false);
 
   // Auth state
   const { user, logout } = useAuth();
@@ -281,13 +321,16 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        {/* ── Settings Group 2 (Design 48: rect x=24 y=495 w=327 h=108) ── */}
+        {/* ── Settings Group 2 ── */}
         <View style={styles.settingsGroup}>
           {SETTINGS_GROUP_2.map((item, i) => (
             <View key={item.label}>
               <TouchableOpacity
                 style={styles.settingsRow}
-                onPress={() => item.route && router.push(item.route as any)}
+                onPress={() => {
+                  if (item.toggle) setDarkMode((v) => !v);
+                  else if (item.route) router.push(item.route as any);
+                }}
                 activeOpacity={0.7}
               >
                 <View style={styles.rowIconWrap}>{item.icon}</View>
@@ -295,7 +338,9 @@ export default function ProfileScreen() {
                   <Text style={styles.rowLabel}>{item.label}</Text>
                   <Text style={styles.rowSub}>{item.sub}</Text>
                 </View>
-                <ChevronRight />
+                {item.toggle
+                  ? <DarkModeToggle value={darkMode} onChange={() => setDarkMode((v) => !v)} />
+                  : <ChevronRight />}
               </TouchableOpacity>
               {i < SETTINGS_GROUP_2.length - 1 && <View style={styles.rowDivider} />}
             </View>
