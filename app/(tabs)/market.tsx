@@ -382,32 +382,7 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_600SemiBold",
     fontSize: 12,
   },
-  sectorsScroll: {
-    paddingLeft: 24,
-    paddingRight: 8,
-    gap: 16,
-  },
-  sectorItem: {
-    alignItems: "center",
-    gap: 8,
-    width: 70,
-  },
-  sectorCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: SECTOR_BG,
-    borderWidth: 1,
-    borderColor: SECTOR_BORDER,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sectorLabel: {
-    fontFamily: "Poppins_500Medium",
-    fontSize: 11,
-    color: DARK,
-    textAlign: "center",
-  },
+
   stockRow: {
     flexDirection: "row",
     alignItems: "center",

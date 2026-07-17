@@ -28,7 +28,6 @@ import { getStockLogo } from "../../utils/stock-logos";
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 const TEAL = "#164951";
 const CARD_TEAL = "#2D5B62";
-const BORDER_TEAL = "#739297";
 const GREEN = "#45B369";
 const RED = "#EF4770";
 const WHITE = "#FFFFFF";
@@ -38,26 +37,16 @@ const DIVIDER = "#EBECEF";
 
 const { width: SCREEN_W } = Dimensions.get("window");
 
-// ─── Period tabs (matching MSE website exactly) ─────────────────────────────────
+// ─── Period tabs ─────────────────────────────────────────────────────────────────
 const TIME_TABS = ["1M", "3M", "6M", "1Y", "2Y", "5Y"] as const;
 type TimePeriod = typeof TIME_TABS[number];
-
-const DETAIL_TABS = ["Options", "Stock", "Holdings", "PR"] as const;
 
 // ─── Icons ─────────────────────────────────────────────────────────────────────
 function BackIcon() {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M9.57 5.93L3.5 12L9.57 18.07"
-        stroke={WHITE} strokeWidth={1.5} strokeMiterlimit={10}
-        strokeLinecap="round" strokeLinejoin="round"
-      />
-      <Path
-        d="M20.5 12H3.67"
-        stroke={WHITE} strokeWidth={1.5} strokeMiterlimit={10}
-        strokeLinecap="round" strokeLinejoin="round"
-      />
+      <Path d="M9.57 5.93L3.5 12L9.57 18.07" stroke={WHITE} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M20.5 12H3.67" stroke={WHITE} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -65,27 +54,7 @@ function BackIcon() {
 function BookmarkIcon({ filled }: { filled?: boolean }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M16.82 2H7.18C5.05 2 3.32 3.74 3.32 5.86V19.95C3.32 21.75 4.61 22.51 6.19 21.64L11.07 18.93C11.59 18.64 12.43 18.64 12.94 18.93L17.82 21.64C19.4 22.52 20.69 21.76 20.69 19.95V5.86C20.68 3.74 18.95 2 16.82 2Z"
-        stroke={WHITE} strokeWidth={1.5} strokeLinecap="round"
-        strokeLinejoin="round" fill={filled ? WHITE : "none"}
-      />
-    </Svg>
-  );
-}
-
-function UpDownIcon({ positive }: { positive: boolean }) {
-  const color = positive ? GREEN : RED;
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Circle cx={12} cy={12} r={12} fill={color} />
-      {positive ? (
-        <Path d="M8 13.5L12 9.5L16 13.5" stroke={WHITE} strokeWidth={1.8}
-          strokeLinecap="round" strokeLinejoin="round" />
-      ) : (
-        <Path d="M8 10.5L12 14.5L16 10.5" stroke={WHITE} strokeWidth={1.8}
-          strokeLinecap="round" strokeLinejoin="round" />
-      )}
+      <Path d="M16.82 2H7.18C5.05 2 3.32 3.74 3.32 5.86V19.95C3.32 21.75 4.61 22.51 6.19 21.64L11.07 18.93C11.59 18.64 12.43 18.64 12.94 18.93L17.82 21.64C19.4 22.52 20.69 21.76 20.69 19.95V5.86C20.68 3.74 18.95 2 16.82 2Z" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill={filled ? WHITE : "none"} />
     </Svg>
   );
 }
@@ -248,19 +217,18 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
 export default function StockDetailScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const bottomPad = insets.bottom || 16;
   const { ticker } = useLocalSearchParams<{ ticker: string }>();
 
   const [activeTimeTab, setActiveTimeTab] = useState<TimePeriod>("1M");
-  const [activeDetailTab, setActiveDetailTab] = useState("Stock");
   const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [aboutExpanded, setAboutExpanded] = useState(false);
 
   const WATCHLIST_KEY = "@pine_watchlist_tickers";
   const MAX_WATCHLIST = 4;
 
-  // Pass the active period to the hook so data re-fetches on tab change
   const { data: stock, isLoading, error, refetch } = useStockDetail(ticker, activeTimeTab);
 
-  // Watchlist
   useEffect(() => {
     AsyncStorage.getItem(WATCHLIST_KEY)
       .then((val) => {
@@ -277,17 +245,13 @@ export default function StockDetailScreen() {
       const val = await AsyncStorage.getItem(WATCHLIST_KEY);
       const tickers: string[] = val ? JSON.parse(val) : [];
       const sym = ticker?.toUpperCase();
-
       if (tickers.includes(sym)) {
         const next = tickers.filter((t) => t !== sym);
         await AsyncStorage.setItem(WATCHLIST_KEY, JSON.stringify(next));
         setIsInWatchlist(false);
       } else {
         if (tickers.length >= MAX_WATCHLIST) {
-          Alert.alert(
-            "Watchlist Full",
-            `You can only add up to ${MAX_WATCHLIST} stocks to your watchlist. Remove one first.`
-          );
+          Alert.alert("Watchlist Full", `You can only add up to ${MAX_WATCHLIST} stocks to your watchlist. Remove one first.`);
           return;
         }
         const next = [...tickers, sym];
@@ -301,9 +265,7 @@ export default function StockDetailScreen() {
     return (
       <View style={[styles.container, { paddingTop: topPad, alignItems: "center", justifyContent: "center" }]}>
         <ActivityIndicator size="large" color={GREEN} />
-        <Text style={{ color: MUTED, marginTop: 12, fontFamily: "Poppins_400Regular" }}>
-          Loading {ticker}…
-        </Text>
+        <Text style={{ color: MUTED, marginTop: 12, fontFamily: "Poppins_400Regular" }}>Loading {ticker}…</Text>
       </View>
     );
   }
@@ -311,452 +273,216 @@ export default function StockDetailScreen() {
   if (error || !stock) {
     return (
       <View style={[styles.container, { paddingTop: topPad, alignItems: "center", justifyContent: "center" }]}>
-        <Text style={{ color: RED, fontFamily: "Poppins_600SemiBold", fontSize: 16 }}>
-          Could not load {ticker}
-        </Text>
-        <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", marginTop: 4 }}>
-          Check your connection
-        </Text>
-        <TouchableOpacity
-          onPress={() => refetch()}
-          style={{ marginTop: 16, backgroundColor: TEAL, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 }}
-        >
+        <Text style={{ color: RED, fontFamily: "Poppins_600SemiBold", fontSize: 16 }}>Could not load {ticker}</Text>
+        <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", marginTop: 4 }}>Check your connection</Text>
+        <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 16, backgroundColor: TEAL, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 }}>
           <Text style={{ color: "#fff", fontFamily: "Poppins_600SemiBold" }}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  // Build stats from API data
-  const stats = [
-    { label: "Open", value: stock.openPrice },
-    { label: "High", value: stock.highPrice },
-    { label: "Low", value: stock.lowPrice },
-    { label: "Volume", value: stock.volume },
-    ...(stock.listedShares ? [{ label: "Listed Shares", value: stock.listedShares }] : []),
-    { label: "Sector", value: stock.sector },
-  ];
-
   const chartData: PricePoint[] = stock.priceHistory.map((h) => ({
-    date: h.date,
-    close: h.close,
-    volume: h.volume,
-    changePct: h.changePct ?? null,
+    date: h.date, close: h.close, volume: h.volume, changePct: h.changePct ?? null,
   }));
 
+  const keyStats = [
+    { label: "Market Cap",    value: stock.listedShares ?? "—" },
+    { label: "Current Price", value: stock.price },
+    { label: "Open",          value: stock.openPrice },
+    { label: "High",          value: stock.highPrice },
+    { label: "Low",           value: stock.lowPrice },
+    { label: "Volume",        value: stock.volume },
+    ...(stock.sector ? [{ label: "Sector", value: stock.sector }] : []),
+  ];
+
+  const changeBadgeBg = stock.positive ? "rgba(61,220,127,0.18)" : "rgba(239,71,112,0.18)";
+  const changeBadgeFg = stock.positive ? "#3DDC7F" : RED;
+
+  const aboutText =
+    (stock as any).description ??
+    `${stock.name} is a company listed on the Malawi Stock Exchange (MSE). It operates within the ${
+      stock.sector ?? "financial"
+    } sector and offers investors exposure to the Malawian economy.`;
+
   return (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      stickyHeaderIndices={[0]}
-    >
-      {/* ── Dark teal top section ─────────────────────────────── */}
-      <View style={[styles.topSection, { paddingTop: topPad }]}>
+    <View style={styles.wrapper}>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 + bottomPad }}
+      >
+        {/* ── Dark teal top section ──────────────────────────────── */}
+        <View style={[styles.topSection, { paddingTop: topPad }]}>
 
-        {/* Navigation bar */}
-        <View style={styles.navBar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.navBtn}>
-            <BackIcon />
-          </TouchableOpacity>
-          <Text style={styles.navTitle}>{stock.symbol}</Text>
-          <TouchableOpacity style={styles.navBtn} onPress={toggleWatchlist}>
-            <BookmarkIcon filled={isInWatchlist} />
-          </TouchableOpacity>
-        </View>
+          {/* Nav */}
+          <View style={styles.navBar}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.navBtn}><BackIcon /></TouchableOpacity>
+            <TouchableOpacity style={styles.navBtn} onPress={toggleWatchlist}><BookmarkIcon filled={isInWatchlist} /></TouchableOpacity>
+          </View>
 
-        {/* Stock info card */}
-        <View style={styles.stockCard}>
-          <View style={styles.stockCardLeft}>
-            <View style={[styles.stockLogoCircle, { backgroundColor: CARD_TEAL, overflow: "hidden" }]}>
+          {/* Logo + name inline */}
+          <View style={styles.inlineHeader}>
+            <View style={styles.headerLogoWrap}>
               {getStockLogo(stock.symbol) ? (
-                <Image
-                  source={getStockLogo(stock.symbol)!}
-                  style={{ width: 40, height: 40, borderRadius: 20 }}
-                  resizeMode="contain"
-                />
+                <Image source={getStockLogo(stock.symbol)!} style={{ width: 28, height: 28, borderRadius: 14 }} resizeMode="contain" />
               ) : (
-                <Text style={styles.stockLogoText}>{stock.symbol.slice(0, 3)}</Text>
+                <Text style={styles.headerLogoText}>{stock.symbol.slice(0, 2)}</Text>
               )}
             </View>
-            <View style={{ marginLeft: 12 }}>
-              <Text style={styles.stockCardName}>{stock.symbol}</Text>
-              <Text style={styles.stockCardFull} numberOfLines={1}>{stock.name}</Text>
+            <Text style={styles.headerName} numberOfLines={1}>{stock.name}</Text>
+          </View>
+
+          {/* Price + badge + Today */}
+          <View style={styles.priceRow}>
+            <Text style={styles.priceText}>{stock.price}</Text>
+            <View style={[styles.changeBadge, { backgroundColor: changeBadgeBg }]}>
+              <Text style={[styles.changeBadgeText, { color: changeBadgeFg }]}>
+                {stock.positive ? "▲" : "▼"} {stock.change}
+              </Text>
+            </View>
+            <Text style={styles.todayLabel}>Today</Text>
+          </View>
+
+          {/* Chart */}
+          <View style={{ marginTop: 8 }}>
+            <PriceChart data={chartData} positive={stock.positive} period={activeTimeTab} />
+          </View>
+
+          {/* Period tabs */}
+          <View style={styles.periodTabsRow}>
+            {TIME_TABS.map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.periodTab, activeTimeTab === tab && styles.periodTabActive]}
+                onPress={() => setActiveTimeTab(tab)}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.periodTabText, activeTimeTab === tab && styles.periodTabTextActive]}>{tab}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* ── White bottom section ───────────────────────────────── */}
+        <View style={styles.bottomSection}>
+
+          {/* About */}
+          <View style={styles.aboutSection}>
+            <Text style={styles.sectionTitle}>About {stock.name}</Text>
+            <Text style={styles.aboutBody} numberOfLines={aboutExpanded ? undefined : 3}>{aboutText}</Text>
+            <TouchableOpacity onPress={() => setAboutExpanded((p) => !p)}>
+              <Text style={styles.readMore}>{aboutExpanded ? "Read less" : "Read more"}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.dividerLine} />
+
+          {/* Key Statistics */}
+          <View style={styles.statsSection}>
+            <View style={styles.statsSectionHeader}>
+              <Text style={styles.sectionTitle}>Key Statistics</Text>
+              <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
+            </View>
+            <View style={styles.statsGrid}>
+              {keyStats.map((stat) => (
+                <View key={stat.label} style={styles.statCell}>
+                  <Text style={styles.statLabel}>{stat.label}</Text>
+                  <Text style={styles.statValue}>{stat.value}</Text>
+                </View>
+              ))}
             </View>
           </View>
-          <View style={styles.stockCardRight}>
-            <Text style={styles.stockCardPrice}>{stock.price}</Text>
-            <View style={styles.stockCardChangeRow}>
-              <UpDownIcon positive={stock.positive} />
-              <Text style={[styles.stockCardChangePct, { color: stock.positive ? GREEN : RED }]}>
-                {stock.change}
+
+          {/* MSE badge */}
+          <View style={styles.mseBadge}>
+            <Text style={styles.mseBadgeText}>Data sourced from Malawi Stock Exchange · MSE</Text>
+            {stock.lastUpdated && (
+              <Text style={styles.mseBadgeDate}>
+                Last updated: {new Date(stock.lastUpdated).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
               </Text>
-            </View>
+            )}
           </View>
         </View>
+      </ScrollView>
 
-        {/* Real price chart */}
-        <View style={{ marginTop: 8 }}>
-          <PriceChart
-            data={chartData}
-            positive={stock.positive}
-            period={activeTimeTab}
-          />
-        </View>
-
-        {/* Period selector tabs — below the chart */}
-        <View style={styles.periodTabsRow}>
-          {TIME_TABS.map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.periodTab, activeTimeTab === tab && styles.periodTabActive]}
-              onPress={() => setActiveTimeTab(tab)}
-              activeOpacity={0.75}
-            >
-              <Text style={[styles.periodTabText, activeTimeTab === tab && styles.periodTabTextActive]}>
-                {tab}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      {/* ── Sticky Sell / Buy bar ─────────────────────────────── */}
+      <View style={[styles.stickyBar, { paddingBottom: bottomPad > 0 ? bottomPad : 16 }]}>
+        <TouchableOpacity style={styles.sellBtn} activeOpacity={0.85} onPress={() => router.push(`/trade/sell?ticker=${ticker}` as any)}>
+          <Text style={styles.sellBtnText}>Sell</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.buyBtn} activeOpacity={0.85} onPress={() => router.push(`/trade/buy?ticker=${ticker}` as any)}>
+          <Text style={styles.buyBtnText}>Buy</Text>
+        </TouchableOpacity>
       </View>
-
-      {/* ── White bottom section ──────────────────────────────── */}
-      <View style={styles.bottomSection}>
-
-        {/* Detail tabs */}
-        <View style={styles.detailTabs}>
-          {DETAIL_TABS.map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.detailTab, activeDetailTab === tab && styles.detailTabActive]}
-              onPress={() => setActiveDetailTab(tab)}
-            >
-              <Text style={[styles.detailTabText, activeDetailTab === tab && styles.detailTabTextActive]}>
-                {tab}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Stats table */}
-        <View style={styles.statsTable}>
-          {stats.map((stat, i) => (
-            <View key={stat.label}>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>{stat.label}</Text>
-                <Text style={styles.statValue}>{stat.value}</Text>
-              </View>
-              {i < stats.length - 1 && <View style={styles.statDivider} />}
-            </View>
-          ))}
-        </View>
-
-        {/* MSE attribution badge */}
-        <View style={styles.mseBadge}>
-          <Text style={styles.mseBadgeText}>
-            Data sourced from Malawi Stock Exchange · MSE
-          </Text>
-          {stock.lastUpdated && (
-            <Text style={styles.mseBadgeDate}>
-              Last updated: {new Date(stock.lastUpdated).toLocaleDateString("en-GB", {
-                day: "2-digit", month: "short", year: "numeric",
-              })}
-            </Text>
-          )}
-        </View>
-
-        {/* Buy / Sell button */}
-        <View style={styles.buySection}>
-          <TouchableOpacity
-            style={[styles.buyBtn, { backgroundColor: stock.positive ? GREEN : RED }]}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.buyBtnText}>
-              {stock.positive ? "Buy Now" : "Sell Now"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ height: 40 }} />
-      </View>
-    </ScrollView>
+    </View>
   );
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: WHITE,
-  },
-  topSection: {
-    backgroundColor: TEAL,
-    paddingBottom: 8,
-  },
-  navBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-    paddingBottom: 12,
-  },
-  navBtn: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  navTitle: {
-    fontFamily: "Poppins_700Bold",
-    fontSize: 18,
-    color: WHITE,
-  },
+  wrapper:   { flex: 1, backgroundColor: WHITE },
+  container: { flex: 1, backgroundColor: WHITE },
 
-  // Stock card
-  stockCard: {
-    marginHorizontal: 24,
-    backgroundColor: CARD_TEAL,
-    borderRadius: 14,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 20,
-    borderWidth: 0.5,
-    borderColor: BORDER_TEAL,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  stockCardLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  stockLogoCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stockLogoText: {
-    fontFamily: "Poppins_700Bold",
-    fontSize: 13,
-    color: WHITE,
-  },
-  stockCardName: {
-    fontFamily: "Poppins_700Bold",
-    fontSize: 16,
-    color: WHITE,
-  },
-  stockCardFull: {
-    fontFamily: "Poppins_400Regular",
-    fontSize: 11,
-    color: "rgba(255,255,255,0.6)",
-    marginTop: 2,
-    maxWidth: 140,
-  },
-  stockCardRight: {
-    alignItems: "flex-end",
-  },
-  stockCardPrice: {
-    fontFamily: "Poppins_700Bold",
-    fontSize: 18,
-    color: WHITE,
-    marginBottom: 6,
-  },
-  stockCardChangeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  stockCardChangePct: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 14,
-  },
+  // ── Top teal
+  topSection: { backgroundColor: TEAL, paddingBottom: 20 },
+  navBar:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
+  navBtn:     { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
 
-  // Period tabs — below chart, darker pill container
-  periodTabsRow: {
-    flexDirection: "row",
-    marginHorizontal: 20,
-    marginTop: 4,
-    marginBottom: 16,
-    backgroundColor: "rgba(0,0,0,0.25)",
-    borderRadius: 12,
-    padding: 4,
-    gap: 2,
-  },
-  periodTab: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: "center",
-    borderRadius: 9,
-  },
-  periodTabActive: {
-    backgroundColor: "rgba(255,255,255,0.14)",
-  },
-  periodTabText: {
-    fontFamily: "Poppins_500Medium",
-    fontSize: 12,
-    color: "rgba(255,255,255,0.45)",
-  },
-  periodTabTextActive: {
-    color: WHITE,
-    fontFamily: "Poppins_600SemiBold",
-  },
+  // ── Inline header
+  inlineHeader:   { flexDirection: "row", alignItems: "center", paddingHorizontal: 24, gap: 10, marginBottom: 8 },
+  headerLogoWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: CARD_TEAL, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  headerLogoText: { fontFamily: "Poppins_700Bold", fontSize: 11, color: WHITE },
+  headerName:     { fontFamily: "Poppins_500Medium", fontSize: 15, color: "rgba(255,255,255,0.8)", flex: 1 },
 
-  // Floating pill tooltip (absolute, moves with crosshair)
-  floatingTooltip: {
-    position: "absolute",
-    top: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "rgba(10,18,26,0.82)",
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    // subtle border
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-  },
-  tooltipPrice: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 13,
-    color: WHITE,
-    letterSpacing: 0.1,
-  },
-  tooltipBadge: {
-    borderRadius: 6,
-    paddingVertical: 3,
-    paddingHorizontal: 7,
-  },
-  tooltipBadgeText: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 11,
-    letterSpacing: 0.2,
-  },
+  // ── Price row
+  priceRow:        { flexDirection: "row", alignItems: "center", paddingHorizontal: 24, gap: 10, marginBottom: 4 },
+  priceText:       { fontFamily: "Poppins_700Bold", fontSize: 28, color: WHITE, letterSpacing: -0.5 },
+  changeBadge:     { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  changeBadgeText: { fontFamily: "Poppins_600SemiBold", fontSize: 12, letterSpacing: 0.2 },
+  todayLabel:      { fontFamily: "Poppins_400Regular", fontSize: 13, color: "rgba(255,255,255,0.5)" },
 
-  // Bottom section
-  bottomSection: {
-    backgroundColor: WHITE,
-    paddingTop: 0,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -12,
-  },
+  // ── Period tabs
+  periodTabsRow:       { flexDirection: "row", marginHorizontal: 20, marginTop: 4, marginBottom: 4, backgroundColor: "rgba(0,0,0,0.25)", borderRadius: 12, padding: 4, gap: 2 },
+  periodTab:           { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 9 },
+  periodTabActive:     { backgroundColor: "rgba(255,255,255,0.14)" },
+  periodTabText:       { fontFamily: "Poppins_500Medium", fontSize: 12, color: "rgba(255,255,255,0.45)" },
+  periodTabTextActive: { color: WHITE, fontFamily: "Poppins_600SemiBold" },
 
-  // Detail tabs
-  detailTabs: {
-    flexDirection: "row",
-    marginHorizontal: 24,
-    marginTop: 24,
-    marginBottom: 20,
-    gap: 8,
-  },
-  detailTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: DIVIDER,
-  },
-  detailTabActive: {
-    backgroundColor: TEAL,
-    borderColor: TEAL,
-  },
-  detailTabText: {
-    fontFamily: "Poppins_500Medium",
-    fontSize: 13,
-    color: MUTED,
-  },
-  detailTabTextActive: {
-    color: WHITE,
-    fontFamily: "Poppins_600SemiBold",
-  },
+  // ── Tooltip
+  floatingTooltip:  { position: "absolute", top: 12, flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(10,18,26,0.82)", borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  tooltipPrice:     { fontFamily: "Poppins_600SemiBold", fontSize: 13, color: WHITE, letterSpacing: 0.1 },
+  tooltipBadge:     { borderRadius: 6, paddingVertical: 3, paddingHorizontal: 7 },
+  tooltipBadgeText: { fontFamily: "Poppins_600SemiBold", fontSize: 11, letterSpacing: 0.2 },
 
-  // Stats table
-  statsTable: {
-    marginHorizontal: 24,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: DIVIDER,
-    overflow: "hidden",
-    backgroundColor: WHITE,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  statRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: WHITE,
-  },
-  statLabel: {
-    fontFamily: "Poppins_400Regular",
-    fontSize: 14,
-    color: MUTED,
-  },
-  statValue: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 14,
-    color: DARK,
-  },
-  statDivider: {
-    height: 1,
-    backgroundColor: DIVIDER,
-  },
+  // ── Bottom white
+  bottomSection: { backgroundColor: WHITE, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: 0, paddingTop: 8 },
 
-  // MSE attribution
-  mseBadge: {
-    marginHorizontal: 24,
-    marginTop: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: "#F3F6F6",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#D0DBDC",
-  },
-  mseBadgeText: {
-    fontFamily: "Poppins_500Medium",
-    fontSize: 11,
-    color: TEAL,
-  },
-  mseBadgeDate: {
-    fontFamily: "Poppins_400Regular",
-    fontSize: 10,
-    color: MUTED,
-    marginTop: 2,
-  },
+  // ── About
+  aboutSection: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 20 },
+  sectionTitle: { fontFamily: "Poppins_700Bold", fontSize: 17, color: DARK, marginBottom: 10 },
+  aboutBody:    { fontFamily: "Poppins_400Regular", fontSize: 13.5, color: "#4B5563", lineHeight: 22 },
+  readMore:     { fontFamily: "Poppins_600SemiBold", fontSize: 13, color: TEAL, marginTop: 6 },
+  dividerLine:  { height: 1, backgroundColor: DIVIDER, marginHorizontal: 24 },
 
-  // Buy button
-  buySection: {
-    marginHorizontal: 24,
-    marginTop: 20,
-  },
-  buyBtn: {
-    height: 56,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  buyBtnText: {
-    fontFamily: "Poppins_700Bold",
-    fontSize: 16,
-    color: WHITE,
-  },
+  // ── Key Statistics
+  statsSection:       { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 20 },
+  statsSectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
+  seeAll:             { fontFamily: "Poppins_500Medium", fontSize: 13, color: TEAL },
+  statsGrid:          { flexDirection: "row", flexWrap: "wrap", rowGap: 16 },
+  statCell:           { width: "50%" },
+  statLabel:          { fontFamily: "Poppins_400Regular", fontSize: 12, color: MUTED, marginBottom: 3 },
+  statValue:          { fontFamily: "Poppins_600SemiBold", fontSize: 14, color: DARK },
+
+  // ── MSE badge
+  mseBadge:     { marginHorizontal: 24, marginBottom: 8, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: "#F3F6F6", borderRadius: 10, borderWidth: 1, borderColor: "#D0DBDC" },
+  mseBadgeText: { fontFamily: "Poppins_500Medium", fontSize: 11, color: TEAL },
+  mseBadgeDate: { fontFamily: "Poppins_400Regular", fontSize: 10, color: MUTED, marginTop: 2 },
+
+  // ── Sticky Sell/Buy bar
+  stickyBar:   { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", paddingHorizontal: 24, paddingTop: 14, gap: 12, backgroundColor: WHITE, borderTopWidth: 1, borderTopColor: DIVIDER },
+  sellBtn:     { flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: TEAL, backgroundColor: WHITE },
+  sellBtnText: { fontFamily: "Poppins_700Bold", fontSize: 15, color: TEAL },
+  buyBtn:      { flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: TEAL, shadowColor: TEAL, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 5 },
+  buyBtnText:  { fontFamily: "Poppins_700Bold", fontSize: 15, color: WHITE },
 });
