@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   chartCard: { backgroundColor: WHITE, paddingTop: 14, paddingBottom: 4 },
 
   // ── Period tabs — pill style matching reference image
-  periodTabsRow:       { flexDirection: "row", marginHorizontal: 16, marginBottom: 10, gap: 4 },
+  periodTabsRow:       { flexDirection: "row", marginHorizontal: 16, marginBottom: 10, gap: 4, justifyContent: "center" },
   periodTab:           { paddingVertical: 7, paddingHorizontal: 13, alignItems: "center", borderRadius: 8 },
   periodTabActive:     { backgroundColor: SVG_TEAL },
   periodTabText:       { fontFamily: "Poppins_500Medium", fontSize: 12, color: DARK },
