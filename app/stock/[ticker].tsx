@@ -75,81 +75,110 @@ interface PriceChartProps {
 }
 
 // ─── Exact colors from SVG design ─────────────────────────────────────────────
-const SVG_GREEN       = "#45B369";   // chart line (positive)
-const SVG_RED         = "#EF4770";   // chart line (negative)
-const SVG_TEAL        = "#164951";   // crosshair lines & tooltip background
-const SVG_GRID        = "#EBECEF";   // horizontal grid lines
-const SVG_LABEL       = "#9CA3AF";   // axis labels
+const SVG_GREEN = "#45B369";
+const SVG_RED   = "#EF4770";
+const SVG_TEAL  = "#164951";
+const SVG_GRID  = "#EBECEF";
+const SVG_LABEL = "#9CA3AF";
 
-const CHART_H   = 210;
-const PAD_TOP   = 14;
-const PAD_BTM   = 6;
-const PAD_L     = 0;
-const PAD_R     = 0;
-// Tooltip dimensions (SVG-rendered inside chart)
-const TT_W      = 172;
-const TT_H      = 44;
-const TT_RX     = 6;
-const TT_PAD_X  = 12;
+// Chart dimensions
+const CHART_H   = 220;
+const Y_PAD     = 54;   // left gap for Y-axis labels
+const PAD_R     = 16;
+const PAD_TOP   = 18;
+const PAD_BTM   = 28;   // bottom gap for X-axis labels
+
+// Tooltip (SVG-rendered)
+const TT_W  = 180;
+const TT_H  = 48;
+const TT_RX = 7;
+const TT_PX = 12;
+
+/** Format a price for the Y-axis label */
+function fmtYLabel(p: number): string {
+  if (p >= 1_000_000) return `${(p / 1_000_000).toFixed(1)}M`;
+  if (p >= 10_000)    return `${(p / 1_000).toFixed(1)}K`;
+  if (p >= 1_000)     return p.toLocaleString("en", { maximumFractionDigits: 0 });
+  return p.toFixed(2);
+}
+
+/** Format a date string for the X-axis label depending on period */
+function fmtXLabel(dateStr: string, period: string): string {
+  const d = new Date(dateStr);
+  if (period === "1M")
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  if (period === "3M" || period === "6M")
+    return d.toLocaleDateString("en-GB", { month: "short", day: "numeric" });
+  return d.toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
+}
 
 function PriceChart({ data, positive, period }: PriceChartProps) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
-  const lineColor = positive ? SVG_GREEN : SVG_RED;
-
   if (!data || data.length < 2) {
     return (
       <View style={{ width: SCREEN_W, height: CHART_H, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ color: "rgba(255,255,255,0.35)", fontFamily: "Poppins_400Regular", fontSize: 12 }}>
+        <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", fontSize: 12 }}>
           Insufficient data for this period
         </Text>
       </View>
     );
   }
 
-  const prices  = data.map((d) => d.close);
-  const minP    = Math.min(...prices);
-  const maxP    = Math.max(...prices);
-  const range   = maxP - minP || 1;
-  const plotW   = SCREEN_W - PAD_L - PAD_R;
-  const plotH   = CHART_H - PAD_TOP - PAD_BTM;
+  const prices = data.map((d) => d.close);
+  const minP   = Math.min(...prices);
+  const maxP   = Math.max(...prices);
+  const range  = maxP - minP || 1;
+  const plotW  = SCREEN_W - Y_PAD - PAD_R;
+  const plotH  = CHART_H - PAD_TOP - PAD_BTM;
 
-  const xFor = (i: number)     => PAD_L + (i / (data.length - 1)) * plotW;
-  const yFor = (p: number)     => PAD_TOP + (1 - (p - minP) / range) * plotH;
+  const xFor = (i: number) => Y_PAD + (i / (data.length - 1)) * plotW;
+  const yFor = (p: number) => PAD_TOP + (1 - (p - minP) / range) * plotH;
 
-  // SVG paths
-  const lineParts = data.map((d, i) =>
-    `${i === 0 ? "M" : "L"}${xFor(i).toFixed(1)},${yFor(d.close).toFixed(1)}`
+  // ── Two-colour line: green up to peak, red after ──────────────────
+  const peakIdx = prices.indexOf(maxP);
+
+  const buildSeg = (from: number, to: number) =>
+    data.slice(from, to + 1)
+      .map((d, j) => `${j === 0 ? "M" : "L"}${xFor(from + j).toFixed(1)},${yFor(d.close).toFixed(1)}`)
+      .join(" ");
+
+  const greenPath = buildSeg(0, peakIdx);
+  const redPath   = peakIdx < data.length - 1 ? buildSeg(peakIdx, data.length - 1) : null;
+
+  // Fill only the green (rising) segment
+  const greenFill =
+    greenPath +
+    ` L${xFor(peakIdx).toFixed(1)},${(PAD_TOP + plotH).toFixed(1)}` +
+    ` L${xFor(0).toFixed(1)},${(PAD_TOP + plotH).toFixed(1)} Z`;
+
+  // ── 5 Y-axis ticks (top → bottom) ────────────────────────────────
+  const yTicks = [0, 1, 2, 3, 4].map((i) => minP + (range * (4 - i)) / 4);
+
+  // ── 5 evenly-spaced X-axis labels ────────────────────────────────
+  const xLabelIdxs = [0, 1, 2, 3, 4].map((i) =>
+    Math.round((i / 4) * (data.length - 1))
   );
-  const linePath = lineParts.join(" ");
-  const fillPath =
-    linePath +
-    ` L${xFor(data.length - 1).toFixed(1)},${CHART_H}` +
-    ` L${xFor(0).toFixed(1)},${CHART_H} Z`;
 
-  // 3 evenly-spaced Y-axis grid prices
-  const yTicks = [maxP, minP + range * 0.5, minP];
-
-  // Active point
-  const activePt  = selectedIdx !== null ? data[selectedIdx] : data[data.length - 1];
-  const activeX   = selectedIdx !== null ? xFor(selectedIdx) : xFor(data.length - 1);
+  // ── Active point ──────────────────────────────────────────────────
+  const activeIdx = selectedIdx !== null ? selectedIdx : data.length - 1;
+  const activePt  = data[activeIdx];
+  const activeX   = xFor(activeIdx);
   const activeY   = yFor(activePt.close);
   const changePct = activePt.changePct ?? 0;
-
-  const fmtPrice = (p: number) =>
-    `MWK ${p.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-  // Tooltip: centre on crosshair, clamp inside chart
-  const ttX   = Math.max(PAD_L + 4, Math.min(SCREEN_W - TT_W - 4, activeX - TT_W / 2));
-  const ttY   = PAD_TOP + 4;          // fixed near chart top
-  const priceTxt  = fmtPrice(activePt.close);
-  const changeTxt = `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`;
   const changeColor = changePct >= 0 ? SVG_GREEN : SVG_RED;
 
+  // ── Tooltip position (centred on crosshair, clamped) ─────────────
+  const ttX = Math.max(Y_PAD, Math.min(SCREEN_W - TT_W - 4, activeX - TT_W / 2));
+  const ttY = PAD_TOP + 6;
+
+  const priceTxt  = `MWK ${activePt.close.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const changeTxt = `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`;
+
   const handleTouch = useCallback((evt: any) => {
-    const touchX = evt?.nativeEvent?.locationX ?? 0;
-    const ratio  = Math.max(0, Math.min(1, touchX / plotW));
-    setSelectedIdx(Math.round(ratio * (data.length - 1)));
+    const touchX  = evt?.nativeEvent?.locationX ?? 0;
+    const clamped = Math.max(0, Math.min(1, (touchX - Y_PAD) / plotW));
+    setSelectedIdx(Math.round(clamped * (data.length - 1)));
   }, [data.length, plotW]);
 
   const handleTouchEnd = useCallback(() => setSelectedIdx(null), []);
@@ -165,42 +194,82 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
     >
       <Svg width={SCREEN_W} height={CHART_H}>
         <Defs>
-          {/* Exact gradient from SVG: #45B369 at 0.19 → 0, always green */}
+          {/* SVG-exact gradient: #45B369 at 0.19 → 0 */}
           <LinearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0%"   stopColor={SVG_GREEN} stopOpacity="0.19" />
             <Stop offset="100%" stopColor={SVG_GREEN} stopOpacity="0"    />
           </LinearGradient>
         </Defs>
 
-        {/* ── Horizontal grid lines: #EBECEF, dasharray "3 3" ── */}
+        {/* ── Y-axis grid lines + labels ─────────────────────────── */}
         {yTicks.map((price, i) => {
           const y = yFor(price);
           return (
-            <Line
-              key={i}
-              x1={PAD_L} y1={y} x2={SCREEN_W - PAD_R} y2={y}
-              stroke={SVG_GRID}
-              strokeWidth={1}
-              strokeLinecap="round"
-              strokeDasharray="3 3"
-            />
+            <React.Fragment key={i}>
+              {/* Dashed grid line across plot area */}
+              <Line
+                x1={Y_PAD} y1={y} x2={SCREEN_W - PAD_R} y2={y}
+                stroke={SVG_GRID}
+                strokeWidth={1}
+                strokeLinecap="round"
+                strokeDasharray="3 3"
+              />
+              {/* Price label, right-aligned before the plot */}
+              <SvgText
+                x={Y_PAD - 6}
+                y={y + 4}
+                textAnchor="end"
+                fill={SVG_LABEL}
+                fontSize={10}
+                fontFamily="Poppins_400Regular"
+              >
+                {fmtYLabel(price)}
+              </SvgText>
+            </React.Fragment>
           );
         })}
 
-        {/* ── Fill ── */}
-        <Path d={fillPath} fill="url(#chartFill)" />
+        {/* ── Green fill (rising segment only) ──────────────────── */}
+        <Path d={greenFill} fill="url(#chartFill)" />
 
-        {/* ── Price line: 1.5px, rounded ── */}
+        {/* ── Green line ─────────────────────────────────────────── */}
         <Path
-          d={linePath}
-          stroke={lineColor}
+          d={greenPath}
+          stroke={SVG_GREEN}
           strokeWidth={1.5}
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
         />
 
-        {/* ── Vertical crosshair: #164951, 0.5px, dasharray "2 2" ── */}
+        {/* ── Red line (falling segment) ─────────────────────────── */}
+        {redPath && (
+          <Path
+            d={redPath}
+            stroke={SVG_RED}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        )}
+
+        {/* ── X-axis date labels ─────────────────────────────────── */}
+        {xLabelIdxs.map((idx, i) => (
+          <SvgText
+            key={i}
+            x={xFor(idx)}
+            y={PAD_TOP + plotH + 18}
+            textAnchor={i === 0 ? "start" : i === 4 ? "end" : "middle"}
+            fill={SVG_LABEL}
+            fontSize={10}
+            fontFamily="Poppins_400Regular"
+          >
+            {fmtXLabel(data[idx].date, period)}
+          </SvgText>
+        ))}
+
+        {/* ── Vertical crosshair: #164951, 0.5px, "2 2" ─────────── */}
         <Line
           x1={activeX} y1={PAD_TOP}
           x2={activeX} y2={PAD_TOP + plotH}
@@ -210,9 +279,9 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
           strokeDasharray="2 2"
         />
 
-        {/* ── Horizontal crosshair: #164951, 0.5px, dasharray "2 2" ── */}
+        {/* ── Horizontal crosshair: #164951, 0.5px, "2 2" ───────── */}
         <Line
-          x1={PAD_L} y1={activeY}
+          x1={Y_PAD} y1={activeY}
           x2={SCREEN_W - PAD_R} y2={activeY}
           stroke={SVG_TEAL}
           strokeWidth={0.5}
@@ -220,33 +289,18 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
           strokeDasharray="2 2"
         />
 
-        {/* ── Active dot: white fill, #45B369 stroke, r=4, sw=2 ── */}
+        {/* ── Active dot: white fill, green stroke ──────────────── */}
         <Circle cx={activeX} cy={activeY} r={4} fill={WHITE} stroke={SVG_GREEN} strokeWidth={2} />
 
-        {/* ── Tooltip: #164951 rect, white text, rx=6 ── */}
-        {/* Background rect */}
+        {/* ── Tooltip: #164951 rounded rect ─────────────────────── */}
         <Path
           d={`M${ttX + TT_RX},${ttY} h${TT_W - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 ${TT_RX},${TT_RX} v${TT_H - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 -${TT_RX},${TT_RX} h-${TT_W - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 -${TT_RX},-${TT_RX} v-${TT_H - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 ${TT_RX},-${TT_RX} Z`}
           fill={SVG_TEAL}
         />
-        {/* Price text */}
-        <SvgText
-          x={ttX + TT_PAD_X}
-          y={ttY + 18}
-          fill={WHITE}
-          fontSize={12}
-          fontFamily="Poppins_600SemiBold"
-        >
+        <SvgText x={ttX + TT_PX} y={ttY + 19} fill={WHITE} fontSize={13} fontFamily="Poppins_700Bold">
           {priceTxt}
         </SvgText>
-        {/* Change % text */}
-        <SvgText
-          x={ttX + TT_PAD_X}
-          y={ttY + 34}
-          fill={changeColor}
-          fontSize={11}
-          fontFamily="Poppins_500Medium"
-        >
+        <SvgText x={ttX + TT_PX} y={ttY + 36} fill={changeColor} fontSize={11} fontFamily="Poppins_500Medium">
           {changeTxt}
         </SvgText>
       </Svg>
@@ -384,13 +438,11 @@ export default function StockDetailScreen() {
             </View>
             <Text style={styles.todayLabel}>Today</Text>
           </View>
+        </View>
 
-          {/* Chart */}
-          <View style={{ marginTop: 8 }}>
-            <PriceChart data={chartData} positive={stock.positive} period={activeTimeTab} />
-          </View>
-
-          {/* Period tabs */}
+        {/* ── White chart card ───────────────────────────────────── */}
+        <View style={styles.chartCard}>
+          {/* Period tabs — above the chart, pill-style */}
           <View style={styles.periodTabsRow}>
             {TIME_TABS.map((tab) => (
               <TouchableOpacity
@@ -399,10 +451,15 @@ export default function StockDetailScreen() {
                 onPress={() => setActiveTimeTab(tab)}
                 activeOpacity={0.75}
               >
-                <Text style={[styles.periodTabText, activeTimeTab === tab && styles.periodTabTextActive]}>{tab}</Text>
+                <Text style={[styles.periodTabText, activeTimeTab === tab && styles.periodTabTextActive]}>
+                  {tab}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
+
+          {/* Chart */}
+          <PriceChart data={chartData} positive={stock.positive} period={activeTimeTab} />
         </View>
 
         {/* ── White bottom section ───────────────────────────────── */}
@@ -466,7 +523,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: WHITE },
 
   // ── Top teal
-  topSection: { backgroundColor: TEAL, paddingBottom: 20 },
+  topSection: { backgroundColor: TEAL, paddingBottom: 16 },
   navBar:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
   navBtn:     { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
 
@@ -483,15 +540,18 @@ const styles = StyleSheet.create({
   changeBadgeText: { fontFamily: "Poppins_600SemiBold", fontSize: 12, letterSpacing: 0.2 },
   todayLabel:      { fontFamily: "Poppins_400Regular", fontSize: 13, color: "rgba(255,255,255,0.5)" },
 
-  // ── Period tabs
-  periodTabsRow:       { flexDirection: "row", marginHorizontal: 20, marginTop: 4, marginBottom: 4, backgroundColor: "rgba(0,0,0,0.25)", borderRadius: 12, padding: 4, gap: 2 },
-  periodTab:           { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 9 },
-  periodTabActive:     { backgroundColor: "rgba(255,255,255,0.14)" },
-  periodTabText:       { fontFamily: "Poppins_500Medium", fontSize: 12, color: "rgba(255,255,255,0.45)" },
+  // ── Chart card (white section holding tabs + chart)
+  chartCard: { backgroundColor: WHITE, paddingTop: 14, paddingBottom: 4 },
+
+  // ── Period tabs — pill style matching reference image
+  periodTabsRow:       { flexDirection: "row", marginHorizontal: 16, marginBottom: 10, gap: 4 },
+  periodTab:           { paddingVertical: 7, paddingHorizontal: 13, alignItems: "center", borderRadius: 8 },
+  periodTabActive:     { backgroundColor: SVG_TEAL },
+  periodTabText:       { fontFamily: "Poppins_500Medium", fontSize: 12, color: DARK },
   periodTabTextActive: { color: WHITE, fontFamily: "Poppins_600SemiBold" },
 
   // ── Bottom white
-  bottomSection: { backgroundColor: WHITE, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: 0, paddingTop: 8 },
+  bottomSection: { backgroundColor: WHITE, paddingTop: 8 },
 
   // ── About
   aboutSection: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 20 },
