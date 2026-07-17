@@ -171,7 +171,7 @@ const s = StyleSheet.create({
   },
   skipText: {
     fontSize: 13,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     color: TEAL,
   },
   progressRow: {

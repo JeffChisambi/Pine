@@ -280,7 +280,7 @@ const illStyles = StyleSheet.create({
   metaActive: {
     color: WHITE,
     fontSize: 8,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
   },
   metaDue: {
     color: MUTED_TEAL,

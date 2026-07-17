@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   changeText: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     fontSize: 12,
   },
 });

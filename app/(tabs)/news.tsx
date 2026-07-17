@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     borderColor: TEAL,
   },
   pillText: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     fontSize: 13,
     color: MUTED,
   },
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   cardCategory: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     fontSize: 11,
     color: TEAL,
     textTransform: "uppercase",
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   tagText: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     fontSize: 11,
   },
   cardTitle: {
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   cardSummary: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Poppins_400Regular",
     fontSize: 13,
     color: MUTED,
     lineHeight: 19,
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   cardSource: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     fontSize: 12,
     color: DARK,
   },
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   cardTime: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Poppins_400Regular",
     fontSize: 12,
     color: MUTED,
   },

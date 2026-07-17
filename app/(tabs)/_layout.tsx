@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 10,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     marginTop: 2,
   },
   indicatorTrack: {

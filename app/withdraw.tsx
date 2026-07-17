@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.5)",
   },
   amountError: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     fontSize: 12,
     color: "#FF6B6B",
   },
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     color: RED,
   },
   methodFeeFree: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     fontSize: 12,
     color: GREEN,
   },

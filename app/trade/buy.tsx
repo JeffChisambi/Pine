@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     borderColor: "#D0DBDC",
   },
   pctText: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     fontSize: 12,
     color: TEAL,
   },

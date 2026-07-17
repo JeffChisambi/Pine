@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   markAllText: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Poppins_500Medium",
     fontSize: 12,
     color: TEAL,
   },
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   notifTitle: {
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Poppins_600SemiBold",
     fontSize: 15,
     color: DARK,
     flex: 1,
@@ -371,14 +371,14 @@ const styles = StyleSheet.create({
     backgroundColor: TEAL,
   },
   notifBodyText: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Poppins_400Regular",
     fontSize: 13,
     color: MUTED,
     lineHeight: 19,
     marginBottom: 6,
   },
   notifTime: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Poppins_400Regular",
     fontSize: 12,
     color: "#C4C4C4",
   },
