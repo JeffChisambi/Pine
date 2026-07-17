@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import Svg, { Path, Circle, Line } from "react-native-svg";
+import Svg, { Path, Circle, Line, Defs, ClipPath, Rect } from "react-native-svg";
 import { getStockLogo } from "../../utils/stock-logos";
 
 const TEAL = "#164951";
@@ -108,11 +108,28 @@ const SPARKLINES_DOWN = [
 function MiniSparkline({ positive, idx }: { positive: boolean; idx: number }) {
   const paths = positive ? SPARKLINES_UP : SPARKLINES_DOWN;
   const path = paths[idx % paths.length];
-  const color = positive ? GREEN : RED;
+  const topId = `clip-top-${idx}`;
+  const botId = `clip-bot-${idx}`;
   return (
     <Svg width={88} height={52} viewBox="0 0 88 52" fill="none">
+      <Defs>
+        {/* Upper half — above the midline */}
+        <ClipPath id={topId}>
+          <Rect x="0" y="0" width="88" height="26" />
+        </ClipPath>
+        {/* Lower half — below the midline */}
+        <ClipPath id={botId}>
+          <Rect x="0" y="26" width="88" height="26" />
+        </ClipPath>
+      </Defs>
+
+      {/* Dashed midline */}
       <Line x1="0" y1="26" x2="88" y2="26" stroke="#D1D5DB" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" />
-      <Path d={path} stroke={color} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* Above midline → red */}
+      <Path d={path} stroke={RED} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" clipPath={`url(#${topId})`} />
+      {/* Below midline → green */}
+      <Path d={path} stroke={GREEN} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" clipPath={`url(#${botId})`} />
     </Svg>
   );
 }
