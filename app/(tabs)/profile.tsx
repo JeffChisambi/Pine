@@ -249,7 +249,6 @@ export default function ProfileScreen() {
             <View style={styles.cashTextBlock}>
               <Text style={styles.cashLabel}>Cash Balance</Text>
               <Text style={styles.cashAmount}>MK {walletBalanceDisplay}</Text>
-              <Text style={styles.cashSub}>MK {pendingBalanceDisplay} pending</Text>
             </View>
 
             {/* Right arrow button (Design 48: rect x=291 y=220 w=32 h=53) */}
@@ -501,10 +500,10 @@ const styles = StyleSheet.create({
   },
   /* Settings groups */
   settingsGroup: {
-    backgroundColor: "#EEEFF1",
+    backgroundColor: "#F2F3F5",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E5E6E9",
+    borderColor: "#EAEBEE",
     overflow: "hidden",
   },
   settingsRow: {
@@ -527,7 +526,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: MUTED,
   },
-  rowDivider: { height: 1, backgroundColor: DIVIDER, marginHorizontal: 16 },
+  rowDivider: { height: 1, backgroundColor: "#D4D6DA", marginHorizontal: 16 },
   /* Logout */
   logoutRow: {
     flexDirection: "row",
