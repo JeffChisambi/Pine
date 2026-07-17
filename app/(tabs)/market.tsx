@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import Svg, { Path, Circle } from "react-native-svg";
+import Svg, { Path, Circle, Line } from "react-native-svg";
 import { getStockLogo } from "../../utils/stock-logos";
 
 const TEAL = "#164951";
@@ -94,6 +94,29 @@ function StockLogo({ symbol }: { symbol: string }) {
   );
 }
 
+// Sparkline paths normalized from the SVG card design (viewBox 0 0 88 52)
+// Reference midline sits at y=26. Higher y = lower on chart.
+const SPARKLINES_UP = [
+  "M0.5 25 L5 17 L7 20 L10 13 L15 8 L17 37 L19 31 H30 L33 21 L35 23 L37 15 L40 18 L44 19 L47 28 L51 0 L52 9 L55 12 L56 21 L58 16 H63 L64 33 L66 36 L68 52 L70 44 L72 42 L73 36 L76 34 L77 28 L80 27 L82 19 L84 22 H88",
+  "M0 30 L8 25 L15 28 L20 20 L28 15 L35 18 L40 10 L47 15 L54 8 L58 5 L65 12 L70 8 L76 18 L82 12 L88 8",
+];
+const SPARKLINES_DOWN = [
+  "M0 10 L8 15 L15 12 L20 22 L28 28 L35 25 L40 35 L47 30 L54 40 L58 45 L65 38 L70 44 L76 36 L82 42 L88 48",
+  "M0 5 L8 12 L15 10 L20 18 L28 25 L35 22 L40 30 L44 24 L50 35 L58 42 L65 38 L70 45 L76 40 L82 46 L88 52",
+];
+
+function MiniSparkline({ positive, idx }: { positive: boolean; idx: number }) {
+  const paths = positive ? SPARKLINES_UP : SPARKLINES_DOWN;
+  const path = paths[idx % paths.length];
+  const color = positive ? GREEN : RED;
+  return (
+    <Svg width={88} height={52} viewBox="0 0 88 52" fill="none">
+      <Line x1="0" y1="26" x2="88" y2="26" stroke="#D1D5DB" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" />
+      <Path d={path} stroke={color} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 function StockLogoSmall({ symbol }: { symbol: string }) {
   const logo = getStockLogo(symbol);
   if (logo) {
@@ -121,11 +144,8 @@ export default function MarketScreen() {
 
   const { data: stocks = [], isLoading, error, refetch, isRefetching } = useStocks();
 
-  // Gainers: stocks with positive change today, sorted best-first (max 6 shown)
-  const gainers = [...stocks]
-    .filter((s) => s.positive && s.changePct > 0)
-    .sort((a, b) => b.changePct - a.changePct)
-    .slice(0, 6);
+  // Stock Features: representative sample of stocks for the featured cards
+  const stockFeatures = stocks.slice(0, 6);
 
   // All stocks list
   const allStocks = stocks;
@@ -150,9 +170,9 @@ export default function MarketScreen() {
         <Text style={styles.searchPlaceholder}>Search stocks, ETFs…</Text>
       </TouchableOpacity>
 
-      {/* Featured cards */}
+      {/* Stock Features cards */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Gainers</Text>
+        <Text style={styles.sectionTitle}>Stock Features</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.indicesScroll}>
@@ -164,37 +184,41 @@ export default function MarketScreen() {
           <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
             <Text style={{ color: RED, fontFamily: "Poppins_400Regular" }}>Could not load prices</Text>
           </View>
-        ) : gainers.length === 0 ? (
+        ) : stockFeatures.length === 0 ? (
           <View style={{ width: 300, paddingVertical: 24, alignItems: "center", justifyContent: "center" }}>
             <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", fontSize: 13 }}>
-              No gainers today
+              No stocks available
             </Text>
           </View>
         ) : (
-          gainers.map((s) => (
+          stockFeatures.map((s, idx) => (
             <TouchableOpacity
               key={s.id}
-              style={styles.indexCard}
+              style={styles.featureCard}
               onPress={() => router.push(`/stock/${s.symbol}` as any)}
               activeOpacity={0.85}
             >
-              <View style={styles.indexCardTop}>
+              {/* Top: logo + symbol + name */}
+              <View style={styles.featureCardTop}>
                 <StockLogoSmall symbol={s.symbol} />
                 <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={styles.indexName}>{s.symbol}</Text>
-                  <Text style={styles.indexFull} numberOfLines={1}>{s.name}</Text>
+                  <Text style={styles.featureSymbol}>{s.symbol}</Text>
+                  <Text style={styles.featureName} numberOfLines={1}>{s.name}</Text>
                 </View>
               </View>
-              <View style={styles.indexCardBottom}>
-                <View>
-                  <Text style={styles.indexPrice}>{s.price}</Text>
-                  <View style={styles.indexChangeRow}>
+
+              {/* Bottom: price + change (left) · sparkline (right) */}
+              <View style={styles.featureCardBottom}>
+                <View style={styles.featureCardLeft}>
+                  <Text style={styles.featurePrice}>{s.price}</Text>
+                  <View style={styles.featureChangeRow}>
                     <ArrowCircle positive={s.positive} />
-                    <Text style={[styles.indexChange, { color: GREEN }]}>
-                      {s.change}
+                    <Text style={[styles.featureChange, { color: s.positive ? GREEN : RED }]}>
+                      {s.changePct > 0 ? "+" : ""}{s.changePct.toFixed(2)}%
                     </Text>
                   </View>
                 </View>
+                <MiniSparkline positive={s.positive} idx={idx} />
               </View>
             </TouchableOpacity>
           ))
@@ -321,19 +345,55 @@ const styles = StyleSheet.create({
     paddingRight: 8,
     gap: 12,
   },
-  indexCard: {
-    width: 220,
-    height: 130,
+  /* Feature card — matches SVG design (240×134) */
+  featureCard: {
+    width: 240,
+    height: 134,
     backgroundColor: CARD_BG,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: CARD_BORDER,
-    padding: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     justifyContent: "space-between",
   },
-  indexCardTop: {
+  featureCardTop: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  featureSymbol: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 14,
+    color: DARK,
+  },
+  featureName: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 11,
+    color: MUTED,
+    marginTop: 1,
+  },
+  featureCardBottom: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+  },
+  featureCardLeft: {
+    flex: 1,
+  },
+  featurePrice: {
+    fontFamily: "Poppins_700Bold",
+    fontSize: 17,
+    color: DARK,
+    marginBottom: 5,
+  },
+  featureChangeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  featureChange: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 12,
   },
   logoCircleSmall: {
     width: 36,
@@ -345,42 +405,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#E5E7EB",
-  },
-  logoImageSmall: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  indexName: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 14,
-    color: DARK,
-  },
-  indexFull: {
-    fontFamily: "Poppins_400Regular",
-    fontSize: 11,
-    color: MUTED,
-    marginTop: 1,
-  },
-  indexCardBottom: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-  },
-  indexPrice: {
-    fontFamily: "Poppins_700Bold",
-    fontSize: 16,
-    color: DARK,
-    marginBottom: 4,
-  },
-  indexChangeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-  },
-  indexChange: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 12,
   },
 
   stockRow: {
