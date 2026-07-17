@@ -501,10 +501,10 @@ const styles = StyleSheet.create({
   },
   /* Settings groups */
   settingsGroup: {
-    backgroundColor: CARD_BG,
+    backgroundColor: "#EEEFF1",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: CARD_BORDER,
+    borderColor: "#E5E6E9",
     overflow: "hidden",
   },
   settingsRow: {
