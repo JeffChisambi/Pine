@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   Image,
+  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -212,17 +213,155 @@ function SectorFinanceIcon() {
   );
 }
 
+// Primary 4 shown in the scroll; all 9 shown in the modal
 const SECTORS = [
+  { key: "Agriculture",  label: "Agriculture", icon: <SectorAgricultureIcon /> },
+  { key: "Banks",        label: "Banks",       icon: <SectorBankIcon /> },
+  { key: "Real Estate",  label: "Real Estate", icon: <SectorRealEstateIcon /> },
+  { key: "Investment",   label: "Investment",  icon: <SectorInvestmentIcon /> },
   { key: "Technology",   label: "Tech",        icon: <SectorTechIcon /> },
   { key: "Energy",       label: "Energy",      icon: <SectorEnergyIcon /> },
   { key: "Finance",      label: "Finance",     icon: <SectorFinanceIcon /> },
-  { key: "Banks",        label: "Banks",       icon: <SectorBankIcon /> },
-  { key: "Investment",   label: "Investment",  icon: <SectorInvestmentIcon /> },
-  { key: "Agriculture",  label: "Agriculture", icon: <SectorAgricultureIcon /> },
-  { key: "Real Estate",  label: "Real Estate", icon: <SectorRealEstateIcon /> },
   { key: "Travel",       label: "Travel",      icon: <SectorTravelIcon /> },
   { key: "Health",       label: "Health",      icon: <SectorHealthIcon /> },
 ];
+const PRIMARY_SECTORS = SECTORS.slice(0, 4);
+
+// ─── Sectors Modal (full 3-col grid) ────────────────────────────────────────
+function SectorsModal({
+  visible,
+  onClose,
+  getSectorChange,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  getSectorChange: (key: string) => number | null;
+}) {
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={sectorModal.overlay}
+        activeOpacity={1}
+        onPress={onClose}
+      />
+      <View style={sectorModal.sheet}>
+        {/* Handle */}
+        <View style={sectorModal.handle} />
+
+        {/* Title row */}
+        <View style={sectorModal.titleRow}>
+          <Text style={sectorModal.title}>Stock Sectors</Text>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={sectorModal.closeBtn}>
+            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+              <Line x1="18" y1="6" x2="6" y2="18" stroke={DARK} strokeWidth={2.2} strokeLinecap="round"/>
+              <Line x1="6" y1="6" x2="18" y2="18" stroke={DARK} strokeWidth={2.2} strokeLinecap="round"/>
+            </Svg>
+          </TouchableOpacity>
+        </View>
+
+        {/* 3-col grid */}
+        <View style={sectorModal.grid}>
+          {SECTORS.map((sector) => {
+            const pct = getSectorChange(sector.key);
+            const positive = pct !== null && pct >= 0;
+            return (
+              <TouchableOpacity
+                key={sector.key}
+                activeOpacity={0.75}
+                style={sectorModal.cell}
+              >
+                <View style={sectorModal.circle}>{sector.icon}</View>
+                <Text style={sectorModal.label}>{sector.label}</Text>
+                <Text style={[sectorModal.pct, { color: pct === null ? MUTED : positive ? GREEN : RED }]}>
+                  {pct === null ? "—" : `${positive ? "+" : ""}${pct.toFixed(2)}%`}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <View style={{ height: 32 }} />
+      </View>
+    </Modal>
+  );
+}
+
+const sectorModal = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  sheet: {
+    backgroundColor: WHITE,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+  },
+  handle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#E5E7EB",
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 28,
+  },
+  title: {
+    fontFamily: "Poppins_700Bold",
+    fontSize: 18,
+    color: DARK,
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 0,
+  },
+  cell: {
+    width: "33.33%",
+    alignItems: "center",
+    paddingBottom: 28,
+  },
+  circle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: TEAL,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  label: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 12,
+    color: DARK,
+    textAlign: "center",
+    marginBottom: 3,
+  },
+  pct: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 12,
+    textAlign: "center",
+  },
+});
 
 function StockLogoSmall({ symbol }: { symbol: string }) {
   const logo = getStockLogo(symbol);
@@ -248,6 +387,7 @@ export default function MarketScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
   const [searchText, setSearchText] = useState("");
+  const [showSectors, setShowSectors] = useState(false);
 
   const { data: stocks = [], isLoading, error, refetch, isRefetching } = useStocks();
 
@@ -351,15 +491,21 @@ export default function MarketScreen() {
       </ScrollView>
 
       {/* ── Sector Stocks ── */}
+      <SectorsModal
+        visible={showSectors}
+        onClose={() => setShowSectors(false)}
+        getSectorChange={getSectorChange}
+      />
+
       <View style={[styles.sectionHeader, { marginTop: 24 }]}>
         <Text style={styles.sectionTitle}>Sector Stocks</Text>
-        <TouchableOpacity activeOpacity={0.7}>
+        <TouchableOpacity activeOpacity={0.7} onPress={() => setShowSectors(true)}>
           <Text style={styles.sectionViewAll}>View All</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sectorScroll}>
-        {SECTORS.map((sector) => {
+        {PRIMARY_SECTORS.map((sector) => {
           const pct = getSectorChange(sector.key);
           const positive = pct !== null && pct >= 0;
           return (
