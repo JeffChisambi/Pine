@@ -248,6 +248,11 @@ function CloseIcon() {
   );
 }
 
+/** Returns the correct Image source for both local require() and remote URIs */
+function imgSrc(image: any) {
+  return typeof image === "string" ? { uri: image } : image;
+}
+
 function ArrowIcon() {
   return (
     <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
@@ -272,7 +277,7 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={detail.scroll}>
           {/* Hero image */}
-          <Image source={{ uri: item.image }} style={detail.image} resizeMode="cover" />
+          <Image source={imgSrc(item.image)} style={detail.image} resizeMode="cover" />
 
           {/* Meta */}
           <View style={detail.metaRow}>
@@ -325,7 +330,7 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
 function HeroCard({ item, onPress }: { item: NewsItem; onPress: () => void }) {
   return (
     <TouchableOpacity activeOpacity={0.88} style={styles.heroCard} onPress={onPress}>
-      <Image source={{ uri: item.image }} style={styles.heroImage} resizeMode="cover" />
+      <Image source={imgSrc(item.image)} style={styles.heroImage} resizeMode="cover" />
       <View style={styles.heroBody}>
         <Text style={styles.heroTitle} numberOfLines={3}>{item.title}</Text>
         <Text style={styles.heroSummary} numberOfLines={2}>{item.summary}</Text>
@@ -348,7 +353,7 @@ function HeroCard({ item, onPress }: { item: NewsItem; onPress: () => void }) {
 function ThumbCard({ item, onPress }: { item: NewsItem; onPress: () => void }) {
   return (
     <TouchableOpacity activeOpacity={0.82} style={styles.thumbCard} onPress={onPress}>
-      <Image source={{ uri: item.image }} style={styles.thumbImage} resizeMode="cover" />
+      <Image source={imgSrc(item.image)} style={styles.thumbImage} resizeMode="cover" />
       <View style={styles.thumbBody}>
         <Text style={styles.thumbTitle} numberOfLines={2}>{item.title}</Text>
         <Text style={styles.thumbSummary} numberOfLines={2}>{item.summary}</Text>
