@@ -118,7 +118,7 @@ const NEWS_ITEMS: NewsItem[] = [
     ],
     time: "31 Mar 2026",
     source: "National Investment Trust Plc",
-    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=80",
+    image: require("../../attached_assets/NTL_1784364351667.png"),
   },
 
   // ── NITL Dividend ─────────────────────────────────────────────────────────
@@ -144,7 +144,7 @@ const NEWS_ITEMS: NewsItem[] = [
     ],
     time: "31 Mar 2026",
     source: "National Investment Trust Plc",
-    image: "https://images.unsplash.com/photo-1559526324-593bc073d938?w=400&q=80",
+    image: require("../../attached_assets/NTL_1784364351667.png"),
   },
 
   // ── NICO Holdings Main ────────────────────────────────────────────────────
