@@ -32,7 +32,7 @@ type NewsItem = {
   metrics?: Metric[];
   time: string;
   source: string;
-  image: string;
+  image: any;             // string URI or local require()
   featured?: boolean;
 };
 
@@ -65,7 +65,7 @@ const NEWS_ITEMS: NewsItem[] = [
     ],
     time: "30 Mar 2026",
     source: "FDH Bank Plc",
-    image: "https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?w=900&q=80",
+    image: require("../../attached_assets/fdh_1784363470714.png"),
     featured: true,
   },
 
@@ -91,7 +91,7 @@ const NEWS_ITEMS: NewsItem[] = [
     ],
     time: "30 Mar 2026",
     source: "FDH Bank Plc",
-    image: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400&q=80",
+    image: require("../../attached_assets/fdh_1784363470714.png"),
   },
 
   // ── NITL Profit ───────────────────────────────────────────────────────────
