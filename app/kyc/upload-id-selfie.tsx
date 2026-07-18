@@ -263,7 +263,7 @@ export default function UploadIdSelfieScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: WHITE,
   },
 
   // Header
