@@ -437,14 +437,14 @@ export default function NewsScreen() {
 const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: WHITE },
   header:      { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 14 },
-  headerTitle: { fontFamily: "Poppins_700Bold", fontSize: 24, color: DARK },
+  headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 24, color: DARK },
   bellBtn:     { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center" },
 
   pillsScroll:     { flexGrow: 0, marginBottom: 10 },
   pillsContainer:  { paddingHorizontal: 20, gap: 8 },
   pill:            { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: "#F3F4F6" },
   pillActive:      { backgroundColor: TEAL },
-  pillText:        { fontFamily: "Poppins_500Medium", fontSize: 13, color: MUTED },
+  pillText:        { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED },
   pillTextActive:  { color: WHITE },
 
   listContent:   { paddingBottom: 24 },
@@ -453,25 +453,25 @@ const styles = StyleSheet.create({
 
   // Shared meta row
   metaRow:      { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
-  metaTime:     { fontFamily: "Poppins_400Regular", fontSize: 12, color: MUTED },
+  metaTime:     { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
   metaDivider:  { width: 1, height: 11, backgroundColor: "#E5E7EB" },
-  metaCategory: { fontFamily: "Poppins_600SemiBold", fontSize: 12 },
+  metaCategory: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12 },
   readMore:     { flexDirection: "row", alignItems: "center", gap: 4 },
-  readMoreText: { fontFamily: "Poppins_500Medium", fontSize: 12, color: TEAL },
+  readMoreText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: TEAL },
 
   // Hero
   heroCard:    { paddingHorizontal: 20 },
   heroImage:   { width: "100%", height: 220, borderRadius: 16, backgroundColor: "#E5E7EB" },
   heroBody:    { marginTop: 14, gap: 6 },
-  heroTitle:   { fontFamily: "Poppins_700Bold", fontSize: 20, color: DARK, lineHeight: 29 },
-  heroSummary: { fontFamily: "Poppins_400Regular", fontSize: 13, color: MUTED, lineHeight: 19 },
+  heroTitle:   { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: DARK, lineHeight: 29 },
+  heroSummary: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, lineHeight: 19 },
 
   // Thumb
   thumbCard:    { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 20, gap: 14 },
   thumbImage:   { width: 90, height: 90, borderRadius: 12, backgroundColor: "#E5E7EB", flexShrink: 0 },
   thumbBody:    { flex: 1, gap: 4 },
-  thumbTitle:   { fontFamily: "Poppins_700Bold", fontSize: 14, color: DARK, lineHeight: 21 },
-  thumbSummary: { fontFamily: "Poppins_400Regular", fontSize: 12, color: MUTED, lineHeight: 18 },
+  thumbTitle:   { fontFamily: "PlusJakartaSans_700Bold", fontSize: 14, color: DARK, lineHeight: 21 },
+  thumbSummary: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, lineHeight: 18 },
 });
 
 // ─── Detail modal styles ───────────────────────────────────────────────────────
@@ -486,21 +486,21 @@ const detail = StyleSheet.create({
 
   metaRow:       { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, marginTop: 18 },
   catBadge:      { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 6 },
-  catBadgeText:  { fontFamily: "Poppins_600SemiBold", fontSize: 11 },
-  metaTime:      { fontFamily: "Poppins_400Regular", fontSize: 12, color: MUTED },
+  catBadgeText:  { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11 },
+  metaTime:      { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
   metaDot:       { color: MUTED, fontSize: 12 },
-  metaSource:    { fontFamily: "Poppins_500Medium", fontSize: 12, color: DARK },
+  metaSource:    { fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: DARK },
 
-  title:   { fontFamily: "Poppins_700Bold", fontSize: 20, color: DARK, lineHeight: 30, paddingHorizontal: 20, marginTop: 12 },
+  title:   { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: DARK, lineHeight: 30, paddingHorizontal: 20, marginTop: 12 },
   divider: { height: 1, backgroundColor: CARD_BORDER, marginHorizontal: 20, marginVertical: 20 },
 
   metricsSection:  { paddingHorizontal: 20, marginBottom: 20 },
-  metricsHeading:  { fontFamily: "Poppins_600SemiBold", fontSize: 13, color: DARK, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 },
+  metricsHeading:  { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: DARK, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 },
   metricsGrid:     { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   metricCard:      { backgroundColor: BG, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, minWidth: "45%", flex: 1 },
-  metricLabel:     { fontFamily: "Poppins_400Regular", fontSize: 11, color: MUTED, marginBottom: 4 },
-  metricValue:     { fontFamily: "Poppins_700Bold", fontSize: 15, color: DARK },
+  metricLabel:     { fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginBottom: 4 },
+  metricValue:     { fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: DARK },
 
   bodySection: { paddingHorizontal: 20, gap: 14 },
-  bodyPara:    { fontFamily: "Poppins_400Regular", fontSize: 14, color: "#374151", lineHeight: 23 },
+  bodyPara:    { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: "#374151", lineHeight: 23 },
 });

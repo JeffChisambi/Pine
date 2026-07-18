@@ -152,14 +152,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 26,
     color: DARK,
     marginBottom: 10,
     textAlign: "center",
   },
   subtitle: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 14,
     color: MUTED,
     textAlign: "center",
@@ -181,8 +181,8 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   statDivider: { height: 1, backgroundColor: DIVIDER },
-  statLabel: { fontFamily: "Poppins_400Regular", fontSize: 13, color: MUTED },
-  statValue: { fontFamily: "Poppins_600SemiBold", fontSize: 13, color: DARK },
+  statLabel: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED },
+  statValue: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: DARK },
   bottomButtons: {
     width: SCREEN_W - 40,
     gap: 12,
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   secondaryBtnText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: TEAL,
   },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   primaryBtnText: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 16,
     color: WHITE,
   },

@@ -273,13 +273,13 @@ const styles = StyleSheet.create({
   },
   topCardTitle: {
     fontSize: 16,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     color: WHITE,
     marginBottom: 4,
   },
   topCardSub: {
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: "rgba(255,255,255,0.7)",
   },
   overlappingLogos: {
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   },
   headline: {
     fontSize: 26,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     color: DARK,
     lineHeight: 34,
     textAlign: "left",
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   },
   subheadline: {
     fontSize: 14,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
     textAlign: "left",
     alignSelf: "flex-start",
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   },
   socialBtnText: {
     fontSize: 13,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: DARK,
     textAlign: "left",
     lineHeight: 17,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
   },
 
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: DARK,
   },
   eyeBtn: {
@@ -395,12 +395,12 @@ const styles = StyleSheet.create({
   },
   forgotText: {
     fontSize: 13,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: TEAL,
   },
   forgotHint: {
     fontSize: 13,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
     flex: 1,
   },
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   },
   signInText: {
     fontSize: 17,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: WHITE,
   },
 
@@ -432,12 +432,12 @@ const styles = StyleSheet.create({
   },
   bottomText: {
     fontSize: 13,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
   },
   bottomLink: {
     fontSize: 13,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: TEAL,
   },
 });

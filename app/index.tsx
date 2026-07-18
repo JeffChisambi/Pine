@@ -171,7 +171,7 @@ const s = StyleSheet.create({
   },
   skipText: {
     fontSize: 13,
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     color: TEAL,
   },
   progressRow: {
@@ -220,14 +220,14 @@ const s = StyleSheet.create({
   },
   headline: {
     fontSize: 28,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     color: DARK,
     lineHeight: 36,
     textAlign: "center",
   },
   description: {
     fontSize: 15,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED_DARK,
     lineHeight: 22,
     textAlign: "center",
@@ -249,7 +249,7 @@ const s = StyleSheet.create({
   nextBtnText: {
     color: WHITE,
     fontSize: 16,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
   },
 
   /* Dots */

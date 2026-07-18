@@ -185,14 +185,14 @@ const styles = StyleSheet.create({
   },
   headline: {
     fontSize: 28,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     color: DARK,
     lineHeight: 36,
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 14,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
     lineHeight: 22,
   },
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   },
   countryCode: {
     fontSize: 15,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: DARK,
   },
   divider: {
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   phoneInput: {
     flex: 1,
     fontSize: 15,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: DARK,
   },
   clearBtn: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   },
   continueBtnText: {
     fontSize: 17,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: WHITE,
   },
 });

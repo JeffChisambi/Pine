@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 10,
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     marginTop: 2,
   },
 });

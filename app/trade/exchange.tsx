@@ -116,7 +116,7 @@ export default function ExchangeScreen() {
                   {fromStock?.symbol && getStockLogo(fromStock.symbol) ? (
                     <Image source={getStockLogo(fromStock.symbol)!} style={{ width: 28, height: 28, borderRadius: 14 }} resizeMode="contain" />
                   ) : (
-                    <Text style={{ color: TEAL, fontFamily: "Poppins_700Bold", fontSize: 9 }}>{fromStock?.symbol?.slice(0, 3) ?? ""}</Text>
+                    <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{fromStock?.symbol?.slice(0, 3) ?? ""}</Text>
                   )}
                 </View>
                 <Text style={styles.assetSelectorTicker}>{fromStock?.symbol ?? "..."}</Text>
@@ -140,7 +140,7 @@ export default function ExchangeScreen() {
                     {getStockLogo(s.symbol) ? (
                       <Image source={getStockLogo(s.symbol)!} style={{ width: 28, height: 28, borderRadius: 14 }} resizeMode="contain" />
                     ) : (
-                      <Text style={{ color: TEAL, fontFamily: "Poppins_700Bold", fontSize: 9 }}>{s.symbol.slice(0, 3)}</Text>
+                      <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{s.symbol.slice(0, 3)}</Text>
                     )}
                   </View>
                   <View>
@@ -175,7 +175,7 @@ export default function ExchangeScreen() {
                   {toStock?.symbol && getStockLogo(toStock.symbol) ? (
                     <Image source={getStockLogo(toStock.symbol)!} style={{ width: 28, height: 28, borderRadius: 14 }} resizeMode="contain" />
                   ) : (
-                    <Text style={{ color: TEAL, fontFamily: "Poppins_700Bold", fontSize: 9 }}>{toStock?.symbol?.slice(0, 3) ?? ""}</Text>
+                    <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{toStock?.symbol?.slice(0, 3) ?? ""}</Text>
                   )}
                 </View>
                 <Text style={styles.assetSelectorTicker}>{toStock?.symbol ?? "..."}</Text>
@@ -199,7 +199,7 @@ export default function ExchangeScreen() {
                     {getStockLogo(s.symbol) ? (
                       <Image source={getStockLogo(s.symbol)!} style={{ width: 28, height: 28, borderRadius: 14 }} resizeMode="contain" />
                     ) : (
-                      <Text style={{ color: TEAL, fontFamily: "Poppins_700Bold", fontSize: 9 }}>{s.symbol.slice(0, 3)}</Text>
+                      <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{s.symbol.slice(0, 3)}</Text>
                     )}
                   </View>
                   <View>
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   headerTitle: {
     flex: 1,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 17,
     color: DARK,
     textAlign: "center",
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   },
   assetSection: { padding: 20 },
   assetSectionLabel: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 11,
     color: MUTED,
     letterSpacing: 0.8,
@@ -290,14 +290,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   assetAmountInput: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 32,
     color: DARK,
     flex: 1,
     padding: 0,
   },
   assetAmountReadonly: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 32,
     color: TEAL,
     flex: 1,
@@ -328,12 +328,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   assetSelectorTicker: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 14,
     color: DARK,
   },
   assetSub: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: MUTED,
   },
@@ -349,9 +349,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 10,
   },
-  pickerTicker: { fontFamily: "Poppins_600SemiBold", fontSize: 14, color: DARK },
-  pickerName: { fontFamily: "Poppins_400Regular", fontSize: 12, color: MUTED },
-  pickerPrice: { fontFamily: "Poppins_500Medium", fontSize: 13, color: DARK, marginLeft: "auto" },
+  pickerTicker: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: DARK },
+  pickerName: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
+  pickerPrice: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: DARK, marginLeft: "auto" },
   swapDivider: {
     flexDirection: "row",
     alignItems: "center",
@@ -369,8 +369,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 16,
   },
-  rateLabel: { fontFamily: "Poppins_400Regular", fontSize: 13, color: MUTED },
-  rateValue: { fontFamily: "Poppins_600SemiBold", fontSize: 13, color: TEAL },
+  rateLabel: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED },
+  rateValue: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: TEAL },
   summaryCard: {
     backgroundColor: "#F9FAFB",
     borderRadius: 12,
@@ -385,8 +385,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   summaryDivider: { height: 1, backgroundColor: DIVIDER },
-  summaryLabel: { fontFamily: "Poppins_400Regular", fontSize: 13, color: MUTED },
-  summaryValue: { fontFamily: "Poppins_600SemiBold", fontSize: 13, color: DARK },
+  summaryLabel: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED },
+  summaryValue: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: DARK },
   bottomBar: {
     paddingHorizontal: 20,
     paddingTop: 12,
@@ -400,5 +400,5 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: "center",
   },
-  ctaBtnText: { fontFamily: "Poppins_700Bold", fontSize: 16, color: WHITE },
+  ctaBtnText: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE },
 });

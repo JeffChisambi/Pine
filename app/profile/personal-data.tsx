@@ -100,7 +100,7 @@ function FormField({ label, value, onChangeText, placeholder, keyboardType = "de
 const fieldStyles = StyleSheet.create({
   wrap: { marginBottom: 20 },
   label: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 14,
     color: DARK,
     marginBottom: 8,
@@ -123,7 +123,7 @@ const fieldStyles = StyleSheet.create({
     borderColor: "#E5E7EB",
   },
   input: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 15,
     color: DARK,
     padding: 0,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   headerTitle: {
     flex: 1,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 17,
     color: DARK,
     textAlign: "center",
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   saveBtnText: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 16,
     color: WHITE,
   },

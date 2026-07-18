@@ -185,14 +185,14 @@ const styles = StyleSheet.create({
   },
   headline: {
     fontSize: 28,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     color: DARK,
     lineHeight: 36,
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 14,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
     lineHeight: 22,
   },
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: DARK,
   },
   ctaWrap: {
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   continueBtnText: {
     fontSize: 17,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: WHITE,
   },
 });

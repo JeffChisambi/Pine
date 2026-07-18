@@ -118,7 +118,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   if (!data || data.length < 2) {
     return (
       <View style={{ width: SCREEN_W, height: CHART_H, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", fontSize: 12 }}>
+        <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 12 }}>
           Insufficient data for this period
         </Text>
       </View>
@@ -221,7 +221,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
                 textAnchor="end"
                 fill={SVG_LABEL}
                 fontSize={10}
-                fontFamily="Poppins_400Regular"
+                fontFamily="PlusJakartaSans_400Regular"
               >
                 {fmtYLabel(price)}
               </SvgText>
@@ -263,7 +263,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
             textAnchor={i === 0 ? "start" : i === 4 ? "end" : "middle"}
             fill={SVG_LABEL}
             fontSize={10}
-            fontFamily="Poppins_400Regular"
+            fontFamily="PlusJakartaSans_400Regular"
           >
             {fmtXLabel(data[idx].date, period)}
           </SvgText>
@@ -297,10 +297,10 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
           d={`M${ttX + TT_RX},${ttY} h${TT_W - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 ${TT_RX},${TT_RX} v${TT_H - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 -${TT_RX},${TT_RX} h-${TT_W - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 -${TT_RX},-${TT_RX} v-${TT_H - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 ${TT_RX},-${TT_RX} Z`}
           fill={SVG_TEAL}
         />
-        <SvgText x={ttX + TT_PX} y={ttY + 19} fill={WHITE} fontSize={13} fontFamily="Poppins_700Bold">
+        <SvgText x={ttX + TT_PX} y={ttY + 19} fill={WHITE} fontSize={13} fontFamily="PlusJakartaSans_700Bold">
           {priceTxt}
         </SvgText>
-        <SvgText x={ttX + TT_PX} y={ttY + 36} fill={changeColor} fontSize={11} fontFamily="Poppins_500Medium">
+        <SvgText x={ttX + TT_PX} y={ttY + 36} fill={changeColor} fontSize={11} fontFamily="PlusJakartaSans_500Medium">
           {changeTxt}
         </SvgText>
       </Svg>
@@ -360,7 +360,7 @@ export default function StockDetailScreen() {
     return (
       <View style={[styles.container, { paddingTop: topPad, alignItems: "center", justifyContent: "center" }]}>
         <ActivityIndicator size="large" color={GREEN} />
-        <Text style={{ color: MUTED, marginTop: 12, fontFamily: "Poppins_400Regular" }}>Loading {ticker}…</Text>
+        <Text style={{ color: MUTED, marginTop: 12, fontFamily: "PlusJakartaSans_400Regular" }}>Loading {ticker}…</Text>
       </View>
     );
   }
@@ -368,10 +368,10 @@ export default function StockDetailScreen() {
   if (error || !stock) {
     return (
       <View style={[styles.container, { paddingTop: topPad, alignItems: "center", justifyContent: "center" }]}>
-        <Text style={{ color: RED, fontFamily: "Poppins_600SemiBold", fontSize: 16 }}>Could not load {ticker}</Text>
-        <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", marginTop: 4 }}>Check your connection</Text>
+        <Text style={{ color: RED, fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16 }}>Could not load {ticker}</Text>
+        <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", marginTop: 4 }}>Check your connection</Text>
         <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 16, backgroundColor: TEAL, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 }}>
-          <Text style={{ color: "#fff", fontFamily: "Poppins_600SemiBold" }}>Retry</Text>
+          <Text style={{ color: "#fff", fontFamily: "PlusJakartaSans_600SemiBold" }}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -530,15 +530,15 @@ const styles = StyleSheet.create({
   // ── Inline header
   inlineHeader:   { flexDirection: "row", alignItems: "center", paddingHorizontal: 24, gap: 10, marginBottom: 8 },
   headerLogoWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: CARD_TEAL, alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  headerLogoText: { fontFamily: "Poppins_700Bold", fontSize: 11, color: WHITE },
-  headerName:     { fontFamily: "Poppins_500Medium", fontSize: 15, color: "rgba(255,255,255,0.8)", flex: 1 },
+  headerLogoText: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 11, color: WHITE },
+  headerName:     { fontFamily: "PlusJakartaSans_500Medium", fontSize: 15, color: "rgba(255,255,255,0.8)", flex: 1 },
 
   // ── Price row
   priceRow:        { flexDirection: "row", alignItems: "center", paddingHorizontal: 24, gap: 10, marginBottom: 4 },
-  priceText:       { fontFamily: "Poppins_700Bold", fontSize: 28, color: WHITE, letterSpacing: -0.5 },
+  priceText:       { fontFamily: "PlusJakartaSans_700Bold", fontSize: 28, color: WHITE, letterSpacing: -0.5 },
   changeBadge:     { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  changeBadgeText: { fontFamily: "Poppins_600SemiBold", fontSize: 12, letterSpacing: 0.2 },
-  todayLabel:      { fontFamily: "Poppins_400Regular", fontSize: 13, color: "rgba(255,255,255,0.5)" },
+  changeBadgeText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, letterSpacing: 0.2 },
+  todayLabel:      { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.5)" },
 
   // ── Chart card (white section holding tabs + chart)
   chartCard: { backgroundColor: WHITE, paddingTop: 14, paddingBottom: 4 },
@@ -547,37 +547,37 @@ const styles = StyleSheet.create({
   periodTabsRow:       { flexDirection: "row", marginHorizontal: 16, marginBottom: 10, gap: 4, justifyContent: "center" },
   periodTab:           { paddingVertical: 7, paddingHorizontal: 13, alignItems: "center", borderRadius: 8 },
   periodTabActive:     { backgroundColor: SVG_TEAL },
-  periodTabText:       { fontFamily: "Poppins_500Medium", fontSize: 12, color: DARK },
-  periodTabTextActive: { color: WHITE, fontFamily: "Poppins_600SemiBold" },
+  periodTabText:       { fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: DARK },
+  periodTabTextActive: { color: WHITE, fontFamily: "PlusJakartaSans_600SemiBold" },
 
   // ── Bottom white
   bottomSection: { backgroundColor: WHITE, paddingTop: 8 },
 
   // ── About
   aboutSection: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 20 },
-  sectionTitle: { fontFamily: "Poppins_700Bold", fontSize: 17, color: DARK, marginBottom: 10 },
-  aboutBody:    { fontFamily: "Poppins_400Regular", fontSize: 13.5, color: "#4B5563", lineHeight: 22 },
-  readMore:     { fontFamily: "Poppins_600SemiBold", fontSize: 13, color: TEAL, marginTop: 6 },
+  sectionTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: DARK, marginBottom: 10 },
+  aboutBody:    { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13.5, color: "#4B5563", lineHeight: 22 },
+  readMore:     { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: TEAL, marginTop: 6 },
   dividerLine:  { height: 1, backgroundColor: DIVIDER, marginHorizontal: 24 },
 
   // ── Key Statistics
   statsSection:       { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 20 },
   statsSectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
-  seeAll:             { fontFamily: "Poppins_500Medium", fontSize: 13, color: TEAL },
+  seeAll:             { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: TEAL },
   statsGrid:          { flexDirection: "row", flexWrap: "wrap", rowGap: 16 },
   statCell:           { width: "50%" },
-  statLabel:          { fontFamily: "Poppins_400Regular", fontSize: 12, color: MUTED, marginBottom: 3 },
-  statValue:          { fontFamily: "Poppins_600SemiBold", fontSize: 14, color: DARK },
+  statLabel:          { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, marginBottom: 3 },
+  statValue:          { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: DARK },
 
   // ── MSE badge
   mseBadge:     { marginHorizontal: 24, marginBottom: 8, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: "#F3F6F6", borderRadius: 10, borderWidth: 1, borderColor: "#D0DBDC" },
-  mseBadgeText: { fontFamily: "Poppins_500Medium", fontSize: 11, color: TEAL },
-  mseBadgeDate: { fontFamily: "Poppins_400Regular", fontSize: 10, color: MUTED, marginTop: 2 },
+  mseBadgeText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: TEAL },
+  mseBadgeDate: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 10, color: MUTED, marginTop: 2 },
 
   // ── Sticky Sell/Buy bar
   stickyBar:   { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", paddingHorizontal: 24, paddingTop: 14, gap: 12, backgroundColor: WHITE, borderTopWidth: 1, borderTopColor: DIVIDER },
   sellBtn:     { flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: TEAL, backgroundColor: WHITE },
-  sellBtnText: { fontFamily: "Poppins_700Bold", fontSize: 15, color: TEAL },
+  sellBtnText: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: TEAL },
   buyBtn:      { flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: TEAL, shadowColor: TEAL, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 5 },
-  buyBtnText:  { fontFamily: "Poppins_700Bold", fontSize: 15, color: WHITE },
+  buyBtnText:  { fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: WHITE },
 });

@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   headerTitle: {
     flex: 1,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 17,
     color: DARK,
     textAlign: "center",
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   pageDescription: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 13,
     color: MUTED,
     marginBottom: 20,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   categoryLabel: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: DARK,
   },
@@ -293,12 +293,12 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   mandatoryText: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 11,
     color: "#166534",
   },
   categoryDesc: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: MUTED,
     marginBottom: 10,
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   },
   toggleTextBlock: { flex: 1 },
   toggleLabel: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 14,
     color: DARK,
   },

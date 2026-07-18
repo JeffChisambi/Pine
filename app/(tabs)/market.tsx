@@ -91,7 +91,7 @@ function StockLogo({ symbol }: { symbol: string }) {
   const bg = colors[symbol.charCodeAt(0) % colors.length];
   return (
     <View style={[styles.logoCircle, { backgroundColor: bg }]}>
-      <Text style={{ color: "#fff", fontFamily: "Poppins_700Bold", fontSize: 11 }}>
+      <Text style={{ color: "#fff", fontFamily: "PlusJakartaSans_700Bold", fontSize: 11 }}>
         {symbol.slice(0, 3)}
       </Text>
     </View>
@@ -370,7 +370,7 @@ const sectorModal = StyleSheet.create({
     marginBottom: 28,
   },
   title: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
     color: DARK,
   },
@@ -402,14 +402,14 @@ const sectorModal = StyleSheet.create({
     marginBottom: 10,
   },
   label: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 12,
     color: DARK,
     textAlign: "center",
     marginBottom: 3,
   },
   pct: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 12,
     textAlign: "center",
   },
@@ -428,7 +428,7 @@ function StockLogoSmall({ symbol }: { symbol: string }) {
   const bg = colors[symbol.charCodeAt(0) % colors.length];
   return (
     <View style={[styles.logoCircleSmall, { backgroundColor: bg, justifyContent: "center", alignItems: "center" }]}>
-      <Text style={{ color: "#fff", fontFamily: "Poppins_700Bold", fontSize: 9 }}>
+      <Text style={{ color: "#fff", fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>
         {symbol.slice(0, 3)}
       </Text>
     </View>
@@ -495,15 +495,15 @@ export default function MarketScreen() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.indicesScroll}>
         {isLoading ? (
           <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
-            <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular" }}>Loading market data…</Text>
+            <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular" }}>Loading market data…</Text>
           </View>
         ) : error ? (
           <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
-            <Text style={{ color: RED, fontFamily: "Poppins_400Regular" }}>Could not load prices</Text>
+            <Text style={{ color: RED, fontFamily: "PlusJakartaSans_400Regular" }}>Could not load prices</Text>
           </View>
         ) : stockFeatures.length === 0 ? (
           <View style={{ width: 300, paddingVertical: 24, alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", fontSize: 13 }}>
+            <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13 }}>
               No stocks available
             </Text>
           </View>
@@ -575,7 +575,7 @@ export default function MarketScreen() {
       {/* All Stocks list */}
       <View style={[styles.sectionHeader, { marginTop: 24 }]}>
         <Text style={styles.sectionTitle}>All Stocks</Text>
-        {isRefetching && <Text style={{ color: MUTED, fontSize: 11, fontFamily: "Poppins_400Regular" }}>Refreshing…</Text>}
+        {isRefetching && <Text style={{ color: MUTED, fontSize: 11, fontFamily: "PlusJakartaSans_400Regular" }}>Refreshing…</Text>}
       </View>
 
       {isLoading ? (
@@ -594,10 +594,10 @@ export default function MarketScreen() {
         ))
       ) : error ? (
         <View style={{ paddingVertical: 48, alignItems: "center" }}>
-          <Text style={{ color: RED, fontFamily: "Poppins_500Medium" }}>Backend unreachable</Text>
-          <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", fontSize: 12, marginTop: 4 }}>Make sure the server is running</Text>
+          <Text style={{ color: RED, fontFamily: "PlusJakartaSans_500Medium" }}>Backend unreachable</Text>
+          <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, marginTop: 4 }}>Make sure the server is running</Text>
           <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: TEAL, borderRadius: 8 }}>
-            <Text style={{ color: WHITE, fontFamily: "Poppins_600SemiBold" }}>Retry</Text>
+            <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_600SemiBold" }}>Retry</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   headerTitle: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 24,
     color: DARK,
   },
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   searchPlaceholder: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 15,
     color: MUTED,
   },
@@ -682,12 +682,12 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   sectionTitle: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
     color: DARK,
   },
   sectionViewAll: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 13,
     color: MUTED,
   },
@@ -712,14 +712,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectorLabel: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 12,
     color: DARK,
     textAlign: "center",
     marginBottom: 2,
   },
   sectorPct: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 11,
     textAlign: "center",
   },
@@ -746,12 +746,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   featureSymbol: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 14,
     color: DARK,
   },
   featureName: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 11,
     color: MUTED,
     marginTop: 1,
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featurePrice: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 17,
     color: DARK,
     marginBottom: 5,
@@ -776,7 +776,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   featureChange: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 12,
   },
   logoCircleSmall: {
@@ -818,23 +818,23 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   stockTicker: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: DARK,
   },
   stockName: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: MUTED,
     marginTop: 2,
   },
   stockPrice: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: DARK,
   },
   stockChange: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 12,
     marginTop: 2,
   },

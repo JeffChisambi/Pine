@@ -133,7 +133,7 @@ export default function BuyScreen() {
                     {getStockLogo(selectedStock.symbol) ? (
                       <Image source={getStockLogo(selectedStock.symbol)!} style={{ width: 24, height: 24, borderRadius: 12 }} resizeMode="contain" />
                     ) : (
-                      <Text style={{ color: TEAL, fontFamily: "Poppins_700Bold", fontSize: 9 }}>{selectedStock.symbol.slice(0, 3)}</Text>
+                      <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{selectedStock.symbol.slice(0, 3)}</Text>
                     )}
                   </View>
                   <Text style={styles.fieldValue}>{selectedStock.symbol}</Text>
@@ -157,7 +157,7 @@ export default function BuyScreen() {
                     {getStockLogo(s.symbol) ? (
                       <Image source={getStockLogo(s.symbol)!} style={{ width: 24, height: 24, borderRadius: 12 }} resizeMode="contain" />
                     ) : (
-                      <Text style={{ color: TEAL, fontFamily: "Poppins_700Bold", fontSize: 9 }}>{s.symbol.slice(0, 3)}</Text>
+                      <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{s.symbol.slice(0, 3)}</Text>
                     )}
                   </View>
                   <Text style={styles.pickerRowText}>{s.symbol} — {s.name}</Text>
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 17,
     color: DARK,
     textAlign: "center",
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   toggleText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 14,
     color: MUTED,
   },
@@ -303,19 +303,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   balanceLabel: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 13,
     color: "rgba(255,255,255,0.7)",
     marginBottom: 4,
   },
   balanceValue: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 28,
     color: WHITE,
     marginBottom: 4,
   },
   balanceSubLabel: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: "rgba(255,255,255,0.55)",
   },
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   fieldLabel: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 14,
     color: MUTED,
   },
@@ -361,17 +361,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   fieldValue: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 14,
     color: DARK,
   },
   dollarSign: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 16,
     color: DARK,
   },
   amountInput: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 16,
     color: DARK,
     minWidth: 80,
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   pickerRowText: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 14,
     color: DARK,
   },
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     borderColor: "#D0DBDC",
   },
   pctText: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 12,
     color: TEAL,
   },
@@ -437,12 +437,12 @@ const styles = StyleSheet.create({
     backgroundColor: DIVIDER,
   },
   summaryLabel: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 13,
     color: MUTED,
   },
   summaryValue: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 13,
     color: DARK,
   },
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ctaBtnText: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 16,
     color: WHITE,
   },

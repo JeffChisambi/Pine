@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   headline: {
     fontSize: 24,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     color: DARK,
     lineHeight: 32,
     marginBottom: 10,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
     lineHeight: 22,
     textAlign: "center",
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   },
   otpDigit: {
     fontSize: 22,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: DARK,
   },
   cursor: {
@@ -272,12 +272,12 @@ const styles = StyleSheet.create({
   },
   resendText: {
     fontSize: 13,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
   },
   resendLink: {
     fontSize: 13,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: TEAL,
   },
   ctaWrap: {
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   },
   continueBtnText: {
     fontSize: 17,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: WHITE,
   },
 });

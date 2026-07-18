@@ -212,8 +212,8 @@ export default function WithdrawScreen() {
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: DARK, fontFamily: "Poppins_600SemiBold" }]}>You receive</Text>
-                <Text style={[styles.summaryValue, { color: TEAL, fontFamily: "Poppins_700Bold" }]}>
+                <Text style={[styles.summaryLabel, { color: DARK, fontFamily: "PlusJakartaSans_600SemiBold" }]}>You receive</Text>
+                <Text style={[styles.summaryValue, { color: TEAL, fontFamily: "PlusJakartaSans_700Bold" }]}>
                   MK {youReceive.toLocaleString()}
                 </Text>
               </View>
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: "center",
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
     color: WHITE,
   },
@@ -275,19 +275,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   balanceLabel: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: "rgba(255,255,255,0.55)",
     marginBottom: 2,
   },
   balanceValue: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 15,
     color: "rgba(255,255,255,0.85)",
     marginBottom: 18,
   },
   amountLabel: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 13,
     color: "rgba(255,255,255,0.65)",
     marginBottom: 12,
@@ -299,12 +299,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   currencySymbol: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 22,
     color: "rgba(255,255,255,0.7)",
   },
   amountInput: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 48,
     color: WHITE,
     minWidth: 120,
@@ -319,12 +319,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   amountHint: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: "rgba(255,255,255,0.5)",
   },
   amountError: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 12,
     color: "#FF6B6B",
   },
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     borderColor: TEAL,
   },
   quickBtnText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 13,
     color: DARK,
   },
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   },
 
   sectionLabel: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 14,
     color: DARK,
     marginBottom: 12,
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   methodLogoLetter: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
     color: WHITE,
   },
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   methodName: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: DARK,
   },
@@ -418,17 +418,17 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   methodMetaText: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: MUTED,
   },
   methodFee: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: RED,
   },
   methodFeeFree: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 12,
     color: GREEN,
   },
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   },
   noteText: {
     flex: 1,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: MUTED,
     lineHeight: 18,
@@ -460,12 +460,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   summaryLabel: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 13,
     color: MUTED,
   },
   summaryValue: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 13,
     color: DARK,
   },
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   ctaBtnText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 17,
     color: WHITE,
   },

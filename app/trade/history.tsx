@@ -185,7 +185,7 @@ export default function HistoryScreen() {
                         <Image source={order.image || getStockLogo(order.ticker)!} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
                       ) : (
                         <View style={{ width: "100%", height: "100%", backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderRadius: 18 }}>
-                          <Text style={{ color: WHITE, fontFamily: "Poppins_700Bold", fontSize: 10 }}>{order.ticker.slice(0, 3)}</Text>
+                          <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>{order.ticker.slice(0, 3)}</Text>
                         </View>
                       )}
                     </View>
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   headerTitle: {
     flex: 1,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 17,
     color: DARK,
     textAlign: "center",
@@ -256,13 +256,13 @@ const styles = StyleSheet.create({
     backgroundColor: GREEN,
   },
   filterText: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 13,
     color: MUTED,
   },
   filterTextActive: {
     color: WHITE,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
   },
   summaryStrip: {
     flexDirection: "row",
@@ -276,12 +276,12 @@ const styles = StyleSheet.create({
   },
   summaryStripItem: { flex: 1, alignItems: "center" },
   summaryStripValue: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
     color: DARK,
     marginBottom: 2,
   },
-  summaryStripLabel: { fontFamily: "Poppins_400Regular", fontSize: 12, color: MUTED },
+  summaryStripLabel: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
   summaryStripDivider: { width: 1, backgroundColor: DIVIDER, marginVertical: 4 },
   scroll: { paddingHorizontal: 20 },
   dateSectionHeader: {
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   dateSectionText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 12,
     color: MUTED,
     letterSpacing: 0.5,
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  logoText: { fontFamily: "Poppins_700Bold", fontSize: 10, color: WHITE, letterSpacing: 0.3 },
+  logoText: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 10, color: WHITE, letterSpacing: 0.3 },
   typeIndicator: {
     position: "absolute",
     bottom: -2,
@@ -327,19 +327,19 @@ const styles = StyleSheet.create({
     borderColor: WHITE,
   },
   orderInfo: { flex: 1 },
-  orderTicker: { fontFamily: "Poppins_600SemiBold", fontSize: 15, color: DARK, marginBottom: 3 },
-  orderMeta: { fontFamily: "Poppins_400Regular", fontSize: 12, color: MUTED },
+  orderTicker: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: DARK, marginBottom: 3 },
+  orderMeta: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
   orderRight: { alignItems: "flex-end", gap: 5 },
-  orderAmount: { fontFamily: "Poppins_600SemiBold", fontSize: 14, color: DARK },
+  orderAmount: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: DARK },
   statusBadge: {
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  statusText: { fontFamily: "Poppins_500Medium", fontSize: 11 },
+  statusText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 11 },
   emptyState: {
     paddingVertical: 60,
     alignItems: "center",
   },
-  emptyText: { fontFamily: "Poppins_400Regular", fontSize: 15, color: MUTED },
+  emptyText: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: MUTED },
 });

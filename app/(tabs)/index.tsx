@@ -285,7 +285,7 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
             style={{ alignItems: "center" }}
           >
             <TrashIcon />
-            <Text style={{ color: WHITE, fontFamily: "Poppins_600SemiBold", fontSize: 11, marginTop: 5, letterSpacing: 0.2 }}>
+            <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, marginTop: 5, letterSpacing: 0.2 }}>
               Remove
             </Text>
           </TouchableOpacity>
@@ -312,7 +312,7 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
                     <Image source={logoImg} style={styles.watchLogoImg} resizeMode="contain" />
                   ) : (
                     <View style={[styles.watchLogoImg, { backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderRadius: 20 }]}>
-                      <Text style={{ color: WHITE, fontFamily: "Poppins_700Bold", fontSize: 11 }}>{symbol.slice(0, 3)}</Text>
+                      <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 11 }}>{symbol.slice(0, 3)}</Text>
                     </View>
                   )}
                 </View>
@@ -393,7 +393,7 @@ function TrendCard({ logoImg, symbol, name, price, changePctNum, change, positiv
             <Image source={logoImg} style={styles.trendLogoImg} resizeMode="contain" />
           ) : (
             <View style={[styles.trendLogoImg, { backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderRadius: 18 }]}>
-              <Text style={{ color: WHITE, fontFamily: "Poppins_700Bold", fontSize: 10 }}>{symbol.slice(0, 2)}</Text>
+              <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>{symbol.slice(0, 2)}</Text>
             </View>
           )}
         </View>
@@ -738,7 +738,7 @@ export default function HomeScreen() {
 
             {watchlist.length === 0 ? (
               <View style={{ paddingVertical: 24, alignItems: "center" }}>
-                <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", fontSize: 13 }}>No stocks in watchlist.{"\n"}Add from a stock detail page.</Text>
+                <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13 }}>No stocks in watchlist.{"\n"}Add from a stock detail page.</Text>
               </View>
             ) : (
               watchlist.map((item) => (
@@ -825,13 +825,13 @@ const styles = StyleSheet.create({
     marginBottom: 26,
   },
   greeting: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 20,
     color: WHITE,
     lineHeight: 28,
   },
   dateText: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 13,
     color: WHITE,
     opacity: 0.7,
@@ -852,7 +852,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   balanceLabel: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 12,
     color: WHITE,
     opacity: 0.8,
@@ -860,7 +860,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   balanceAmount: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 34,
     color: WHITE,
     letterSpacing: -0.5,
@@ -884,7 +884,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   btnDepositText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: GREEN,
   },
@@ -900,7 +900,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   btnWithdrawText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: WHITE,
   },
@@ -931,12 +931,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
     color: DARK,
   },
   sectionAction: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 13,
     color: MUTED2,
   },
@@ -966,11 +966,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   watchLogoImg: { width: 40, height: 40, borderRadius: 20 },
-  watchSymbol: { fontFamily: "Poppins_700Bold", fontSize: 15, color: DARK },
-  watchSub: { fontFamily: "Poppins_400Regular", fontSize: 12, color: MUTED },
+  watchSymbol: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: DARK },
+  watchSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
   watchRight: { alignItems: "flex-end", gap: 4 },
-  watchPrice: { fontFamily: "Poppins_700Bold", fontSize: 16, color: DARK },
-  watchChange: { fontFamily: "Poppins_500Medium", fontSize: 12 },
+  watchPrice: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: DARK },
+  watchChange: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 12 },
 
   // ─── Trending cards (mirrors market.tsx featureCard exactly)
   trendCard: {
@@ -1008,11 +1008,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   trendLogoImg: { width: 32, height: 32, borderRadius: 16 },
-  trendSymbol: { fontFamily: "Poppins_600SemiBold", fontSize: 14, color: DARK },
-  trendName: { fontFamily: "Poppins_400Regular", fontSize: 11, color: MUTED, marginTop: 1 },
-  trendPrice: { fontFamily: "Poppins_700Bold", fontSize: 17, color: DARK, marginBottom: 5 },
+  trendSymbol: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: DARK },
+  trendName: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginTop: 1 },
+  trendPrice: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: DARK, marginBottom: 5 },
   trendChangeRow: { flexDirection: "row", alignItems: "center", gap: 5 },
-  trendChange: { fontFamily: "Poppins_600SemiBold", fontSize: 12 },
+  trendChange: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12 },
 
   // ─── Banner
   banner: {
@@ -1051,16 +1051,16 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginBottom: 12,
   },
-  bannerBadgeText: { fontFamily: "Poppins_600SemiBold", fontSize: 11, color: TEAL },
+  bannerBadgeText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: TEAL },
   bannerHeading: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
     color: WHITE,
     lineHeight: 26,
     marginBottom: 6,
   },
   bannerSub: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: WHITE,
     opacity: 0.7,
@@ -1074,7 +1074,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignSelf: "flex-start",
   },
-  bannerBtnText: { fontFamily: "Poppins_600SemiBold", fontSize: 13, color: WHITE },
+  bannerBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE },
 
   // ─── Deposit success toast
   depositToast: {
@@ -1102,13 +1102,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   depositToastTitle: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 14,
     color: WHITE,
     lineHeight: 20,
   },
   depositToastBody: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: "rgba(255,255,255,0.85)",
     lineHeight: 17,

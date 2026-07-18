@@ -130,7 +130,7 @@ export default function StockSearchScreen() {
                 <Image source={getStockLogo(s.symbol)!} style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode="contain" />
               ) : (
                 <View style={[styles.stockLogo, { backgroundColor: TEAL, justifyContent: "center", alignItems: "center" }]}>
-                  <Text style={{ color: WHITE, fontFamily: "Poppins_700Bold", fontSize: 10 }}>
+                  <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>
                     {s.symbol.slice(0, 3)}
                   </Text>
                 </View>
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 15,
     color: DARK,
     height: "100%",
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   sectionLabel: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 16,
     color: DARK,
     marginBottom: 12,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     marginTop: 60,
   },
   emptyText: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 15,
     color: MUTED,
   },
@@ -231,17 +231,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logoText: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
     color: WHITE,
   },
   tickerText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: DARK,
   },
   nameText: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: MUTED,
     marginTop: 2,
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   priceText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: DARK,
   },
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   changeText: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 12,
   },
 });

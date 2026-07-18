@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   titleLabel: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: "rgba(255,255,255,0.8)",
     letterSpacing: 0.3,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
   },
   periodText: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 12,
     color: WHITE,
   },
@@ -342,14 +342,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   balanceAmount: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 40,
     color: WHITE,
     letterSpacing: -1,
     marginBottom: 8,
   },
   balanceHidden: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 40,
     color: "rgba(255,255,255,0.5)",
     marginBottom: 8,
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   changeText: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 13,
     color: GREEN,
   },
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   actionLabel: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 13,
     color: DARK,
   },
@@ -415,12 +415,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sectionTitle: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 16,
     color: DARK,
   },
   viewAll: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 13,
     color: TEAL,
   },
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 14,
     color: DARK,
     padding: 0,
@@ -473,13 +473,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   assetTicker: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: DARK,
     marginBottom: 3,
   },
   assetShares: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 13,
     color: MUTED,
   },
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   assetValue: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: DARK,
     marginBottom: 4,
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   assetChangePct: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 12,
   },
   historyBtn: {
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   historyBtnText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: TEAL,
   },
@@ -530,12 +530,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dividendsTitle: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: DARK,
   },
   dividendsAmount: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
     color: TEAL,
   },
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
     borderColor: TEAL,
   },
   divBtnOutlineText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 14,
     color: TEAL,
   },
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
     backgroundColor: TEAL,
   },
   divBtnSolidText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 14,
     color: WHITE,
   },
@@ -571,13 +571,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   emptyText: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 16,
     color: DARK,
     marginBottom: 6,
   },
   emptySubText: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 13,
     color: MUTED,
   },

@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   headerTitle: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 22,
     color: DARK,
   },
@@ -466,13 +466,13 @@ const styles = StyleSheet.create({
   },
   profileTextBlock: { flex: 1 },
   profileName: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 16,
     color: DARK,
     marginBottom: 2,
   },
   profilePhone: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 13,
     color: "#6B7280",
     marginBottom: 6,
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   verifiedText: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 11,
     color: "#166534",
   },
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     borderColor: "#FCD34D",
   },
   unverifiedText: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 11,
     color: "#92400E",
   },
@@ -517,19 +517,19 @@ const styles = StyleSheet.create({
   },
   cashTextBlock: { flex: 1 },
   cashLabel: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 11,
     color: "rgba(255,255,255,0.65)",
     marginBottom: 2,
   },
   cashAmount: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 20,
     color: WHITE,
     marginBottom: 1,
   },
   cashSub: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 11,
     color: "rgba(255,255,255,0.5)",
   },
@@ -561,13 +561,13 @@ const styles = StyleSheet.create({
   rowIconWrap: { width: 24, alignItems: "center" },
   rowTextBlock: { flex: 1 },
   rowLabel: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 14,
     color: DARK,
     marginBottom: 2,
   },
   rowSub: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: MUTED,
   },
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   logoutLabel: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: RED,
   },

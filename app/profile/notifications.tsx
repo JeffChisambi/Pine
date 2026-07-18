@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerTitle: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 20,
     color: DARK,
   },
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   unreadBadgeText: {
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 11,
     color: WHITE,
   },
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   markAllText: {
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 12,
     color: TEAL,
   },
@@ -351,13 +351,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyTitle: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 17,
     color: DARK,
     marginTop: 8,
   },
   emptySubtitle: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 14,
     color: MUTED,
     textAlign: "center",
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   notifTitle: {
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 15,
     color: DARK,
     flex: 1,
@@ -401,14 +401,14 @@ const styles = StyleSheet.create({
     backgroundColor: TEAL,
   },
   notifBodyText: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 13,
     color: MUTED,
     lineHeight: 19,
     marginBottom: 6,
   },
   notifTime: {
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 12,
     color: "#C4C4C4",
   },

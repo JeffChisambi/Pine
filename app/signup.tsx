@@ -452,13 +452,13 @@ const styles = StyleSheet.create({
   topCardContent: { flex: 1, paddingRight: 12 },
   topCardTitle: {
     fontSize: 16,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     color: WHITE,
     marginBottom: 4,
   },
   topCardSub: {
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: "rgba(255,255,255,0.7)",
   },
   overlappingLogos: { flexDirection: "row", alignItems: "center" },
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   },
   headline: {
     fontSize: 28,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     color: DARK,
     lineHeight: 36,
     textAlign: "center",
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     backgroundColor: WHITE,
     paddingHorizontal: 4,
     fontSize: 11,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: MUTED,
     letterSpacing: 0.2,
   },
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: DARK,
   },
 
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   },
   genderPillText: {
     fontSize: 13,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: MUTED,
   },
   genderPillTextActive: {
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   // ── Error ────────────────────────────────────────────────────
   errorText: {
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: "#EF4444",
     marginTop: 6,
     marginLeft: 4,
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
   },
   pwRuleText: {
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
   },
   pwRuleTextOk: {
@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
   continueBtnDisabled: { opacity: 0.5 },
   continueBtnText: {
     fontSize: 17,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: WHITE,
   },
 
@@ -635,12 +635,12 @@ const styles = StyleSheet.create({
   },
   bottomText: {
     fontSize: 13,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
   },
   bottomLink: {
     fontSize: 13,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: TEAL,
   },
 });

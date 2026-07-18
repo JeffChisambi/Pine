@@ -254,7 +254,7 @@ const illStyles = StyleSheet.create({
   statusTime: {
     color: WHITE,
     fontSize: 8,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
   },
   appHeader: {
     backgroundColor: TEAL,
@@ -265,12 +265,12 @@ const illStyles = StyleSheet.create({
   headerSub: {
     color: MUTED_TEAL,
     fontSize: 8,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
   },
   headerAmount: {
     color: WHITE,
     fontSize: 20,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     marginTop: 2,
   },
   headerMeta: {
@@ -280,12 +280,12 @@ const illStyles = StyleSheet.create({
   metaActive: {
     color: WHITE,
     fontSize: 8,
-    fontFamily: "Poppins_500Medium",
+    fontFamily: "PlusJakartaSans_500Medium",
   },
   metaDue: {
     color: MUTED_TEAL,
     fontSize: 8,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
   },
   logoRow: {
     flexDirection: "row",
@@ -303,12 +303,12 @@ const illStyles = StyleSheet.create({
   miniLogoText: {
     color: WHITE,
     fontSize: 7,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
   },
   moreText: {
     color: MUTED_TEAL,
     fontSize: 8,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     marginLeft: 2,
   },
   cardArea: {
@@ -336,21 +336,21 @@ const illStyles = StyleSheet.create({
   iconText: {
     color: WHITE,
     fontSize: 10,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
   },
   subName: {
     fontSize: 9,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: DARK,
   },
   subPeriod: {
     fontSize: 7,
     color: MUTED,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
   },
   price: {
     fontSize: 9,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     color: DARK,
   },
 });
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   },
   headline: {
     fontSize: 28,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "PlusJakartaSans_700Bold",
     color: DARK,
     lineHeight: 36,
     marginBottom: 10,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
     lineHeight: 21,
     textAlign: "center",
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   },
   darkBtnText: {
     fontSize: 17,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: WHITE,
   },
   outlineBtn: {
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
   },
   outlineBtnText: {
     fontSize: 17,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: DARK,
   },
   dotsRow: {
@@ -462,12 +462,12 @@ const styles = StyleSheet.create({
   },
   bottomText: {
     fontSize: 13,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
   },
   bottomLink: {
     fontSize: 13,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: TEAL,
   },
 });
