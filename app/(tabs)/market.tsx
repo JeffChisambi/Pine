@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,11 @@ import {
   Platform,
   Image,
   Modal,
+  Animated,
+  Dimensions,
 } from "react-native";
+
+const SCREEN_H = Dimensions.get("window").height;
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import Svg, { Path, Circle, Line, Defs, ClipPath, Rect } from "react-native-svg";
@@ -226,7 +230,7 @@ const SECTORS = [
 ];
 const PRIMARY_SECTORS = SECTORS.slice(0, 4);
 
-// ─── Sectors Modal (full 3-col grid) ────────────────────────────────────────
+// ─── Sectors Modal (full 3-col grid, custom animated) ───────────────────────
 function SectorsModal({
   visible,
   onClose,
@@ -236,19 +240,59 @@ function SectorsModal({
   onClose: () => void;
   getSectorChange: (key: string) => number | null;
 }) {
+  const [mounted, setMounted] = useState(false);
+  const slideY  = useRef(new Animated.Value(SCREEN_H)).current;
+  const fadeOvl = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      setMounted(true);
+      Animated.parallel([
+        Animated.spring(slideY, {
+          toValue: 0,
+          damping: 28,
+          stiffness: 280,
+          mass: 0.8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeOvl, {
+          toValue: 1,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slideY, {
+          toValue: SCREEN_H,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeOvl, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setMounted(false));
+    }
+  }, [visible]);
+
+  if (!mounted) return null;
+
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
-      <TouchableOpacity
-        style={sectorModal.overlay}
-        activeOpacity={1}
-        onPress={onClose}
-      />
-      <View style={sectorModal.sheet}>
+    <Modal visible transparent animationType="none" onRequestClose={onClose}>
+      {/* Dimmed overlay */}
+      <Animated.View
+        style={[sectorModal.overlay, { opacity: fadeOvl }]}
+        pointerEvents={visible ? "auto" : "none"}
+      >
+        <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
+      </Animated.View>
+
+      {/* Sliding sheet */}
+      <Animated.View
+        style={[sectorModal.sheet, { transform: [{ translateY: slideY }] }]}
+      >
         {/* Handle */}
         <View style={sectorModal.handle} />
 
@@ -285,7 +329,7 @@ function SectorsModal({
         </View>
 
         <View style={{ height: 32 }} />
-      </View>
+      </Animated.View>
     </Modal>
   );
 }
