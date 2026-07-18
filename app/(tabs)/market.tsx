@@ -281,18 +281,19 @@ function SectorsModal({
 
   return (
     <Modal visible transparent animationType="none" onRequestClose={onClose}>
-      {/* Dimmed overlay */}
-      <Animated.View
-        style={[sectorModal.overlay, { opacity: fadeOvl }]}
-        pointerEvents={visible ? "auto" : "none"}
-      >
-        <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
-      </Animated.View>
+      <View style={{ flex: 1, justifyContent: "flex-end" }}>
+        {/* Dimmed overlay — absolute so it never sits behind the sheet corners */}
+        <Animated.View
+          style={[StyleSheet.absoluteFillObject, sectorModal.overlay, { opacity: fadeOvl }]}
+          pointerEvents={visible ? "auto" : "none"}
+        >
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
+        </Animated.View>
 
-      {/* Sliding sheet */}
-      <Animated.View
-        style={[sectorModal.sheet, { transform: [{ translateY: slideY }] }]}
-      >
+        {/* Sliding sheet */}
+        <Animated.View
+          style={[sectorModal.sheet, { transform: [{ translateY: slideY }] }]}
+        >
         {/* Handle */}
         <View style={sectorModal.handle} />
 
@@ -329,7 +330,8 @@ function SectorsModal({
         </View>
 
         <View style={{ height: 32 }} />
-      </Animated.View>
+        </Animated.View>
+      </View>
     </Modal>
   );
 }
