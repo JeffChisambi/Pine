@@ -12,25 +12,112 @@ import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import Svg, { Path, G, Defs, ClipPath } from "react-native-svg";
+import Svg, { Path, Circle, G, Defs, ClipPath } from "react-native-svg";
 import { kycApi } from "../../services/api";
 import { useAuth } from "../../services/auth-context";
 
-const TEAL        = "#164951";
-const GREEN       = "#45B369";
-const WHITE       = "#FFFFFF";
-const DARK        = "#111827";
-const MUTED       = "#6B7280";
+const TEAL    = "#164951";
+const GREEN   = "#45B369";
+const WHITE   = "#FFFFFF";
+const DARK    = "#111827";
+const MUTED   = "#6B7280";
+const BG      = "#EAF3F4";
+const BRACKET = "#3BA8A0"; // brighter teal for corner brackets
+
 // ─── Back arrow ───────────────────────────────────────────────────────────────
 function BackArrow() {
   return (
     <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Path d="M12.5 5.5L7.5 10l5 4.5" stroke={DARK} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+      <Path
+        d="M12.5 5.5L7.5 10l5 4.5"
+        stroke={DARK}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </Svg>
   );
 }
 
-// ─── Face illustration (uploaded SVG) ────────────────────────────────────────
+// ─── Corner bracket viewfinder ────────────────────────────────────────────────
+const BRACKET_LEN  = 28;
+const BRACKET_W    = 3;
+const BRACKET_R    = 6;
+
+function CornerBrackets({ size }: { size: number }) {
+  const s = size;
+  const l = BRACKET_LEN;
+  const w = BRACKET_W;
+  const r = BRACKET_R;
+  const color = BRACKET;
+
+  const cornerStyle = (pos: "tl" | "tr" | "bl" | "br") => {
+    const base: any = {
+      position: "absolute",
+      width: l,
+      height: l,
+      borderColor: color,
+      borderRadius: r,
+    };
+    if (pos === "tl") {
+      return { ...base, top: 0, left: 0, borderTopWidth: w, borderLeftWidth: w };
+    }
+    if (pos === "tr") {
+      return { ...base, top: 0, right: 0, borderTopWidth: w, borderRightWidth: w };
+    }
+    if (pos === "bl") {
+      return { ...base, bottom: 0, left: 0, borderBottomWidth: w, borderLeftWidth: w };
+    }
+    return { ...base, bottom: 0, right: 0, borderBottomWidth: w, borderRightWidth: w };
+  };
+
+  return (
+    <View style={{ position: "absolute", width: s, height: s }} pointerEvents="none">
+      <View style={cornerStyle("tl")} />
+      <View style={cornerStyle("tr")} />
+      <View style={cornerStyle("bl")} />
+      <View style={cornerStyle("br")} />
+    </View>
+  );
+}
+
+// ─── Face scanning dots ───────────────────────────────────────────────────────
+const DOTS: Array<{ cx: number; cy: number; r: number }> = [
+  { cx: 0.38, cy: 0.33, r: 4 }, // left eye outer
+  { cx: 0.46, cy: 0.31, r: 3 }, // left eye inner
+  { cx: 0.54, cy: 0.31, r: 3 }, // right eye inner
+  { cx: 0.62, cy: 0.33, r: 4 }, // right eye outer
+  { cx: 0.50, cy: 0.44, r: 3 }, // nose tip
+  { cx: 0.42, cy: 0.58, r: 3 }, // left mouth corner
+  { cx: 0.58, cy: 0.58, r: 3 }, // right mouth corner
+  { cx: 0.50, cy: 0.68, r: 4 }, // chin
+  { cx: 0.32, cy: 0.48, r: 3 }, // left cheek
+  { cx: 0.68, cy: 0.48, r: 3 }, // right cheek
+];
+
+function ScanDots({ size }: { size: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      style={{ position: "absolute" }}
+      pointerEvents="none"
+    >
+      {DOTS.map((d, i) => (
+        <Circle
+          key={i}
+          cx={d.cx * size}
+          cy={d.cy * size}
+          r={d.r}
+          fill={WHITE}
+          opacity={0.9}
+        />
+      ))}
+    </Svg>
+  );
+}
+
+// ─── Face illustration (uploaded SVG) ─────────────────────────────────────────
 function SelfieIllustration({ size = 280 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 1333 1329" fill="none">
@@ -87,6 +174,8 @@ function SelfieIllustration({ size = 280 }: { size?: number }) {
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
+const FRAME_SIZE = 300;
+
 export default function UploadIdSelfieScreen() {
   const insets   = useSafeAreaInsets();
   const topPad   = Platform.OS === "web" ? 48 : insets.top || 44;
@@ -136,49 +225,55 @@ export default function UploadIdSelfieScreen() {
 
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
-      {/* Header */}
+
+      {/* ── Header ── */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
           <BackArrow />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Verify with Selfie</Text>
+        <Text style={styles.headerTitle}>Face recognition</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Subtitle */}
+      {/* ── Subtitle ── */}
       <Text style={styles.subtitle}>
-        Position your face within the frame,{"\n"}clear and well-lit.
+        Please look into the camera and hold still
       </Text>
 
-      {/* Illustration / selfie preview */}
-      <View style={styles.frameWrapper}>
-        {selfieUri ? (
-          <Image
-            source={{ uri: selfieUri }}
-            style={styles.selfiePreview}
-            contentFit="cover"
-          />
-        ) : (
-          <SelfieIllustration size={280} />
-        )}
+      {/* ── Viewfinder frame ── */}
+      <View style={styles.frameOuter}>
+        <View style={styles.frame}>
+          {selfieUri ? (
+            <Image
+              source={{ uri: selfieUri }}
+              style={styles.selfiePreview}
+              contentFit="cover"
+            />
+          ) : (
+            <>
+              <SelfieIllustration size={FRAME_SIZE} />
+              <ScanDots size={FRAME_SIZE} />
+            </>
+          )}
+          <CornerBrackets size={FRAME_SIZE} />
+        </View>
       </View>
 
-      {/* Retake link when captured */}
-      {captured && !processing && !uploading && (
-        <TouchableOpacity style={styles.retakeBtn} onPress={takeSelfie} activeOpacity={0.7}>
-          <Text style={styles.retakeBtnText}>Retake Photo</Text>
-        </TouchableOpacity>
-      )}
+      {/* ── Below-frame area: progress or retake ── */}
+      <View style={styles.statusArea}>
+        {processing ? (
+          <>
+            <Text style={styles.progressPct}>—</Text>
+            <Text style={styles.progressLabel}>Verifying your face…</Text>
+          </>
+        ) : captured ? (
+          <TouchableOpacity onPress={takeSelfie} activeOpacity={0.7}>
+            <Text style={styles.retakeText}>Retake Photo</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
 
-      {/* Processing state */}
-      {processing && (
-        <View style={styles.processingRow}>
-          <ActivityIndicator size="small" color={TEAL} />
-          <Text style={styles.processingText}>Verifying your identity…</Text>
-        </View>
-      )}
-
-      {/* CTA button — pinned to bottom */}
+      {/* ── CTA pinned to bottom ── */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 24 }]}>
         <TouchableOpacity
           style={[styles.cta, captured && { backgroundColor: GREEN }]}
@@ -189,10 +284,13 @@ export default function UploadIdSelfieScreen() {
           {uploading ? (
             <ActivityIndicator color={WHITE} />
           ) : (
-            <Text style={styles.ctaText}>{captured ? "Submit & Verify" : "Take Selfie"}</Text>
+            <Text style={styles.ctaText}>
+              {captured ? "Submit & Verify" : "Take Selfie"}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
+
     </View>
   );
 }
@@ -200,7 +298,7 @@ export default function UploadIdSelfieScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: WHITE,
+    backgroundColor: BG,
   },
 
   // Header
@@ -208,14 +306,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingBottom: 4,
   },
   backBtn: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     backgroundColor: WHITE,
-    borderRadius: 20,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -237,42 +335,48 @@ const styles = StyleSheet.create({
     color: MUTED,
     textAlign: "center",
     lineHeight: 22,
-    marginTop: 20,
+    marginTop: 28,
     paddingHorizontal: 40,
   },
 
-  // Illustration / preview
-  frameWrapper: {
+  // Viewfinder
+  frameOuter: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
-  selfiePreview: {
-    width: 280,
-    height: 280,
-    borderRadius: 16,
-  },
-
-  // Retake
-  retakeBtn: {
-    alignItems: "center",
-    paddingVertical: 10,
-  },
-  retakeBtnText: {
-    fontFamily: "PlusJakartaSans_500Medium",
-    fontSize: 14,
-    color: TEAL,
-  },
-
-  // Processing
-  processingRow: {
-    flexDirection: "row",
+  frame: {
+    width: FRAME_SIZE,
+    height: FRAME_SIZE,
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
-    paddingVertical: 10,
+    overflow: "visible",
   },
-  processingText: {
+  selfiePreview: {
+    width: FRAME_SIZE,
+    height: FRAME_SIZE,
+    borderRadius: 12,
+  },
+
+  // Status area (progress / retake)
+  statusArea: {
+    height: 64,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  progressPct: {
+    fontFamily: "PlusJakartaSans_700Bold",
+    fontSize: 28,
+    color: DARK,
+    letterSpacing: -0.5,
+  },
+  progressLabel: {
+    fontFamily: "PlusJakartaSans_400Regular",
+    fontSize: 14,
+    color: MUTED,
+  },
+  retakeText: {
     fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 14,
     color: TEAL,
