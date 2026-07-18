@@ -236,29 +236,6 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const tabBarHeight = TAB_CONTENT_HEIGHT + insets.bottom;
   const tabWidth = width / VISIBLE_TABS;
 
-  // Map route index → visible tab index (skip hidden "news" tab)
-  const visibleRoutes = state.routes.filter(
-    (r) => descriptors[r.key]?.options?.href !== null
-  );
-  const focusedVisibleIndex = visibleRoutes.findIndex(
-    (r) => r.key === state.routes[state.index].key
-  );
-
-  // Sliding indicator — springs to the centre of the focused tab
-  const indicatorX = useSharedValue(focusedVisibleIndex * tabWidth);
-
-  useEffect(() => {
-    indicatorX.value = withSpring(focusedVisibleIndex * tabWidth, {
-      damping: 18,
-      stiffness: 200,
-      mass: 0.8,
-    });
-  }, [focusedVisibleIndex, tabWidth]);
-
-  const indicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: indicatorX.value }],
-  }));
-
   return (
     <View
       style={[
@@ -269,14 +246,6 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         },
       ]}
     >
-      {/* Sliding teal indicator dot */}
-      <Animated.View
-        style={[styles.indicatorTrack, indicatorStyle, { width: tabWidth }]}
-        pointerEvents="none"
-      >
-        <View style={styles.indicatorDot} />
-      </Animated.View>
-
       {/* Tab items */}
       {TAB_ITEMS.map((item, visibleIndex) => {
         const route = state.routes.find((r) => {
@@ -357,18 +326,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Poppins_500Medium",
     marginTop: 2,
-  },
-  indicatorTrack: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    alignItems: "center",
-  },
-  indicatorDot: {
-    width: 20,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: TEAL,
   },
 });
 
