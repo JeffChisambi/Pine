@@ -138,8 +138,9 @@ function MiniSparkline({ positive, idx }: { positive: boolean; idx: number }) {
   );
 }
 
-// ─── Sector icons (all brand GREEN) ────────────────────────────────────────────
-const ICON_COLOR = "#FFFFFF";
+// ─── Sector icons ────────────────────────────────────────────────────────────
+const ICON_COLOR = "#164951";
+const SECTOR_ICON_BG = "#DFE9EB";
 
 function SectorBankIcon() {
   return (
@@ -395,7 +396,7 @@ const sectorModal = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: TEAL,
+    backgroundColor: SECTOR_ICON_BG,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 10,
@@ -705,7 +706,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#164951",
+    backgroundColor: SECTOR_ICON_BG,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
