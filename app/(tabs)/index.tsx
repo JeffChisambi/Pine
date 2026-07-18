@@ -665,7 +665,10 @@ export default function HomeScreen() {
         {/* App bar */}
         <View style={styles.appBar}>
           <View>
-            <Text style={styles.greeting}>Hi, {userFirstName ?? "Welcome"}</Text>
+            <Text style={styles.greeting}>
+              <Text style={styles.greetingHi}>Hi, </Text>
+              <Text style={styles.greetingName}>{userFirstName ?? "Welcome"}</Text>
+            </Text>
             <Text style={styles.dateText}>{currentDate}</Text>
           </View>
           <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/profile/notifications" as any)}>
@@ -825,10 +828,19 @@ const styles = StyleSheet.create({
     marginBottom: 26,
   },
   greeting: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 20,
     color: WHITE,
     lineHeight: 28,
+  },
+  greetingHi: {
+    fontFamily: "PlusJakartaSans_400Regular",
+    fontSize: 20,
+    color: WHITE,
+  },
+  greetingName: {
+    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontSize: 20,
+    color: WHITE,
   },
   dateText: {
     fontFamily: "PlusJakartaSans_400Regular",

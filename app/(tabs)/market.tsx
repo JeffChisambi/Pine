@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   headerTitle: {
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 24,
     color: DARK,
   },

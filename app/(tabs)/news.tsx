@@ -437,7 +437,7 @@ export default function NewsScreen() {
 const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: WHITE },
   header:      { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 14 },
-  headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 24, color: DARK },
+  headerTitle: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 24, color: DARK },
   bellBtn:     { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center" },
 
   pillsScroll:     { flexGrow: 0, marginBottom: 10 },
