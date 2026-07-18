@@ -22,10 +22,10 @@ const GREEN = "#45B369";
 // ─── Category colours ──────────────────────────────────────────────────────────
 const CAT_COLORS: Record<string, string> = {
   Markets:     TEAL,
-  Banking:     "#2563EB",
-  Economy:     "#7C3AED",
+  Banking:     TEAL,
+  Economy:     TEAL,
   Energy:      GREEN,
-  Agriculture: "#D97706",
+  Agriculture: GREEN,
 };
 const catColor = (cat: string) => CAT_COLORS[cat] ?? TEAL;
 
