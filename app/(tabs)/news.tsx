@@ -20,14 +20,7 @@ const CARD_BORDER = "#F0F1F3";
 const GREEN = "#45B369";
 
 // ─── Category colours ──────────────────────────────────────────────────────────
-const CAT_COLORS: Record<string, string> = {
-  Markets:     TEAL,
-  Banking:     TEAL,
-  Economy:     TEAL,
-  Energy:      GREEN,
-  Agriculture: GREEN,
-};
-const catColor = (cat: string) => CAT_COLORS[cat] ?? TEAL;
+const catColor = (_cat: string) => TEAL;
 
 // ─── News data ─────────────────────────────────────────────────────────────────
 const CATEGORIES = ["All", "Markets", "Banking", "Economy", "Energy", "Agriculture"];
