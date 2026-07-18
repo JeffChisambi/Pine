@@ -825,7 +825,7 @@ const styles = StyleSheet.create({
     marginBottom: 26,
   },
   greeting: {
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 20,
     color: WHITE,
     lineHeight: 28,
