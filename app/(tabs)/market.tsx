@@ -24,7 +24,6 @@ const CARD_BG = "#F9FAFB";
 const CARD_BORDER = "#F3F4F6";
 const DIVIDER = "#EBECEF";
 
-import { useState } from "react";
 import { useStocks } from "../../hooks/useStocks";
 
 
