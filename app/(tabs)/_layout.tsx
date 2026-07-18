@@ -189,9 +189,9 @@ function AnimatedTabItem({
   const labelOpacity = useSharedValue(isFocused ? 1 : 0.55);
 
   useEffect(() => {
-    scale.value = withSpring(isFocused ? 1.12 : 1, {
-      damping: 14,
-      stiffness: 180,
+    scale.value = withTiming(isFocused ? 1.12 : 1, {
+      duration: 180,
+      easing: Easing.out(Easing.quad),
     });
     labelOpacity.value = withTiming(isFocused ? 1 : 0.55, {
       duration: 200,
