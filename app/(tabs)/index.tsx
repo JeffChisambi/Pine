@@ -143,11 +143,10 @@ function AddCircleIcon({ color = WHITE }: { color?: string }) {
 // ─── Import/Withdraw icon ─────────────────────────────────────────────────────
 function ImportIcon({ color = WHITE }: { color?: string }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 20 20">
-      <Path d="M7.5 9.167L10 11.667L12.5 9.167" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Path d="M10 3.333V11.583" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
-      <Path d="M17.5 14.167C17.5 16 16 17.5 14.167 17.5H5.833C4 17.5 2.5 16 2.5 14.167"
-        stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
+      <Path d="M7.76666 9.7334L9.9 11.8667L12.0333 9.7334" stroke={color} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M9.90002 3.33325V11.8083" stroke={color} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M16.6666 10.1499C16.6666 13.8332 14.1666 16.8166 9.99998 16.8166C5.83331 16.8166 3.33331 13.8332 3.33331 10.1499" stroke={color} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
