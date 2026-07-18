@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   },
   cta: {
     backgroundColor: TEAL,
-    borderRadius: 100,
+    borderRadius: 14,
     paddingVertical: 18,
     alignItems: "center",
   },
