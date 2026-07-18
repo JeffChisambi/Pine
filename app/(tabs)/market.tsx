@@ -341,10 +341,16 @@ const sectorModal = StyleSheet.create({
   },
   sheet: {
     backgroundColor: WHITE,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingTop: 14,
+    // shadow so it floats above the dimmed content
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.10,
+    shadowRadius: 16,
+    elevation: 24,
   },
   handle: {
     width: 36,
