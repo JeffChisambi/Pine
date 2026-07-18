@@ -12,7 +12,7 @@ import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Path, G, Defs, ClipPath } from "react-native-svg";
 import { kycApi } from "../../services/api";
 import { useAuth } from "../../services/auth-context";
 
@@ -72,7 +72,16 @@ function SelfieIllustration({ size = 280 }: { size?: number }) {
       <Path d="M875.209 841.623L878.666 841.135C872.701 848.329 869.596 851.226 861.941 856.228L861.273 855.955C864.579 852.167 870.825 842.335 875.209 841.623Z" fill="#164951"/>
       <Path d="M420.861 792.31C422.767 795.127 430.036 805.391 431.248 807.792C430.378 809.531 430.628 810.12 430.751 812.09C426.454 806.196 422.973 801.38 419.138 795.127L420.861 792.31Z" fill="#164951"/>
       <Path d="M367.34 628.243L370.636 627.274C371.09 632.872 371.284 636.478 371.151 642.067C370.752 640.316 370.627 639.664 369.962 638.012L368.334 637.948C368.293 635.008 367.709 631.231 367.34 628.243Z" fill="#164951"/>
-      <Path d="M777.042 1094.77L781.118 1095.08C778.825 1096.87 778.58 1097.11 775.943 1098.22L775.468 1097.41L777.042 1094.77Z" fill="#164951"/>
+      <Path d="M777.042 1094.77L781.118 1095.08C778.825 1096.87 778.58 1097.11 775.943 1098.22L775.468 1097.41L777.042 1094.77Z" fill="#164951" fillOpacity="0.2"/>
+      <Defs>
+        <ClipPath id="paint0_angular_13_72_clip_path">
+          <Path d="M1050.31 652.61C1036.93 654.159 294.058 650.443 285.306 652.61C276.555 654.778 456.559 582 667.81 582C879.062 582 1063.7 651.062 1050.31 652.61Z"/>
+        </ClipPath>
+      </Defs>
+      <G>
+        <G clipPath="url(#paint0_angular_13_72_clip_path)" />
+        <Path d="M1050.31 652.61C1036.93 654.159 294.058 650.443 285.306 652.61C276.555 654.778 456.559 582 667.81 582C879.062 582 1063.7 651.062 1050.31 652.61Z" fill="#164951"/>
+      </G>
     </Svg>
   );
 }
