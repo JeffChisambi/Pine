@@ -190,7 +190,7 @@ function AnimatedTabItem({
 
   useEffect(() => {
     scale.value = withTiming(isFocused ? 1.12 : 1, {
-      duration: 180,
+      duration: 80,
       easing: Easing.out(Easing.quad),
     });
     labelOpacity.value = withTiming(isFocused ? 1 : 0.55, {
