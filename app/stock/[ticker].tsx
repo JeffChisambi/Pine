@@ -455,7 +455,7 @@ export default function StockDetailScreen() {
   ];
 
   const changeBadgeBg = stock.positive ? "rgba(61,220,127,0.18)" : "rgba(239,71,112,0.18)";
-  const changeBadgeFg = stock.positive ? "#3DDC7F" : RED;
+  const changeBadgeFg = stock.positive ? GREEN : RED;
 
   const aboutText =
     (stock as any).description ??
