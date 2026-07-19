@@ -212,12 +212,12 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
 
   // ── dismiss helper (called from JS thread via runOnJS) ──
   const dismiss = useCallback(() => {
-    translateX.value = withSpring(0, { damping: 20, stiffness: 260 });
+    translateX.value = withTiming(0, { duration: 200 });
     isOpen.value = false;
   }, []);
 
   const open = useCallback(() => {
-    translateX.value = withSpring(-REVEAL_WIDTH, { damping: 20, stiffness: 260 });
+    translateX.value = withTiming(-REVEAL_WIDTH, { duration: 200 });
     isOpen.value = true;
   }, []);
 
