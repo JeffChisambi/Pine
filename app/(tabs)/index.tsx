@@ -288,9 +288,11 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
               </View>
               <View style={{ alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
                 <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: c.text }}>{price}</Text>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  {positive ? <ArrowCircleUp color={GREEN} size={12} /> : <ArrowCircleDown size={12} />}
-                  <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: positive ? GREEN : RED }}> {change}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                  <View style={{ width: 12, height: 12, alignItems: "center", justifyContent: "center" }}>
+                    {positive ? <ArrowCircleUp color={GREEN} size={12} /> : <ArrowCircleDown size={12} />}
+                  </View>
+                  <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, lineHeight: 12, color: positive ? GREEN : RED }}>{change}</Text>
                 </View>
               </View>
             </View>
