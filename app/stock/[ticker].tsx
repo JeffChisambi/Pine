@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -29,7 +29,9 @@ import Svg, {
   Stop,
   Text as SvgText,
 } from "react-native-svg";
-import { useStockDetail } from "../../hooks/useStocks";
+import { useQueryClient } from "@tanstack/react-query";
+import { useStockDetail, stockKeys } from "../../hooks/useStocks";
+import { ApiStock } from "../../services/api";
 import { getStockLogo } from "../../utils/stock-logos";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -387,6 +389,26 @@ export default function StockDetailScreen() {
 
   const { data: stock, isLoading, error, refetch } = useStockDetail(ticker, activeTimeTab);
 
+  // Pull the matching ApiStock from the TanStack Query list cache — available
+  // instantly without any network call, so the page renders immediately.
+  const queryClient = useQueryClient();
+  const cachedStock = useMemo<ApiStock | null>(() => {
+    const allListCaches = queryClient
+      .getQueryCache()
+      .findAll({ queryKey: ["stocks", "list"] });
+    for (const entry of allListCaches) {
+      const list = entry.state.data as ApiStock[] | undefined;
+      if (list) {
+        const found = list.find((s) => s.symbol === ticker?.toUpperCase());
+        if (found) return found;
+      }
+    }
+    return null;
+  }, [ticker]);
+
+  // Use the richer detail data when available, otherwise fall back to list cache.
+  const displayStock = stock ?? cachedStock;
+
   useEffect(() => {
     AsyncStorage.getItem(WATCHLIST_KEY)
       .then((val) => {
@@ -419,16 +441,8 @@ export default function StockDetailScreen() {
     } catch {}
   };
 
-  if (isLoading) {
-    return (
-      <View style={[styles.container, { paddingTop: topPad, alignItems: "center", justifyContent: "center" }]}>
-        <ActivityIndicator size="large" color={GREEN} />
-        <Text style={{ color: MUTED, marginTop: 12, fontFamily: "PlusJakartaSans_400Regular" }}>Loading {ticker}…</Text>
-      </View>
-    );
-  }
-
-  if (error || !stock) {
+  // Only show the full error screen when we have nothing to display at all.
+  if (error && !displayStock) {
     return (
       <View style={[styles.container, { paddingTop: topPad, alignItems: "center", justifyContent: "center" }]}>
         <Text style={{ color: RED, fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16 }}>Could not load {ticker}</Text>
@@ -440,27 +454,35 @@ export default function StockDetailScreen() {
     );
   }
 
-  const chartData: PricePoint[] = stock.priceHistory.map((h) => ({
+  // Minimal skeleton while we have no data at all (very rare — only on first ever load).
+  if (!displayStock) {
+    return (
+      <View style={[styles.container, { paddingTop: topPad, alignItems: "center", justifyContent: "center" }]}>
+        <ActivityIndicator size="large" color={GREEN} />
+      </View>
+    );
+  }
+
+  const chartData: PricePoint[] = stock?.priceHistory.map((h) => ({
     date: h.date, close: h.close, volume: h.volume, changePct: h.changePct ?? null,
-  }));
+  })) ?? [];
 
   const keyStats = [
-    { label: "Market Cap",    value: stock.listedShares ?? "—" },
-    { label: "Current Price", value: stock.price },
-    { label: "Open",          value: stock.openPrice },
-    { label: "High",          value: stock.highPrice },
-    { label: "Low",           value: stock.lowPrice },
-    { label: "Volume",        value: stock.volume },
-    ...(stock.sector ? [{ label: "Sector", value: stock.sector }] : []),
+    { label: "Market Cap",    value: stock?.listedShares ?? "—" },
+    { label: "Current Price", value: displayStock.price },
+    { label: "Open",          value: stock?.openPrice ?? "—" },
+    { label: "High",          value: stock?.highPrice ?? "—" },
+    { label: "Low",           value: stock?.lowPrice ?? "—" },
+    { label: "Volume",        value: displayStock.volume },
+    ...(displayStock.sector ? [{ label: "Sector", value: displayStock.sector }] : []),
   ];
 
-  const changeBadgeBg = stock.positive ? "rgba(61,220,127,0.18)" : "rgba(239,71,112,0.18)";
-  const changeBadgeFg = stock.positive ? GREEN : RED;
+  const changeBadgeFg = displayStock.positive ? GREEN : RED;
 
   const aboutText =
-    (stock as any).description ??
-    `${stock.name} is a company listed on the Malawi Stock Exchange (MSE). It operates within the ${
-      stock.sector ?? "financial"
+    stock?.description ??
+    `${displayStock.name} is a company listed on the Malawi Stock Exchange (MSE). It operates within the ${
+      displayStock.sector ?? "financial"
     } sector and offers investors exposure to the Malawian economy.`;
 
   return (
@@ -483,25 +505,25 @@ export default function StockDetailScreen() {
           <View style={styles.inlineHeader}>
             {/* Logo */}
             <View style={styles.headerLogoWrap}>
-              {getStockLogo(stock.symbol) ? (
-                <Image source={getStockLogo(stock.symbol)!} style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode="contain" />
+              {getStockLogo(displayStock.symbol) ? (
+                <Image source={getStockLogo(displayStock.symbol)!} style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode="contain" />
               ) : (
-                <Text style={styles.headerLogoText}>{stock.symbol.slice(0, 2).toLowerCase()}</Text>
+                <Text style={styles.headerLogoText}>{displayStock.symbol.slice(0, 2).toLowerCase()}</Text>
               )}
             </View>
 
             {/* Ticker + company name */}
             <View style={styles.headerTextBlock}>
-              <Text style={styles.headerTicker}>{stock.symbol}</Text>
-              <Text style={styles.headerName} numberOfLines={1}>{stock.name}</Text>
+              <Text style={styles.headerTicker}>{displayStock.symbol}</Text>
+              <Text style={styles.headerName} numberOfLines={1}>{displayStock.name}</Text>
             </View>
 
             {/* Price + change */}
             <View style={styles.headerPriceBlock}>
-              <Text style={styles.headerPrice}>{stock.price}</Text>
+              <Text style={styles.headerPrice}>{displayStock.price}</Text>
               <View style={styles.headerChangePill}>
                 <Text style={[styles.headerChangeText, { color: changeBadgeFg }]}>
-                  {stock.positive ? "▲" : "▼"} {stock.change}
+                  {displayStock.positive ? "▲" : "▼"} {displayStock.change}
                 </Text>
               </View>
             </View>
@@ -526,8 +548,14 @@ export default function StockDetailScreen() {
             ))}
           </View>
 
-          {/* Chart */}
-          <PriceChart data={chartData} positive={stock.positive} period={activeTimeTab} />
+          {/* Chart — only this area loads from the backend */}
+          {isLoading ? (
+            <View style={styles.chartLoading}>
+              <ActivityIndicator size="large" color={GREEN} />
+            </View>
+          ) : (
+            <PriceChart data={chartData} positive={displayStock.positive} period={activeTimeTab} />
+          )}
         </View>
 
         {/* ── White bottom section ───────────────────────────────── */}
@@ -535,7 +563,7 @@ export default function StockDetailScreen() {
 
           {/* About */}
           <View style={styles.aboutSection}>
-            <Text style={styles.sectionTitle}>About {stock.name}</Text>
+            <Text style={styles.sectionTitle}>About {displayStock.name}</Text>
             <Text style={styles.aboutBody} numberOfLines={aboutExpanded ? undefined : 3}>{aboutText}</Text>
             <TouchableOpacity onPress={() => setAboutExpanded((p) => !p)}>
               <Text style={styles.readMore}>{aboutExpanded ? "Read less" : "Read more"}</Text>
@@ -563,9 +591,9 @@ export default function StockDetailScreen() {
           {/* MSE badge */}
           <View style={styles.mseBadge}>
             <Text style={styles.mseBadgeText}>Data sourced from Malawi Stock Exchange · MSE</Text>
-            {stock.lastUpdated && (
+            {displayStock.lastUpdated && (
               <Text style={styles.mseBadgeDate}>
-                Last updated: {new Date(stock.lastUpdated).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                Last updated: {new Date(displayStock.lastUpdated).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
               </Text>
             )}
           </View>
@@ -608,7 +636,8 @@ const styles = StyleSheet.create({
   headerChangeText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12 },
 
   // ── Chart card (white section holding tabs + chart)
-  chartCard: { backgroundColor: WHITE, paddingTop: 14, paddingBottom: 4 },
+  chartCard:    { backgroundColor: WHITE, paddingTop: 14, paddingBottom: 4 },
+  chartLoading: { width: SCREEN_W, height: CHART_H, alignItems: "center", justifyContent: "center" },
 
   // ── Period tabs — pill style matching reference image
   periodTabsRow:       { flexDirection: "row", marginHorizontal: 16, marginBottom: 10, gap: 4, justifyContent: "center" },
