@@ -11,6 +11,12 @@ import {
   Image,
   Alert,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -25,6 +31,9 @@ import Svg, {
 } from "react-native-svg";
 import { useStockDetail } from "../../hooks/useStocks";
 import { getStockLogo } from "../../utils/stock-logos";
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedLine   = Animated.createAnimatedComponent(Line);
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 const TEAL = "#164951";
@@ -94,11 +103,9 @@ const PAD_R     = 16;
 const PAD_TOP   = 18;
 const PAD_BTM   = 28;   // bottom gap for X-axis labels
 
-// Tooltip (SVG-rendered)
-const TT_W  = 180;
-const TT_H  = 48;
-const TT_RX = 7;
-const TT_PX = 12;
+// Tooltip square size
+const TT_SIZE = 82;
+const TT_RX   = 8;
 
 /** Format a price for the Y-axis label */
 function fmtYLabel(p: number): string {
@@ -121,6 +128,85 @@ function fmtXLabel(dateStr: string, period: string): string {
 function PriceChart({ data, positive, period }: PriceChartProps) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
+  // ── Reanimated shared values for the dot / crosshair position ────
+  // Initialise to 0; corrected immediately by the effects below.
+  const animX = useSharedValue(0);
+  const animY = useSharedValue(0);
+
+  // Animated props for the SVG dot
+  const dotAnimProps = useAnimatedProps(() => ({
+    cx: animX.value,
+    cy: animY.value,
+  }));
+
+  // Animated props for the vertical crosshair
+  const vLineAnimProps = useAnimatedProps(() => ({
+    x1: animX.value,
+    x2: animX.value,
+  }));
+
+  // Animated props for the horizontal crosshair
+  const hLineAnimProps = useAnimatedProps(() => ({
+    y1: animY.value,
+    y2: animY.value,
+  }));
+
+  // Animated style for the tooltip card (horizontal position only)
+  const tooltipAnimStyle = useAnimatedStyle(() => {
+    const x = Math.max(
+      Y_PAD,
+      Math.min(SCREEN_W - TT_SIZE - 4, animX.value - TT_SIZE / 2)
+    );
+    return { left: x };
+  });
+
+  // ── Snap dot to a data index (called when selection or data changes) ─
+  const snapToIdx = useCallback(
+    (idx: number, d: PricePoint[], animate: boolean) => {
+      if (!d || d.length < 2) return;
+      const prices = d.map((p) => p.close);
+      const minP   = Math.min(...prices);
+      const maxP   = Math.max(...prices);
+      const range  = maxP - minP || 1;
+      const plotW  = SCREEN_W - Y_PAD - PAD_R;
+      const plotH  = CHART_H - PAD_TOP - PAD_BTM;
+      const tx = Y_PAD + (idx / (d.length - 1)) * plotW;
+      const ty = PAD_TOP + (1 - (d[idx].close - minP) / range) * plotH;
+      if (animate) {
+        animX.value = withSpring(tx, { damping: 20, stiffness: 300, mass: 0.6 });
+        animY.value = withSpring(ty, { damping: 20, stiffness: 300, mass: 0.6 });
+      } else {
+        animX.value = tx;
+        animY.value = ty;
+      }
+    },
+    []
+  );
+
+  // Animate when the selected index changes (user taps a point)
+  useEffect(() => {
+    if (!data || data.length < 2) return;
+    const idx = selectedIdx !== null ? selectedIdx : data.length - 1;
+    snapToIdx(idx, data, selectedIdx !== null);
+  }, [selectedIdx]);
+
+  // Instantly reset when data changes (period switch)
+  useEffect(() => {
+    if (!data || data.length < 2) return;
+    setSelectedIdx(null);
+    snapToIdx(data.length - 1, data, false);
+  }, [data]);
+
+  // ── Touch handler (selection persists on release) ─────────────────
+  const plotW_ref = (SCREEN_W - Y_PAD - PAD_R);
+  const handleTouch = useCallback((evt: any) => {
+    if (!data || data.length < 2) return;
+    const touchX  = evt?.nativeEvent?.locationX ?? 0;
+    const clamped = Math.max(0, Math.min(1, (touchX - Y_PAD) / plotW_ref));
+    setSelectedIdx(Math.round(clamped * (data.length - 1)));
+  }, [data?.length]);
+
+  // ── Early return for empty data ───────────────────────────────────
   if (!data || data.length < 2) {
     return (
       <View style={{ width: SCREEN_W, height: CHART_H, alignItems: "center", justifyContent: "center" }}>
@@ -131,6 +217,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
     );
   }
 
+  // ── Chart geometry ────────────────────────────────────────────────
   const prices = data.map((d) => d.close);
   const minP   = Math.min(...prices);
   const maxP   = Math.max(...prices);
@@ -141,7 +228,6 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   const xFor = (i: number) => Y_PAD + (i / (data.length - 1)) * plotW;
   const yFor = (p: number) => PAD_TOP + (1 - (p - minP) / range) * plotH;
 
-  // ── Two-colour line: green up to peak, red after ──────────────────
   const peakIdx = prices.indexOf(maxP);
 
   const buildSeg = (from: number, to: number) =>
@@ -152,42 +238,23 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   const greenPath = buildSeg(0, peakIdx);
   const redPath   = peakIdx < data.length - 1 ? buildSeg(peakIdx, data.length - 1) : null;
 
-  // Fill only the green (rising) segment
   const greenFill =
     greenPath +
     ` L${xFor(peakIdx).toFixed(1)},${(PAD_TOP + plotH).toFixed(1)}` +
     ` L${xFor(0).toFixed(1)},${(PAD_TOP + plotH).toFixed(1)} Z`;
 
-  // ── 5 Y-axis ticks (top → bottom) ────────────────────────────────
-  const yTicks = [0, 1, 2, 3, 4].map((i) => minP + (range * (4 - i)) / 4);
+  const yTicks      = [0, 1, 2, 3, 4].map((i) => minP + (range * (4 - i)) / 4);
+  const xLabelIdxs  = [0, 1, 2, 3, 4].map((i) => Math.round((i / 4) * (data.length - 1)));
 
-  // ── 5 evenly-spaced X-axis labels ────────────────────────────────
-  const xLabelIdxs = [0, 1, 2, 3, 4].map((i) =>
-    Math.round((i / 4) * (data.length - 1))
-  );
-
-  // ── Active point ──────────────────────────────────────────────────
-  const activeIdx = selectedIdx !== null ? selectedIdx : data.length - 1;
-  const activePt  = data[activeIdx];
-  const activeX   = xFor(activeIdx);
-  const activeY   = yFor(activePt.close);
-  const changePct = activePt.changePct ?? 0;
+  // ── Active point (for text/colour — not for position, which is animated) ─
+  const activeIdx   = selectedIdx !== null ? selectedIdx : data.length - 1;
+  const activePt    = data[activeIdx];
+  const changePct   = activePt.changePct ?? 0;
   const changeColor = changePct >= 0 ? SVG_GREEN : SVG_RED;
+  const priceTxt    = `MWK ${activePt.close.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const changeTxt   = `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`;
 
-  // ── Tooltip position (centred on crosshair, clamped) ─────────────
-  const ttX = Math.max(Y_PAD, Math.min(SCREEN_W - TT_W - 4, activeX - TT_W / 2));
-  const ttY = PAD_TOP + 6;
-
-  const priceTxt  = `MWK ${activePt.close.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const changeTxt = `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`;
-
-  const handleTouch = useCallback((evt: any) => {
-    const touchX  = evt?.nativeEvent?.locationX ?? 0;
-    const clamped = Math.max(0, Math.min(1, (touchX - Y_PAD) / plotW));
-    setSelectedIdx(Math.round(clamped * (data.length - 1)));
-  }, [data.length, plotW]);
-
-  const handleTouchEnd = useCallback(() => setSelectedIdx(null), []);
+  const ttTop = PAD_TOP + 6;
 
   return (
     <View
@@ -196,11 +263,10 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
       onMoveShouldSetResponder={() => true}
       onResponderGrant={handleTouch}
       onResponderMove={handleTouch}
-      onResponderRelease={handleTouchEnd}
+      // No onResponderRelease — selection persists until user leaves
     >
       <Svg width={SCREEN_W} height={CHART_H}>
         <Defs>
-          {/* SVG-exact gradient: #45B369 at 0.19 → 0 */}
           <LinearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0%"   stopColor={SVG_GREEN} stopOpacity="0.19" />
             <Stop offset="100%" stopColor={SVG_GREEN} stopOpacity="0"    />
@@ -212,22 +278,13 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
           const y = yFor(price);
           return (
             <React.Fragment key={i}>
-              {/* Dashed grid line across plot area */}
               <Line
                 x1={Y_PAD} y1={y} x2={SCREEN_W - PAD_R} y2={y}
-                stroke={SVG_GRID}
-                strokeWidth={1}
-                strokeLinecap="round"
-                strokeDasharray="3 3"
+                stroke={SVG_GRID} strokeWidth={1} strokeLinecap="round" strokeDasharray="3 3"
               />
-              {/* Price label, right-aligned before the plot */}
               <SvgText
-                x={Y_PAD - 6}
-                y={y + 4}
-                textAnchor="end"
-                fill={SVG_LABEL}
-                fontSize={10}
-                fontFamily="PlusJakartaSans_400Regular"
+                x={Y_PAD - 6} y={y + 4} textAnchor="end"
+                fill={SVG_LABEL} fontSize={10} fontFamily="PlusJakartaSans_400Regular"
               >
                 {fmtYLabel(price)}
               </SvgText>
@@ -235,81 +292,79 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
           );
         })}
 
-        {/* ── Green fill (rising segment only) ──────────────────── */}
+        {/* ── Green fill ─────────────────────────────────────────── */}
         <Path d={greenFill} fill="url(#chartFill)" />
 
         {/* ── Green line ─────────────────────────────────────────── */}
-        <Path
-          d={greenPath}
-          stroke={SVG_GREEN}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
+        <Path d={greenPath} stroke={SVG_GREEN} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
 
         {/* ── Red line (falling segment) ─────────────────────────── */}
         {redPath && (
-          <Path
-            d={redPath}
-            stroke={SVG_RED}
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          />
+          <Path d={redPath} stroke={SVG_RED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
         )}
 
         {/* ── X-axis date labels ─────────────────────────────────── */}
         {xLabelIdxs.map((idx, i) => (
           <SvgText
-            key={i}
-            x={xFor(idx)}
-            y={PAD_TOP + plotH + 18}
+            key={i} x={xFor(idx)} y={PAD_TOP + plotH + 18}
             textAnchor={i === 0 ? "start" : i === 4 ? "end" : "middle"}
-            fill={SVG_LABEL}
-            fontSize={10}
-            fontFamily="PlusJakartaSans_400Regular"
+            fill={SVG_LABEL} fontSize={10} fontFamily="PlusJakartaSans_400Regular"
           >
             {fmtXLabel(data[idx].date, period)}
           </SvgText>
         ))}
 
-        {/* ── Vertical crosshair: #164951, 0.5px, "2 2" ─────────── */}
-        <Line
-          x1={activeX} y1={PAD_TOP}
-          x2={activeX} y2={PAD_TOP + plotH}
-          stroke={SVG_TEAL}
-          strokeWidth={0.5}
-          strokeLinecap="round"
-          strokeDasharray="2 2"
+        {/* ── Animated vertical crosshair ────────────────────────── */}
+        <AnimatedLine
+          animatedProps={vLineAnimProps}
+          y1={PAD_TOP} y2={PAD_TOP + plotH}
+          stroke={SVG_TEAL} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2"
         />
 
-        {/* ── Horizontal crosshair: #164951, 0.5px, "2 2" ───────── */}
-        <Line
-          x1={Y_PAD} y1={activeY}
-          x2={SCREEN_W - PAD_R} y2={activeY}
-          stroke={SVG_TEAL}
-          strokeWidth={0.5}
-          strokeLinecap="round"
-          strokeDasharray="2 2"
+        {/* ── Animated horizontal crosshair ──────────────────────── */}
+        <AnimatedLine
+          animatedProps={hLineAnimProps}
+          x1={Y_PAD} x2={SCREEN_W - PAD_R}
+          stroke={SVG_TEAL} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2"
         />
 
-        {/* ── Active dot: white fill, green stroke ──────────────── */}
-        <Circle cx={activeX} cy={activeY} r={4} fill={WHITE} stroke={SVG_GREEN} strokeWidth={2} />
-
-        {/* ── Tooltip: #164951 rounded rect ─────────────────────── */}
-        <Path
-          d={`M${ttX + TT_RX},${ttY} h${TT_W - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 ${TT_RX},${TT_RX} v${TT_H - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 -${TT_RX},${TT_RX} h-${TT_W - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 -${TT_RX},-${TT_RX} v-${TT_H - TT_RX * 2} a${TT_RX},${TT_RX} 0 0 1 ${TT_RX},-${TT_RX} Z`}
-          fill={SVG_TEAL}
+        {/* ── Animated dot ───────────────────────────────────────── */}
+        <AnimatedCircle
+          animatedProps={dotAnimProps}
+          r={4} fill={WHITE} stroke={SVG_GREEN} strokeWidth={2}
         />
-        <SvgText x={ttX + TT_PX} y={ttY + 19} fill={WHITE} fontSize={13} fontFamily="PlusJakartaSans_700Bold">
-          {priceTxt}
-        </SvgText>
-        <SvgText x={ttX + TT_PX} y={ttY + 36} fill={changeColor} fontSize={11} fontFamily="PlusJakartaSans_500Medium">
-          {changeTxt}
-        </SvgText>
       </Svg>
+
+      {/* ── Square tooltip card (absolute, animated position) ──────── */}
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            top: ttTop,
+            width: TT_SIZE,
+            height: TT_SIZE,
+            backgroundColor: SVG_TEAL,
+            borderRadius: TT_RX,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 6,
+          },
+          tooltipAnimStyle,
+        ]}
+      >
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          style={{ color: WHITE, fontSize: 12, fontFamily: "PlusJakartaSans_700Bold", textAlign: "center" }}
+        >
+          {priceTxt}
+        </Text>
+        <Text
+          style={{ color: changeColor, fontSize: 11, fontFamily: "PlusJakartaSans_500Medium", marginTop: 4 }}
+        >
+          {changeTxt}
+        </Text>
+      </Animated.View>
     </View>
   );
 }
