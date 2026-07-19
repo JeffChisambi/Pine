@@ -639,37 +639,18 @@ export default function HomeScreen() {
             )}
           </ScrollView>
 
-          {/* Featured News Card */}
-          <View style={{ backgroundColor: TEAL, borderRadius: 12, marginTop: 28, marginHorizontal: 20, minHeight: 120, overflow: "hidden", flexDirection: "row" }}>
-            {/* Left — info */}
-            <View style={{ flex: 1, padding: 20, justifyContent: "space-between" }}>
-              <View>
-                <View style={{ backgroundColor: WHITE, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 }}>
-                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: TEAL }}>Banking</Text>
-                </View>
-                <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 13, color: WHITE, lineHeight: 18, marginBottom: 5 }} numberOfLines={2}>
-                  FDH Bank Doubles Profit After Tax to MWK 148 Billion
-                </Text>
-                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: WHITE, opacity: 0.7, lineHeight: 15 }} numberOfLines={2}>
-                  Net interest income surged 82% and total assets crossed MWK 1.6 trillion.
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={{ backgroundColor: GREEN, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignSelf: "flex-start", marginTop: 12 }}
-                onPress={() => router.push("/(tabs)/news" as any)}
-              >
-                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE }}>Read more</Text>
-              </TouchableOpacity>
+          {/* Banner — always teal, unchanged */}
+          <View style={{ backgroundColor: TEAL, borderRadius: 12, padding: 20, marginTop: 28, marginHorizontal: 20, minHeight: 120, overflow: "hidden" }}>
+            <View style={{ position: "absolute", right: -24, top: -24, width: 130, height: 130, borderRadius: 65, backgroundColor: TEAL_MED, opacity: 0.7 }} />
+            <View style={{ position: "absolute", right: 26, top: 20, width: 80, height: 80, borderRadius: 40, backgroundColor: GREEN, opacity: 0.25 }} />
+            <View style={{ backgroundColor: WHITE, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 12 }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: TEAL }}>Research</Text>
             </View>
-
-            {/* Right — image fills exactly half */}
-            <View style={{ width: "42%" }}>
-              <Image
-                source={require("../../attached_assets/fdh_1784363470714.png")}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
-              />
-            </View>
+            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: WHITE, lineHeight: 26, marginBottom: 6 }}>Invest Smarter,{"\n"}Start Today</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: WHITE, opacity: 0.7, lineHeight: 18, marginBottom: 16 }}>Explore curated market insights{"\n"}and AI-powered analysis.</Text>
+            <TouchableOpacity style={{ backgroundColor: GREEN, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignSelf: "flex-start" }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE }}>Get Started</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={{ height: 24 }} />
