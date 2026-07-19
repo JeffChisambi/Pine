@@ -388,6 +388,7 @@ export default function HomeScreen() {
   const [watchlist, setWatchlist] = useState<StockData[]>([]);
   const [watchlistTickers, setWatchlistTickers] = useState<Set<string>>(new Set());
   const [trending, setTrending] = useState<StockData[]>([]);
+  const [losers, setLosers] = useState<StockData[]>([]);
   const MAX_WATCHLIST = 4;
   const WATCHLIST_KEY = "@pine_watchlist_tickers";
 
@@ -457,7 +458,8 @@ export default function HomeScreen() {
           price: s.price, change: s.change, positive: s.positive, changePctNum: s.changePct,
         }));
         setAllStocks(mapped);
-        setTrending(mapped.slice(0, 6));
+        setTrending(mapped.filter((s) => s.positive).slice(0, 6));
+        setLosers(mapped.filter((s) => !s.positive).slice(0, 6));
       })
       .catch(() => {});
   }, []);
@@ -590,6 +592,37 @@ export default function HomeScreen() {
               </View>
             ) : (
               trending.map((item, idx) => (
+                <TrendCard
+                  key={item.ticker}
+                  logoImg={item.logo}
+                  symbol={item.ticker}
+                  name={item.name}
+                  price={item.price}
+                  change={item.change}
+                  changePctNum={item.changePctNum}
+                  positive={item.positive}
+                  idx={idx}
+                  c={c}
+                />
+              ))
+            )}
+          </ScrollView>
+
+          {/* Losers */}
+          <View style={{ paddingHorizontal: 20 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16, marginTop: 28 }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Losers</Text>
+              <TouchableOpacity><Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED2 }}>See all</Text></TouchableOpacity>
+            </View>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingLeft: 24, paddingRight: 8 }}>
+            {losers.length === 0 ? (
+              <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
+                <Text style={{ color: MUTED }}>Loading losers...</Text>
+              </View>
+            ) : (
+              losers.map((item, idx) => (
                 <TrendCard
                   key={item.ticker}
                   logoImg={item.logo}
