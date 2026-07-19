@@ -390,6 +390,8 @@ export default function HomeScreen() {
   const [allStocks, setAllStocks] = useState<StockData[]>([]);
   const [watchlist, setWatchlist] = useState<StockData[]>([]);
   const [watchlistTickers, setWatchlistTickers] = useState<Set<string>>(new Set());
+  // null = not yet read from storage; false = key absent (fresh install); true = key exists (respect whatever is stored, even empty)
+  const [watchlistKeyExists, setWatchlistKeyExists] = useState<boolean | null>(null);
   const [trending, setTrending] = useState<StockData[]>([]);
   const [losers, setLosers] = useState<StockData[]>([]);
   const [bannerPage, setBannerPage] = useState(0);
@@ -443,8 +445,15 @@ export default function HomeScreen() {
 
   useEffect(() => {
     AsyncStorage.getItem(WATCHLIST_KEY)
-      .then((val) => { if (val) { const tickers: string[] = JSON.parse(val); setWatchlistTickers(new Set(tickers)); } })
-      .catch(() => {});
+      .then((val) => {
+        if (val !== null) {
+          setWatchlistKeyExists(true);
+          setWatchlistTickers(new Set(JSON.parse(val)));
+        } else {
+          setWatchlistKeyExists(false); // fresh install — auto-fill is allowed
+        }
+      })
+      .catch(() => { setWatchlistKeyExists(false); });
   }, []);
 
   const saveWatchlist = useCallback((tickers: Set<string>) => {
@@ -471,16 +480,19 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    if (allStocks.length === 0) return;
-    if (watchlistTickers.size === 0) {
+    if (allStocks.length === 0 || watchlistKeyExists === null) return;
+    if (watchlistKeyExists === false) {
+      // Fresh install — seed with defaults and mark key as existing
       const defaultTickers = new Set(allStocks.slice(0, MAX_WATCHLIST).map((s) => s.ticker));
       setWatchlistTickers(defaultTickers);
       setWatchlist(allStocks.slice(0, MAX_WATCHLIST));
       saveWatchlist(defaultTickers);
+      setWatchlistKeyExists(true);
     } else {
+      // Key exists — always respect what's stored, even if empty
       setWatchlist(allStocks.filter((s) => watchlistTickers.has(s.ticker)));
     }
-  }, [allStocks, watchlistTickers, saveWatchlist]);
+  }, [allStocks, watchlistTickers, watchlistKeyExists, saveWatchlist]);
 
   const removeFromWatchlist = (ticker: string) => {
     const next = new Set(watchlistTickers);
