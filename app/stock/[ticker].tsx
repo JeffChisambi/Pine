@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
 
   // ── Inline header: logo | ticker+name | price+change
   inlineHeader:     { flexDirection: "row", alignItems: "center", paddingHorizontal: 24, gap: 12, marginBottom: 4 },
-  headerLogoWrap:   { width: 44, height: 44, borderRadius: 22, backgroundColor: "transparent", alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  headerLogoWrap:   { width: 44, height: 44, borderRadius: 22, backgroundColor: WHITE, alignItems: "center", justifyContent: "center", overflow: "hidden", borderWidth: 1, borderColor: "#E5E7EB" },
   headerLogoText:   { fontFamily: "PlusJakartaSans_700Bold", fontSize: 14, color: WHITE },
   headerTextBlock:  { flex: 1, justifyContent: "center", gap: 2 },
   headerTicker:     { fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: DARK },
