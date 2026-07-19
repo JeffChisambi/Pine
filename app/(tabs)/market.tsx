@@ -147,7 +147,18 @@ function SectorAgricultureIcon({ color }: { color: string }) {
 function SectorRealEstateIcon({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 12L12 4L21 12V21H15V15H9V21H3V12Z" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      {/* Tall building — right */}
+      <Rect x="10" y="2" width="12" height="20" rx="2" stroke={color} strokeWidth={1.5} />
+      {/* Tall building windows — 2 columns × 2 rows */}
+      <Rect x="12.5" y="5"    width="2.5" height="2.5" rx="0.75" stroke={color} strokeWidth={1.5} />
+      <Rect x="17"   y="5"    width="2.5" height="2.5" rx="0.75" stroke={color} strokeWidth={1.5} />
+      <Rect x="12.5" y="10"   width="2.5" height="2.5" rx="0.75" stroke={color} strokeWidth={1.5} />
+      <Rect x="17"   y="10"   width="2.5" height="2.5" rx="0.75" stroke={color} strokeWidth={1.5} />
+      {/* Short building — left, adjacent to tall */}
+      <Rect x="2" y="9" width="8" height="13" rx="2" stroke={color} strokeWidth={1.5} />
+      {/* Short building windows — stacked */}
+      <Rect x="4.5" y="12" width="3" height="3" rx="0.75" stroke={color} strokeWidth={1.5} />
+      <Rect x="4.5" y="17" width="3" height="3" rx="0.75" stroke={color} strokeWidth={1.5} />
     </Svg>
   );
 }
