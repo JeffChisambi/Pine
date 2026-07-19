@@ -15,6 +15,7 @@ import Animated, {
   useSharedValue,
   useAnimatedProps,
   useAnimatedStyle,
+  withSpring,
   runOnJS,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -207,7 +208,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   // xsShared/ysShared are pre-computed on data change and read here
   // as worklet-accessible shared values, so there is no JS→UI round-trip.
   const PLOT_W = SCREEN_W - Y_PAD - PAD_R;
-  const pickAndSnap = (x: number) => {
+  const pickAndSnap = (x: number, animate: boolean) => {
     "worklet";
     const xs  = xsShared.value;
     const ys  = ysShared.value;
@@ -215,16 +216,21 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
     if (len < 2) return;
     const t   = Math.max(0, Math.min(1, (x - Y_PAD) / PLOT_W));
     const idx = Math.round(t * (len - 1));
-    animX.value = xs[idx];
-    animY.value = ys[idx];
-    runOnJS(setSelectedIdx)(idx);   // only for tooltip text — lags slightly but is fine
+    if (animate) {
+      animX.value = withSpring(xs[idx], { damping: 20, stiffness: 300, mass: 0.6 });
+      animY.value = withSpring(ys[idx], { damping: 20, stiffness: 300, mass: 0.6 });
+    } else {
+      animX.value = xs[idx];
+      animY.value = ys[idx];
+    }
+    runOnJS(setSelectedIdx)(idx);   // only for tooltip text
   };
 
   const gesture = Gesture.Pan()
     .minDistance(0)
-    .activeOffsetX([-4, 4])       // activate quickly on horizontal move
-    .onBegin((e)  => { "worklet"; pickAndSnap(e.x); })
-    .onUpdate((e) => { "worklet"; pickAndSnap(e.x); });
+    .activeOffsetX([-4, 4])
+    .onBegin((e)  => { "worklet"; pickAndSnap(e.x, true); })   // spring on first tap
+    .onUpdate((e) => { "worklet"; pickAndSnap(e.x, false); }); // instant while dragging
 
   // ── Early return for empty data ───────────────────────────────────
   if (!data || data.length < 2) {
