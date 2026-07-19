@@ -640,30 +640,30 @@ export default function HomeScreen() {
           </ScrollView>
 
           {/* Featured News Card */}
-          <View style={{ backgroundColor: TEAL, borderRadius: 16, marginTop: 28, marginHorizontal: 20, minHeight: 160, overflow: "hidden", flexDirection: "row" }}>
+          <View style={{ backgroundColor: TEAL, borderRadius: 12, marginTop: 28, marginHorizontal: 20, minHeight: 120, overflow: "hidden", flexDirection: "row" }}>
             {/* Left — info */}
-            <View style={{ flex: 1, padding: 18, justifyContent: "space-between" }}>
+            <View style={{ flex: 1, padding: 20, justifyContent: "space-between" }}>
               <View>
-                <View style={{ backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 4, paddingHorizontal: 8, paddingVertical: 3, alignSelf: "flex-start", marginBottom: 10 }}>
-                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 10, color: WHITE, letterSpacing: 0.4 }}>Banking</Text>
+                <View style={{ backgroundColor: WHITE, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 }}>
+                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: TEAL }}>Banking</Text>
                 </View>
-                <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 13, color: WHITE, lineHeight: 19, marginBottom: 6 }} numberOfLines={3}>
-                  FDH Bank Doubles Profit After Tax to MWK 148 Billion in FY2025
+                <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 13, color: WHITE, lineHeight: 18, marginBottom: 5 }} numberOfLines={2}>
+                  FDH Bank Doubles Profit After Tax to MWK 148 Billion
                 </Text>
-                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: WHITE, opacity: 0.7, lineHeight: 16 }} numberOfLines={2}>
+                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: WHITE, opacity: 0.7, lineHeight: 15 }} numberOfLines={2}>
                   Net interest income surged 82% and total assets crossed MWK 1.6 trillion.
                 </Text>
               </View>
               <TouchableOpacity
-                style={{ backgroundColor: GREEN, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8, alignSelf: "flex-start", marginTop: 14 }}
+                style={{ backgroundColor: GREEN, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignSelf: "flex-start", marginTop: 12 }}
                 onPress={() => router.push("/(tabs)/news" as any)}
               >
-                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE }}>Read more</Text>
+                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE }}>Read more</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Right — image */}
-            <View style={{ width: "45%" }}>
+            {/* Right — image fills exactly half */}
+            <View style={{ width: "42%" }}>
               <Image
                 source={require("../../attached_assets/fdh_1784363470714.png")}
                 style={{ width: "100%", height: "100%" }}
