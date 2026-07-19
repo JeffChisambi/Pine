@@ -462,8 +462,9 @@ export default function HomeScreen() {
           price: s.price, change: s.change, positive: s.positive, changePctNum: s.changePct,
         }));
         setAllStocks(mapped);
-        setTrending(mapped.filter((s) => s.positive).slice(0, 6));
-        setLosers(mapped.filter((s) => !s.positive).slice(0, 6));
+        const sorted = [...mapped].sort((a, b) => (b.changePctNum ?? 0) - (a.changePctNum ?? 0));
+        setTrending(sorted.slice(0, 6));
+        setLosers([...sorted].reverse().slice(0, 6));
       })
       .catch(() => {});
   }, []);
@@ -643,7 +644,7 @@ export default function HomeScreen() {
             )}
           </ScrollView>
 
-          {/* News banner carousel */}
+          {/* News banner carousel — one card visible at a time */}
           {(() => {
             const BANNER_ITEMS = [
               {
@@ -667,18 +668,15 @@ export default function HomeScreen() {
             ];
             const cardWidth = screenWidth - 40;
             return (
-              <View style={{ marginTop: 28 }}>
+              <View style={{ marginTop: 28, marginHorizontal: 20 }}>
+                {/* ScrollView sized exactly to one card — pagingEnabled pages by this width */}
                 <ScrollView
                   ref={bannerScrollRef}
                   horizontal
                   pagingEnabled
                   showsHorizontalScrollIndicator={false}
-                  snapToInterval={cardWidth + 12}
-                  decelerationRate="fast"
-                  contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
                   onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-                    const page = Math.round(e.nativeEvent.contentOffset.x / (cardWidth + 12));
-                    setBannerPage(page);
+                    setBannerPage(Math.round(e.nativeEvent.contentOffset.x / cardWidth));
                   }}
                 >
                   {BANNER_ITEMS.map((item) => (
@@ -686,11 +684,11 @@ export default function HomeScreen() {
                       key={item.id}
                       style={{
                         width: cardWidth,
+                        height: 200,
                         backgroundColor: TEAL,
                         borderRadius: 16,
                         overflow: "hidden",
                         flexDirection: "row",
-                        minHeight: 190,
                       }}
                     >
                       {/* Left: text */}
@@ -704,7 +702,7 @@ export default function HomeScreen() {
                           </Text>
                           <Text
                             style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 18 }}
-                            numberOfLines={4}
+                            numberOfLines={3}
                           >
                             {item.summary}
                           </Text>
@@ -717,26 +715,22 @@ export default function HomeScreen() {
                             borderRadius: 10,
                             paddingVertical: 10,
                             alignItems: "center",
-                            marginTop: 14,
+                            marginTop: 12,
                           }}
                         >
                           <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE }}>Read more</Text>
                         </TouchableOpacity>
                       </View>
                       {/* Right: image */}
-                      <View style={{ width: 140, margin: 10, borderRadius: 12, overflow: "hidden" }}>
-                        <Image
-                          source={item.image}
-                          style={{ width: "100%", height: "100%" }}
-                          resizeMode="cover"
-                        />
+                      <View style={{ width: 130, margin: 10, borderRadius: 12, overflow: "hidden" }}>
+                        <Image source={item.image} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
                       </View>
                     </View>
                   ))}
                 </ScrollView>
 
                 {/* Pagination dots */}
-                <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 12 }}>
+                <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 10 }}>
                   {BANNER_ITEMS.map((_, i) => (
                     <View
                       key={i}
