@@ -316,9 +316,9 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
                     </View>
                   )}
                 </View>
-                <View style={{ gap: 3 }}>
+                <View style={{ gap: 3, flex: 1 }}>
                   <Text style={styles.watchSymbol}>{symbol}</Text>
-                  <Text style={styles.watchSub}>
+                  <Text style={styles.watchSub} numberOfLines={1}>
                     {name}
                     <Text style={{ color: MUTED }}> · </Text>
                     {type}
@@ -965,7 +965,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
   },
-  watchLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
+  watchLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1, marginRight: 12 },
   watchLogoBox: {
     width: 44,
     height: 44,
@@ -980,7 +980,7 @@ const styles = StyleSheet.create({
   watchLogoImg: { width: 40, height: 40, borderRadius: 20 },
   watchSymbol: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: DARK },
   watchSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
-  watchRight: { alignItems: "flex-end", gap: 4 },
+  watchRight: { alignItems: "flex-end", gap: 4, flexShrink: 0 },
   watchPrice: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: DARK },
   watchChange: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 12 },
 
