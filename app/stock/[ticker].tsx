@@ -151,13 +151,18 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
     y2: animY.value,
   }));
 
-  // Animated style for the tooltip card (horizontal position only)
+  // Animated style for the tooltip card — floats above the dot,
+  // drops below only when the dot is too close to the top edge.
+  const CARD_H = 52; // approx card height (paddingVertical 8×2 + two text lines)
+  const DOT_GAP = 12;
   const tooltipAnimStyle = useAnimatedStyle(() => {
     const x = Math.max(
       Y_PAD,
       Math.min(SCREEN_W - TT_SIZE - 4, animX.value - TT_SIZE / 2)
     );
-    return { left: x };
+    const aboveY = animY.value - CARD_H - DOT_GAP;
+    const y = aboveY >= PAD_TOP ? aboveY : animY.value + DOT_GAP;
+    return { left: x, top: y };
   });
 
   // ── Snap dot to a data index (called when selection or data changes) ─
@@ -254,8 +259,6 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   const priceTxt    = `MWK ${activePt.close.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const changeTxt   = `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`;
 
-  const ttTop = PAD_TOP + 6;
-
   return (
     <View
       style={{ width: SCREEN_W, height: CHART_H }}
@@ -340,7 +343,6 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
         style={[
           {
             position: "absolute",
-            top: ttTop,
             width: TT_SIZE,
             backgroundColor: SVG_TEAL,
             borderRadius: TT_RX,
