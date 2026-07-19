@@ -314,40 +314,6 @@ export default function ProfileScreen() {
       fontSize: 11,
       color: "#92400E",
     },
-    cashCard: {
-      backgroundColor: TEAL,
-      borderRadius: 10,
-      height: 69,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingLeft: 18,
-      paddingRight: 10,
-      overflow: "hidden",
-      position: "relative",
-    },
-    cashTextBlock: { flex: 1 },
-    cashLabel: {
-      fontFamily: "PlusJakartaSans_400Regular",
-      fontSize: 11,
-      color: "rgba(255,255,255,0.65)",
-      marginBottom: 2,
-    },
-    cashAmount: {
-      fontFamily: "PlusJakartaSans_700Bold",
-      fontSize: 20,
-      color: WHITE,
-      marginBottom: 1,
-    },
-    cashArrow: {
-      width: 32,
-      height: 52,
-      backgroundColor: "rgba(45,91,98,0.45)",
-      borderRadius: 4,
-      borderWidth: 0.5,
-      borderColor: "rgba(255,255,255,0.12)",
-      alignItems: "center",
-      justifyContent: "center",
-    },
     settingsGroup: {
       backgroundColor: c.card,
       borderRadius: 12,
@@ -436,27 +402,6 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Cash card */}
-          <TouchableOpacity
-            style={styles.cashCard}
-            onPress={() => router.push("/(tabs)/portfolio" as any)}
-            activeOpacity={0.85}
-          >
-            <Svg style={StyleSheet.absoluteFill} width="100%" height={69}>
-              <Circle cx={252} cy={-22} r={70} stroke="#45B369" strokeWidth={1} strokeOpacity={0.5} fill="none" />
-              <Circle cx={232} cy={62} r={50} stroke="#739297" strokeWidth={1} strokeOpacity={0.4} fill="none" />
-              <Circle cx={274} cy={78} r={44} stroke="#FFD84A" strokeWidth={0.8} strokeOpacity={0.5} fill="none" />
-            </Svg>
-            <View style={styles.cashTextBlock}>
-              <Text style={styles.cashLabel}>Cash Balance</Text>
-              <Text style={styles.cashAmount}>MK {walletBalanceDisplay}</Text>
-            </View>
-            <View style={styles.cashArrow}>
-              <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-                <Path d="M5 3l4 4-4 4" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </View>
-          </TouchableOpacity>
         </View>
 
         {/* Settings Group 1 */}
