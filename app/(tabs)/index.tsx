@@ -232,11 +232,11 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
   });
 
   return (
-    <View style={{ overflow: "hidden", borderRadius: 16, marginBottom: 12 }}>
+    <View style={{ marginBottom: 12, borderRadius: 16, overflow: "hidden" }}>
+      {/* Delete reveal behind the card */}
       <View style={{
         position: "absolute", right: 0, top: 0, bottom: 0, width: REVEAL_WIDTH,
         backgroundColor: "#EF4770", alignItems: "center", justifyContent: "center",
-        borderTopRightRadius: 16, borderBottomRightRadius: 16,
       }}>
         <ReAnimated.View style={[{ alignItems: "center" }, buttonStyle]}>
           <TouchableOpacity onPress={collapse} activeOpacity={0.75}
@@ -249,15 +249,17 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
       </View>
 
       <GestureDetector gesture={pan}>
-        <ReAnimated.View style={cardStyle}>
+        {/* Animated card — background fills corners so they never bleed */}
+        <ReAnimated.View style={[cardStyle, {
+          backgroundColor: c.card,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: c.border,
+        }]}>
           <TouchableOpacity activeOpacity={1} onPress={() => {
             if (isOpen.value) { dismiss(); } else { router.push(`/stock/${symbol}`); }
           }}>
             <View style={{
-              backgroundColor: c.card,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: c.border,
               height: 77,
               flexDirection: "row",
               alignItems: "center",
