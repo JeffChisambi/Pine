@@ -15,8 +15,9 @@ import Animated, {
   useSharedValue,
   useAnimatedProps,
   useAnimatedStyle,
-  withSpring,
+  runOnJS,
 } from "react-native-reanimated";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -135,6 +136,12 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   const animX = useSharedValue(0);
   const animY = useSharedValue(0);
 
+  // Pre-computed x/y pixel positions for every data point — stored as
+  // shared values so gesture worklets can read them on the UI thread
+  // without touching the JS heap.
+  const xsShared = useSharedValue<number[]>([]);
+  const ysShared = useSharedValue<number[]>([]);
+
   // Animated props for the SVG dot
   const dotAnimProps = useAnimatedProps(() => ({
     cx: animX.value,
@@ -167,51 +174,57 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
     return { left: x, top: y };
   });
 
-  // ── Snap dot to a data index (called when selection or data changes) ─
-  const snapToIdx = useCallback(
-    (idx: number, d: PricePoint[], animate: boolean) => {
-      if (!d || d.length < 2) return;
-      const prices = d.map((p) => p.close);
-      const minP   = Math.min(...prices);
-      const maxP   = Math.max(...prices);
-      const range  = maxP - minP || 1;
-      const plotW  = SCREEN_W - Y_PAD - PAD_R;
-      const plotH  = CHART_H - PAD_TOP - PAD_BTM;
-      const tx = Y_PAD + (idx / (d.length - 1)) * plotW;
-      const ty = PAD_TOP + (1 - (d[idx].close - minP) / range) * plotH;
-      if (animate) {
-        animX.value = withSpring(tx, { damping: 20, stiffness: 300, mass: 0.6 });
-        animY.value = withSpring(ty, { damping: 20, stiffness: 300, mass: 0.6 });
-      } else {
-        animX.value = tx;
-        animY.value = ty;
-      }
-    },
-    []
-  );
+  // ── Snap dot instantly to a data index ───────────────────────────
+  const snapToIdx = useCallback((idx: number, d: PricePoint[]) => {
+    if (!d || d.length < 2) return;
+    const prices = d.map((p) => p.close);
+    const minP   = Math.min(...prices);
+    const maxP   = Math.max(...prices);
+    const range  = maxP - minP || 1;
+    const plotW  = SCREEN_W - Y_PAD - PAD_R;
+    const plotH  = CHART_H - PAD_TOP - PAD_BTM;
+    animX.value  = Y_PAD + (idx / (d.length - 1)) * plotW;
+    animY.value  = PAD_TOP + (1 - (d[idx].close - minP) / range) * plotH;
+  }, []);
 
-  // Animate when the selected index changes (user taps a point)
+  // Instantly reset when data changes (period switch) and
+  // pre-compute x/y pixel arrays for the gesture worklet.
   useEffect(() => {
     if (!data || data.length < 2) return;
-    const idx = selectedIdx !== null ? selectedIdx : data.length - 1;
-    snapToIdx(idx, data, selectedIdx !== null);
-  }, [selectedIdx]);
-
-  // Instantly reset when data changes (period switch)
-  useEffect(() => {
-    if (!data || data.length < 2) return;
+    const prices = data.map((p) => p.close);
+    const minP   = Math.min(...prices);
+    const maxP   = Math.max(...prices);
+    const range  = maxP - minP || 1;
+    const plotW  = SCREEN_W - Y_PAD - PAD_R;
+    const plotH  = CHART_H - PAD_TOP - PAD_BTM;
+    xsShared.value = data.map((_, i) => Y_PAD + (i / (data.length - 1)) * plotW);
+    ysShared.value = data.map((p)    => PAD_TOP + (1 - (p.close - minP) / range) * plotH);
     setSelectedIdx(null);
-    snapToIdx(data.length - 1, data, false);
+    snapToIdx(data.length - 1, data);
   }, [data]);
 
-  // ── Touch handler (selection persists on release) ─────────────────
-  const plotW_ref = (SCREEN_W - Y_PAD - PAD_R);
-  const handleTouch = useCallback((evt: any) => {
-    if (!data || data.length < 2) return;
-    const touchX  = evt?.nativeEvent?.locationX ?? 0;
-    const clamped = Math.max(0, Math.min(1, (touchX - Y_PAD) / plotW_ref));
-    setSelectedIdx(Math.round(clamped * (data.length - 1)));
-  }, [data?.length]);
+  // ── RNGH Pan gesture — updates dot on the UI thread instantly ─────
+  // xsShared/ysShared are pre-computed on data change and read here
+  // as worklet-accessible shared values, so there is no JS→UI round-trip.
+  const PLOT_W = SCREEN_W - Y_PAD - PAD_R;
+  const pickAndSnap = (x: number) => {
+    "worklet";
+    const xs  = xsShared.value;
+    const ys  = ysShared.value;
+    const len = xs.length;
+    if (len < 2) return;
+    const t   = Math.max(0, Math.min(1, (x - Y_PAD) / PLOT_W));
+    const idx = Math.round(t * (len - 1));
+    animX.value = xs[idx];
+    animY.value = ys[idx];
+    runOnJS(setSelectedIdx)(idx);   // only for tooltip text — lags slightly but is fine
+  };
+
+  const gesture = Gesture.Pan()
+    .minDistance(0)
+    .activeOffsetX([-4, 4])       // activate quickly on horizontal move
+    .onBegin((e)  => { "worklet"; pickAndSnap(e.x); })
+    .onUpdate((e) => { "worklet"; pickAndSnap(e.x); });
 
   // ── Early return for empty data ───────────────────────────────────
   if (!data || data.length < 2) {
@@ -262,14 +275,8 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   const changeTxt   = `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`;
 
   return (
-    <View
-      style={{ width: SCREEN_W, height: CHART_H }}
-      onStartShouldSetResponder={() => true}
-      onMoveShouldSetResponder={() => true}
-      onResponderGrant={handleTouch}
-      onResponderMove={handleTouch}
-      // No onResponderRelease — selection persists until user leaves
-    >
+    <GestureDetector gesture={gesture}>
+    <View style={{ width: SCREEN_W, height: CHART_H }}>
       <Svg width={SCREEN_W} height={CHART_H}>
         <Defs>
           <LinearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
@@ -370,6 +377,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
         </Text>
       </Animated.View>
     </View>
+    </GestureDetector>
   );
 }
 
