@@ -578,7 +578,7 @@ export default function HomeScreen() {
 
             {/* Trending */}
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16, marginTop: 28 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Trending</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Gainers</Text>
               <TouchableOpacity><Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED2 }}>See all</Text></TouchableOpacity>
             </View>
           </View>
