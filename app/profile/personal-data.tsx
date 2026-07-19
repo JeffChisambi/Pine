@@ -15,7 +15,6 @@ import { useAuth } from "../../services/auth-context";
 import { useColors } from "@/hooks/useColors";
 
 const TEAL = "#164951";
-const GREEN_AVATAR = "#8FD1A5";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
@@ -28,14 +27,10 @@ function EditPencilIcon() {
 }
 
 function AvatarFigure() {
-  const size = 88;
-  const r = size / 2;
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <Circle cx={r} cy={r} r={r} fill={GREEN_AVATAR} />
-      <Circle cx={r} cy={r * 0.78} r={r * 0.35} fill="#C2837B" />
-      <Path d={`M${r * 0.3} ${size - 2} Q${r} ${r * 1.38} ${r * 1.7} ${size - 2}`} fill="#9E7D84" />
-      <Path d={`M${r * 0.38} ${r * 0.52} Q${r} ${r * 0.2} ${r * 1.62} ${r * 0.52}`} fill="#AC7080" stroke="#AC7080" strokeWidth={r * 0.18} />
+    <Svg width={88} height={88} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M4 20C4 17.33 7.58 15 12 15C16.42 15 20 17.33 20 20" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -116,7 +111,7 @@ export default function PersonalDataScreen() {
       >
         {/* Avatar */}
         <View style={{ alignItems: "center", marginBottom: 36, marginTop: 8 }}>
-          <View style={{ width: 88, height: 88, borderRadius: 44, overflow: "visible", position: "relative" }}>
+          <View style={{ width: 88, height: 88, borderRadius: 44, overflow: "visible", position: "relative", backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center" }}>
             <AvatarFigure />
             <View style={{ position: "absolute", bottom: 0, right: 0, width: 28, height: 28, borderRadius: 14, backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: c.background }}>
               <EditPencilIcon />
