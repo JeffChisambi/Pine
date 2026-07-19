@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
-  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -20,7 +19,6 @@ import { useColors } from "@/hooks/useColors";
 // ─── Static brand / semantic tokens (unchanged across themes) ─────────────────
 const TEAL = "#164951";
 const CARD_TEAL = "#2D5B62";
-const GREEN_AVATAR = "#8FD1A5";
 const WHITE = "#FFFFFF";
 const RED = "#EF4770";
 
@@ -280,12 +278,9 @@ export default function ProfileScreen() {
       width: 56,
       height: 56,
       borderRadius: 28,
-      backgroundColor: GREEN_AVATAR,
-      overflow: "hidden",
-    },
-    avatarImage: {
-      width: 56,
-      height: 56,
+      backgroundColor: "#F3F4F6",
+      alignItems: "center",
+      justifyContent: "center",
     },
     profileTextBlock: { flex: 1 },
     profileName: {
@@ -381,11 +376,10 @@ export default function ProfileScreen() {
         <View style={styles.profileCard}>
           <View style={styles.profileHeaderRow}>
             <View style={styles.avatarCircle}>
-              <Image
-                source={require("../../attached_assets/Designer_1784289079544.png")}
-                style={styles.avatarImage}
-                resizeMode="cover"
-              />
+              <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
+                <Path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M4 20C4 17.33 7.58 15 12 15C16.42 15 20 17.33 20 20" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
             </View>
             <View style={styles.profileTextBlock}>
               <Text style={styles.profileName}>{userName ?? "—"}</Text>
