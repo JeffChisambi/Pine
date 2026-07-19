@@ -138,8 +138,19 @@ function SectorInvestmentIcon({ color }: { color: string }) {
 function SectorAgricultureIcon({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 22V12" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
-      <Path d="M12 12C12 12 5 9.5 5 4.5C5 3 6 2 7.5 2C9.5 2 12 4 12 4C12 4 14.5 2 16.5 2C18 2 19 3 19 4.5C19 9.5 12 12 12 12Z" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      {/* Stem */}
+      <Path d="M12 13V9" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+      {/* Left leaf */}
+      <Path d="M12 9C11 7 9 5 7.5 5.5C7.5 7.5 9.5 9 12 9Z"
+            stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
+      {/* Right leaf */}
+      <Path d="M12 9C13 7 15 5 16.5 5.5C16.5 7.5 14.5 9 12 9Z"
+            stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
+      {/* Pot rim */}
+      <Rect x="4" y="13" width="16" height="2.5" rx="1.25" stroke={color} strokeWidth={1.5} />
+      {/* Pot body */}
+      <Path d="M5.5 15.5L7 21Q7.5 22 8.5 22H15.5Q16.5 22 17 21L18.5 15.5"
+            stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
