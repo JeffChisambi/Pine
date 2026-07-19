@@ -342,12 +342,12 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
             position: "absolute",
             top: ttTop,
             width: TT_SIZE,
-            height: TT_SIZE,
             backgroundColor: SVG_TEAL,
             borderRadius: TT_RX,
             alignItems: "center",
             justifyContent: "center",
             paddingHorizontal: 6,
+            paddingVertical: 8,
           },
           tooltipAnimStyle,
         ]}
