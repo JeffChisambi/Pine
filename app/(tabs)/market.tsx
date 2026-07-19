@@ -264,7 +264,7 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
               const positive = pct !== null && pct >= 0;
               return (
                 <TouchableOpacity key={sector.key} activeOpacity={0.75} style={{ width: "33.33%", alignItems: "center", paddingBottom: 28 }}>
-                  <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: SECTOR_ICON_BG, alignItems: "center", justifyContent: "center", marginBottom: 10 }}>{sector.icon(iconColor)}</View>
+                  <View style={{ width: 64, height: 64, borderRadius: 16, backgroundColor: SECTOR_ICON_BG, alignItems: "center", justifyContent: "center", marginBottom: 10 }}>{sector.icon(iconColor)}</View>
                   <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: c.text, textAlign: "center", marginBottom: 3 }}>{sector.label}</Text>
                   <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, textAlign: "center", color: pct === null ? MUTED : positive ? GREEN : RED }}>
                     {pct === null ? "—" : `${positive ? "+" : ""}${pct.toFixed(2)}%`}
@@ -413,7 +413,7 @@ export default function MarketScreen() {
           const positive = pct !== null && pct >= 0;
           return (
             <TouchableOpacity key={sector.key} style={{ alignItems: "center", width: 80 }} activeOpacity={0.75}>
-              <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: SECTOR_ICON_BG, alignItems: "center", justifyContent: "center", marginBottom: 8 }}>{sector.icon(iconColor)}</View>
+              <View style={{ width: 60, height: 60, borderRadius: 14, backgroundColor: SECTOR_ICON_BG, alignItems: "center", justifyContent: "center", marginBottom: 8 }}>{sector.icon(iconColor)}</View>
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: c.text, textAlign: "center", marginBottom: 2 }}>{sector.label}</Text>
               <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, textAlign: "center", color: pct === null ? MUTED : positive ? GREEN : RED }}>
                 {pct === null ? "—" : `${positive ? "+" : ""}${pct.toFixed(2)}%`}
