@@ -235,10 +235,11 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
 
   return (
     <View style={{ marginBottom: 12, borderRadius: 16, overflow: "hidden" }}>
-      {/* Delete reveal behind the card */}
+      {/* Red layer fills full width — no gap as the card slides away */}
       <View style={{
-        position: "absolute", right: 0, top: 0, bottom: 0, width: REVEAL_WIDTH,
-        backgroundColor: "#EF4770", alignItems: "center", justifyContent: "center",
+        position: "absolute", left: 0, right: 0, top: 0, bottom: 0,
+        backgroundColor: "#EF4770", alignItems: "flex-end", justifyContent: "center",
+        paddingRight: REVEAL_WIDTH / 2 - 16,
       }}>
         <ReAnimated.View style={[{ alignItems: "center" }, buttonStyle]}>
           <TouchableOpacity onPress={collapse} activeOpacity={0.75}
