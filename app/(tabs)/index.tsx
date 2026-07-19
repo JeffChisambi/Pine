@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   useWindowDimensions,
   Alert,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import ReAnimated, {
   useSharedValue,
@@ -389,6 +391,8 @@ export default function HomeScreen() {
   const [watchlistTickers, setWatchlistTickers] = useState<Set<string>>(new Set());
   const [trending, setTrending] = useState<StockData[]>([]);
   const [losers, setLosers] = useState<StockData[]>([]);
+  const [bannerPage, setBannerPage] = useState(0);
+  const bannerScrollRef = useRef<ScrollView>(null);
   const MAX_WATCHLIST = 4;
   const WATCHLIST_KEY = "@pine_watchlist_tickers";
 
@@ -639,19 +643,115 @@ export default function HomeScreen() {
             )}
           </ScrollView>
 
-          {/* Banner — always teal, unchanged */}
-          <View style={{ backgroundColor: TEAL, borderRadius: 12, padding: 20, marginTop: 28, marginHorizontal: 20, minHeight: 120, overflow: "hidden" }}>
-            <View style={{ position: "absolute", right: -24, top: -24, width: 130, height: 130, borderRadius: 65, backgroundColor: TEAL_MED, opacity: 0.7 }} />
-            <View style={{ position: "absolute", right: 26, top: 20, width: 80, height: 80, borderRadius: 40, backgroundColor: GREEN, opacity: 0.25 }} />
-            <View style={{ backgroundColor: WHITE, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 12 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: TEAL }}>Research</Text>
-            </View>
-            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: WHITE, lineHeight: 26, marginBottom: 6 }}>Invest Smarter,{"\n"}Start Today</Text>
-            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: WHITE, opacity: 0.7, lineHeight: 18, marginBottom: 16 }}>Explore curated market insights{"\n"}and AI-powered analysis.</Text>
-            <TouchableOpacity style={{ backgroundColor: GREEN, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignSelf: "flex-start" }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE }}>Get Started</Text>
-            </TouchableOpacity>
-          </View>
+          {/* News banner carousel */}
+          {(() => {
+            const BANNER_ITEMS = [
+              {
+                id: "1",
+                title: "FDH Bank Doubles Profit to MWK 148 Billion in FY2025",
+                summary: "Net interest income surged 82% and total assets crossed MWK 1.6 trillion as FDH Bank reports its strongest annual performance on record.",
+                image: require("../../attached_assets/fdh_1784363470714.png"),
+              },
+              {
+                id: "2",
+                title: "NITL Posts MWK 202 Billion Profit as MSE Returns 247%",
+                summary: "National Investment Trust recorded a 579% jump in net profit driven by record fair value gains as the Malawi Stock Exchange delivered its best year ever.",
+                image: require("../../attached_assets/NTL_1784364351667.png"),
+              },
+              {
+                id: "3",
+                title: "NICO Holdings Profit Surges 141% to MWK 323.5 Billion",
+                summary: "Gross revenue climbed 74% to MWK 919.3 billion as NBS Bank and NICO Life drove record results across the Group's diversified portfolio.",
+                image: { uri: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=80" },
+              },
+            ];
+            const cardWidth = screenWidth - 40;
+            return (
+              <View style={{ marginTop: 28 }}>
+                <ScrollView
+                  ref={bannerScrollRef}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  snapToInterval={cardWidth + 12}
+                  decelerationRate="fast"
+                  contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+                  onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+                    const page = Math.round(e.nativeEvent.contentOffset.x / (cardWidth + 12));
+                    setBannerPage(page);
+                  }}
+                >
+                  {BANNER_ITEMS.map((item) => (
+                    <View
+                      key={item.id}
+                      style={{
+                        width: cardWidth,
+                        backgroundColor: TEAL,
+                        borderRadius: 16,
+                        overflow: "hidden",
+                        flexDirection: "row",
+                        minHeight: 190,
+                      }}
+                    >
+                      {/* Left: text */}
+                      <View style={{ flex: 1, padding: 18, justifyContent: "space-between" }}>
+                        <View>
+                          <Text
+                            style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: WHITE, lineHeight: 22, marginBottom: 8 }}
+                            numberOfLines={3}
+                          >
+                            {item.title}
+                          </Text>
+                          <Text
+                            style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 18 }}
+                            numberOfLines={4}
+                          >
+                            {item.summary}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          activeOpacity={0.85}
+                          onPress={() => router.push("/(tabs)/news" as any)}
+                          style={{
+                            backgroundColor: GREEN,
+                            borderRadius: 10,
+                            paddingVertical: 10,
+                            alignItems: "center",
+                            marginTop: 14,
+                          }}
+                        >
+                          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE }}>Read more</Text>
+                        </TouchableOpacity>
+                      </View>
+                      {/* Right: image */}
+                      <View style={{ width: 140, margin: 10, borderRadius: 12, overflow: "hidden" }}>
+                        <Image
+                          source={item.image}
+                          style={{ width: "100%", height: "100%" }}
+                          resizeMode="cover"
+                        />
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
+
+                {/* Pagination dots */}
+                <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 12 }}>
+                  {BANNER_ITEMS.map((_, i) => (
+                    <View
+                      key={i}
+                      style={{
+                        width: i === bannerPage ? 20 : 6,
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: i === bannerPage ? GREEN : "rgba(100,120,130,0.35)",
+                      }}
+                    />
+                  ))}
+                </View>
+              </View>
+            );
+          })()}
 
           <View style={{ height: 24 }} />
         </ScrollView>
