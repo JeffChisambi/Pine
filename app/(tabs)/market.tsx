@@ -15,7 +15,7 @@ import {
 const SCREEN_H = Dimensions.get("window").height;
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import Svg, { Path, Circle, Line, Defs, ClipPath, Rect } from "react-native-svg";
+import Svg, { Path, Circle, Ellipse, Line, Defs, ClipPath, Rect } from "react-native-svg";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 import { useTheme } from "@/contexts/theme-context";
