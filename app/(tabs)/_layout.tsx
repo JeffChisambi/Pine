@@ -7,15 +7,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
   Easing,
-  interpolate,
 } from "react-native-reanimated";
+import { useColors } from "@/hooks/useColors";
 
 const TEAL = "#164951";
 const MUTED = "#9CA3AF";
-const WHITE = "#FFFFFF";
 
 function HomeIcon({ color }: { color: string }) {
   const active = color === TEAL;
@@ -47,7 +45,7 @@ function MarketIcon({ color }: { color: string }) {
       />
       <Path
         d="M15.5 18.5C16.6 18.5 17.5 17.6 17.5 16.5V7.5C17.5 6.4 16.6 5.5 15.5 5.5C14.4 5.5 13.5 6.4 13.5 7.5V16.5C13.5 17.6 14.39 18.5 15.5 18.5Z"
-        fill={active ? WHITE : "none"}
+        fill={active ? "#FFFFFF" : "none"}
         stroke={active ? "none" : color}
         strokeWidth={1.5}
         strokeLinecap="round"
@@ -55,7 +53,7 @@ function MarketIcon({ color }: { color: string }) {
       />
       <Path
         d="M8.5 18.5C9.6 18.5 10.5 17.6 10.5 16.5V13C10.5 11.9 9.6 11 8.5 11C7.4 11 6.5 11.9 6.5 13V16.5C6.5 17.6 7.39 18.5 8.5 18.5Z"
-        fill={active ? WHITE : "none"}
+        fill={active ? "#FFFFFF" : "none"}
         stroke={active ? "none" : color}
         strokeWidth={1.5}
         strokeLinecap="round"
@@ -100,7 +98,7 @@ function NewsIcon({ color }: { color: string }) {
       />
       <Path
         d="M14.5 4.5V6.5C14.5 7.6 15.4 8.5 16.5 8.5H18.5"
-        stroke={active ? WHITE : color}
+        stroke={active ? "#FFFFFF" : color}
         strokeWidth={1.5}
         strokeMiterlimit={10}
         strokeLinecap="round"
@@ -108,7 +106,7 @@ function NewsIcon({ color }: { color: string }) {
       />
       <Path
         d="M8 13H12"
-        stroke={active ? WHITE : color}
+        stroke={active ? "#FFFFFF" : color}
         strokeWidth={1.5}
         strokeMiterlimit={10}
         strokeLinecap="round"
@@ -116,7 +114,7 @@ function NewsIcon({ color }: { color: string }) {
       />
       <Path
         d="M8 17H16"
-        stroke={active ? WHITE : color}
+        stroke={active ? "#FFFFFF" : color}
         strokeWidth={1.5}
         strokeMiterlimit={10}
         strokeLinecap="round"
@@ -150,13 +148,7 @@ function ProfileIcon({ color }: { color: string }) {
   );
 }
 
-function TabLabel({ label, color }: { label: string; color: string }) {
-  return <Text style={[styles.tabLabel, { color }]}>{label}</Text>;
-}
-
-// ─── Animated custom tab bar ──────────────────────────────────────────────────
-
-const VISIBLE_TABS = 5; // Home, Market, Portfolio, News, Profile
+const VISIBLE_TABS = 5;
 
 interface TabItemConfig {
   name: string;
@@ -178,12 +170,14 @@ function AnimatedTabItem({
   onPress,
   onLongPress,
   tabWidth,
+  tabBg,
 }: {
   item: TabItemConfig;
   isFocused: boolean;
   onPress: () => void;
   onLongPress: () => void;
   tabWidth: number;
+  tabBg: string;
 }) {
   const scale = useSharedValue(1);
   const labelOpacity = useSharedValue(isFocused ? 1 : 0.55);
@@ -231,6 +225,7 @@ function AnimatedTabItem({
 function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const c = useColors();
 
   const TAB_CONTENT_HEIGHT = 56;
   const tabBarHeight = TAB_CONTENT_HEIGHT + insets.bottom;
@@ -243,16 +238,14 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         {
           height: tabBarHeight,
           paddingBottom: insets.bottom > 0 ? insets.bottom : Platform.OS === "ios" ? 0 : 8,
+          backgroundColor: c.background,
+          borderTopWidth: 1,
+          borderTopColor: c.border,
         },
       ]}
     >
-      {/* Tab items */}
-      {TAB_ITEMS.map((item, visibleIndex) => {
-        const route = state.routes.find((r) => {
-          const routeName = r.name;
-          // "(tabs)" uses "index" as the home route name
-          return routeName === item.name;
-        });
+      {TAB_ITEMS.map((item) => {
+        const route = state.routes.find((r) => r.name === item.name);
         if (!route) return null;
 
         const isFocused = state.index === state.routes.indexOf(route);
@@ -280,6 +273,7 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             onPress={onPress}
             onLongPress={onLongPress}
             tabWidth={tabWidth}
+            tabBg={c.background}
           />
         );
       })}
@@ -287,15 +281,11 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   );
 }
 
-// ─── Tab layout ───────────────────────────────────────────────────────────────
-
 export default function TabLayout() {
   return (
     <Tabs
       tabBar={(props) => <AnimatedTabBar {...props} />}
-      screenOptions={{
-        headerShown: false,
-      }}
+      screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="index" options={{ title: "Home" }} />
       <Tabs.Screen name="market" options={{ title: "Market" }} />
@@ -309,8 +299,6 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: "row",
-    backgroundColor: WHITE,
-    borderTopWidth: 0,
     elevation: 0,
     shadowOpacity: 0,
     paddingTop: 8,
@@ -328,5 +316,3 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
-
-

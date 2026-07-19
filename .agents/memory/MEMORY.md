@@ -1,0 +1,1 @@
+- [Dark mode implementation](dark-mode.md) — global ThemeContext toggle in Profile screen; all screens except login/signup/onboarding use `useColors()` for dynamic colors.
