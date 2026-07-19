@@ -128,20 +128,18 @@ function SectorBankIcon({ color }: { color: string }) {
 function SectorInvestmentIcon({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      {/* Body */}
-      <Ellipse cx="11" cy="12" rx="7" ry="6.5" stroke={color} strokeWidth={1.5} />
-      {/* Snout — protrudes from right */}
-      <Ellipse cx="19" cy="12" rx="1.5" ry="1.25" stroke={color} strokeWidth={1.5} />
-      {/* Ear */}
-      <Path d="M9 5.5C9 4 10 3 11.5 3C12.5 3.5 12 5.5 10.5 5.5"
-            stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      {/* Coin slot */}
-      <Path d="M10 5.5H12.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
-      {/* Eye */}
-      <Circle cx="14.5" cy="10" r="0.75" fill={color} />
-      {/* Legs */}
-      <Path d="M7 18.5V22M9.5 18.5V22M13 18.5V22M15.5 18.5V22"
-            stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+      {/* Coin */}
+      <Circle cx="15" cy="6" r="4.5" stroke={color} strokeWidth={1.5} />
+      {/* Dollar sign — vertical stem */}
+      <Path d="M15 2.5V9.5" stroke={color} strokeWidth={1.3} strokeLinecap="round" />
+      {/* Dollar sign — S curve */}
+      <Path d="M17 4C17 3.5 16 3 15 3C14 3 12.5 3.5 12.5 4.75C12.5 6 13.5 6 15 6C16.5 6 17.5 6.5 17.5 7.75C17.5 9 16 9.5 15 9C14 8.5 13 8.5 13 8"
+            stroke={color} strokeWidth={1.3} strokeLinecap="round" />
+      {/* Hand outline — arm + palm + fingers as one closed path */}
+      <Path
+        d="M1.5 22L1.5 16C2 14 3 13 5.5 13L11.5 13C12.5 13 12.5 12 13.5 11.5C14.5 11 15 11.5 15 12.5C15.5 11.5 16 11 17 11C18 11 18.5 12 18 12.5C18.5 12.5 19 12 19.5 12.5C20 13 20 13.5 20 14.5C20 15.5 19 16.5 18 17L7.5 17.5C5.5 18 4 19.5 4.5 22Z"
+        stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"
+      />
     </Svg>
   );
 }
