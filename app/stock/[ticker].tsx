@@ -46,16 +46,22 @@ type TimePeriod = typeof TIME_TABS[number];
 function BackIcon() {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M9.57 5.93L3.5 12L9.57 18.07" stroke={WHITE} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M20.5 12H3.67" stroke={WHITE} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M9.57 5.93L3.5 12L9.57 18.07" stroke={DARK} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M20.5 12H3.67" stroke={DARK} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
-function BookmarkIcon({ filled }: { filled?: boolean }) {
+function StarIcon({ filled }: { filled?: boolean }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M16.82 2H7.18C5.05 2 3.32 3.74 3.32 5.86V19.95C3.32 21.75 4.61 22.51 6.19 21.64L11.07 18.93C11.59 18.64 12.43 18.64 12.94 18.93L17.82 21.64C19.4 22.52 20.69 21.76 20.69 19.95V5.86C20.68 3.74 18.95 2 16.82 2Z" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill={filled ? WHITE : "none"} />
+    <Svg width={23} height={21} viewBox="0 0 23 21" fill="none">
+      <Path
+        d="M21.75 8.25H13.6875L11.25 0.75L8.8125 8.25H0.75L7.3125 12.75L4.78125 20.25L11.25 15.5625L17.7188 20.25L15.1875 12.75L21.75 8.25Z"
+        stroke={filled ? TEAL : MUTED}
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+        fill={filled ? TEAL : "none"}
+      />
     </Svg>
   );
 }
@@ -407,36 +413,41 @@ export default function StockDetailScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 + bottomPad }}
       >
-        {/* ── Dark teal top section ──────────────────────────────── */}
+        {/* ── White top section ──────────────────────────────── */}
         <View style={[styles.topSection, { paddingTop: topPad }]}>
 
           {/* Nav */}
           <View style={styles.navBar}>
             <TouchableOpacity onPress={() => router.back()} style={styles.navBtn}><BackIcon /></TouchableOpacity>
-            <TouchableOpacity style={styles.navBtn} onPress={toggleWatchlist}><BookmarkIcon filled={isInWatchlist} /></TouchableOpacity>
+            <TouchableOpacity style={styles.navBtn} onPress={toggleWatchlist}><StarIcon filled={isInWatchlist} /></TouchableOpacity>
           </View>
 
-          {/* Logo + name inline */}
+          {/* Stock info row: logo+ticker+name on left, price+change on right */}
           <View style={styles.inlineHeader}>
+            {/* Logo */}
             <View style={styles.headerLogoWrap}>
               {getStockLogo(stock.symbol) ? (
-                <Image source={getStockLogo(stock.symbol)!} style={{ width: 28, height: 28, borderRadius: 14 }} resizeMode="contain" />
+                <Image source={getStockLogo(stock.symbol)!} style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode="contain" />
               ) : (
-                <Text style={styles.headerLogoText}>{stock.symbol.slice(0, 2)}</Text>
+                <Text style={styles.headerLogoText}>{stock.symbol.slice(0, 2).toLowerCase()}</Text>
               )}
             </View>
-            <Text style={styles.headerName} numberOfLines={1}>{stock.name}</Text>
-          </View>
 
-          {/* Price + badge + Today */}
-          <View style={styles.priceRow}>
-            <Text style={styles.priceText}>{stock.price}</Text>
-            <View style={[styles.changeBadge, { backgroundColor: changeBadgeBg }]}>
-              <Text style={[styles.changeBadgeText, { color: changeBadgeFg }]}>
-                {stock.positive ? "▲" : "▼"} {stock.change}
-              </Text>
+            {/* Ticker + company name */}
+            <View style={styles.headerTextBlock}>
+              <Text style={styles.headerTicker}>{stock.symbol}</Text>
+              <Text style={styles.headerName} numberOfLines={1}>{stock.name}</Text>
             </View>
-            <Text style={styles.todayLabel}>Today</Text>
+
+            {/* Price + change */}
+            <View style={styles.headerPriceBlock}>
+              <Text style={styles.headerPrice}>{stock.price}</Text>
+              <View style={styles.headerChangePill}>
+                <Text style={[styles.headerChangeText, { color: changeBadgeFg }]}>
+                  {stock.positive ? "▲" : "▼"} {stock.change}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -522,23 +533,22 @@ const styles = StyleSheet.create({
   wrapper:   { flex: 1, backgroundColor: WHITE },
   container: { flex: 1, backgroundColor: WHITE },
 
-  // ── Top teal
-  topSection: { backgroundColor: TEAL, paddingBottom: 16 },
-  navBar:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
+  // ── Top white
+  topSection: { backgroundColor: WHITE, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: DIVIDER },
+  navBar:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 12 },
   navBtn:     { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
 
-  // ── Inline header
-  inlineHeader:   { flexDirection: "row", alignItems: "center", paddingHorizontal: 24, gap: 10, marginBottom: 8 },
-  headerLogoWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: CARD_TEAL, alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  headerLogoText: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 11, color: WHITE },
-  headerName:     { fontFamily: "PlusJakartaSans_500Medium", fontSize: 15, color: "rgba(255,255,255,0.8)", flex: 1 },
-
-  // ── Price row
-  priceRow:        { flexDirection: "row", alignItems: "center", paddingHorizontal: 24, gap: 10, marginBottom: 4 },
-  priceText:       { fontFamily: "PlusJakartaSans_700Bold", fontSize: 28, color: WHITE, letterSpacing: -0.5 },
-  changeBadge:     { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  changeBadgeText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, letterSpacing: 0.2 },
-  todayLabel:      { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.5)" },
+  // ── Inline header: logo | ticker+name | price+change
+  inlineHeader:     { flexDirection: "row", alignItems: "center", paddingHorizontal: 24, gap: 12, marginBottom: 4 },
+  headerLogoWrap:   { width: 44, height: 44, borderRadius: 22, backgroundColor: "#5B67CA", alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  headerLogoText:   { fontFamily: "PlusJakartaSans_700Bold", fontSize: 14, color: WHITE },
+  headerTextBlock:  { flex: 1, justifyContent: "center", gap: 2 },
+  headerTicker:     { fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: DARK },
+  headerName:       { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
+  headerPriceBlock: { alignItems: "flex-end", gap: 4 },
+  headerPrice:      { fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: DARK },
+  headerChangePill: { flexDirection: "row", alignItems: "center" },
+  headerChangeText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12 },
 
   // ── Chart card (white section holding tabs + chart)
   chartCard: { backgroundColor: WHITE, paddingTop: 14, paddingBottom: 4 },
