@@ -128,9 +128,20 @@ function SectorBankIcon({ color }: { color: string }) {
 function SectorInvestmentIcon({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M19 7H5C3.9 7 3 7.9 3 9V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V9C21 7.9 20.1 7 19 7Z" stroke={color} strokeWidth={1.5} />
-      <Path d="M8 7V5C8 3.9 8.9 3 10 3H14C15.1 3 16 3.9 16 5V7" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
-      <Path d="M21 12H17C15.9 12 15 12.9 15 14C15 15.1 15.9 16 17 16H21" stroke={color} strokeWidth={1.5} />
+      {/* Body */}
+      <Ellipse cx="11" cy="12" rx="7" ry="6.5" stroke={color} strokeWidth={1.5} />
+      {/* Snout — protrudes from right */}
+      <Ellipse cx="19" cy="12" rx="1.5" ry="1.25" stroke={color} strokeWidth={1.5} />
+      {/* Ear */}
+      <Path d="M9 5.5C9 4 10 3 11.5 3C12.5 3.5 12 5.5 10.5 5.5"
+            stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      {/* Coin slot */}
+      <Path d="M10 5.5H12.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+      {/* Eye */}
+      <Circle cx="14.5" cy="10" r="0.75" fill={color} />
+      {/* Legs */}
+      <Path d="M7 18.5V22M9.5 18.5V22M13 18.5V22M15.5 18.5V22"
+            stroke={color} strokeWidth={1.5} strokeLinecap="round" />
     </Svg>
   );
 }
