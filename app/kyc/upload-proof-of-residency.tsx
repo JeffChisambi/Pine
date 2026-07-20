@@ -9,27 +9,22 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import Svg, { Path, Circle, Rect, G, Defs, ClipPath } from "react-native-svg";
+import Svg, { Path, Circle, Rect } from "react-native-svg";
+import { useColors } from "@/hooks/useColors";
 
 const TEAL = "#164951";
-const CARD_TEAL = "#2D5B62";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
-const DARK = "#111827";
-const MUTED = "#9CA3AF";
-const DIVIDER = "#EBECEF";
-const CARD_BG = "#F9FAFB";
-const CARD_BORDER = "#F3F4F6";
 
-function BackArrow() {
+function BackArrow({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Path d="M12.5 5.5L7.5 10l5 4.5" stroke={DARK} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12.5 5.5L7.5 10l5 4.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
-function UploadIcon({ color = MUTED }: { color?: string }) {
+function UploadIcon({ color }: { color: string }) {
   return (
     <Svg width={32} height={32} viewBox="0 0 32 32" fill="none">
       <Path d="M16 4v16M10 10l6-6 6 6" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -38,9 +33,10 @@ function UploadIcon({ color = MUTED }: { color?: string }) {
   );
 }
 
+// ─── Illustration — untouched ─────────────────────────────────────────────────
 function DocIllustration() {
   return (
-    <View style={styles.heroContainer}>
+    <View style={{ alignItems: "center", marginTop: 8, marginBottom: 4 }}>
       <Svg width={130} height={130} viewBox="0 0 130 130" fill="none">
         <Rect width={130} height={130} rx={65} fill="#164951" />
         <Rect x={30} y={25} width={70} height={80} rx={6} fill="#FFFFFF" />
@@ -55,46 +51,43 @@ function DocIllustration() {
   );
 }
 
-function UploadSlot({
-  label,
-  uploaded,
-  onPress,
-}: {
-  label: string;
-  uploaded: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      style={[styles.uploadSlot, uploaded && styles.uploadSlotDone]}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <View style={styles.uploadIconArea}>
-        <UploadIcon color={uploaded ? GREEN : MUTED} />
-      </View>
-      <Text style={[styles.uploadLabel, uploaded && styles.uploadLabelDone]}>
-        {uploaded ? "✓ Uploaded" : label}
-      </Text>
-      <Text style={styles.uploadHint}>
-        {uploaded ? "Tap to replace" : "JPG, PNG or PDF • Max 5MB"}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
 export default function UploadProofOfResidencyScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const [uploaded, setUploaded] = useState(false);
+  const c = useColors();
 
   const canContinue = uploaded;
+
+  const styles = StyleSheet.create({
+    root: { flex: 1, backgroundColor: c.background },
+    header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
+    backBtn: { width: 40, height: 40, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" },
+    headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text },
+    scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 40, gap: 20 },
+    descBlock: { gap: 8, alignItems: "center" },
+    descTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text, textAlign: "center" },
+    descSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, lineHeight: 22, textAlign: "center" },
+    slotsContainer: { gap: 12 },
+    uploadSlot: { backgroundColor: c.card, borderRadius: 12, borderWidth: 1.5, borderColor: c.border, borderStyle: "dashed", alignItems: "center", justifyContent: "center", paddingVertical: 28, gap: 8 },
+    uploadSlotDone: { borderColor: GREEN, backgroundColor: "#F0FDF4", borderStyle: "solid" },
+    uploadIconArea: { width: 56, height: 56, borderRadius: 28, backgroundColor: c.border, alignItems: "center", justifyContent: "center" },
+    uploadLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text },
+    uploadLabelDone: { color: "#166534" },
+    uploadHint: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: c.mutedForeground },
+    tipBox: { flexDirection: "row", gap: 10, backgroundColor: c.card, borderRadius: 10, padding: 14, alignItems: "flex-start", borderWidth: 1, borderColor: c.border },
+    tipText: { flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: TEAL, lineHeight: 20 },
+    footer: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: c.background, borderTopWidth: 1, borderTopColor: c.border },
+    continueBtn: { backgroundColor: TEAL, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
+    continueBtnDisabled: { backgroundColor: "#A0B8BC" },
+    continueBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
+  });
 
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <BackArrow />
+          <BackArrow color={c.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Proof of Residency</Text>
         <View style={{ width: 40 }} />
@@ -111,11 +104,21 @@ export default function UploadProofOfResidencyScreen() {
         </View>
 
         <View style={styles.slotsContainer}>
-          <UploadSlot
-            label="Upload Document"
-            uploaded={uploaded}
+          <TouchableOpacity
+            style={[styles.uploadSlot, uploaded && styles.uploadSlotDone]}
             onPress={() => setUploaded((v) => !v)}
-          />
+            activeOpacity={0.8}
+          >
+            <View style={styles.uploadIconArea}>
+              <UploadIcon color={uploaded ? GREEN : c.mutedForeground} />
+            </View>
+            <Text style={[styles.uploadLabel, uploaded && styles.uploadLabelDone]}>
+              {uploaded ? "✓ Uploaded" : "Upload Document"}
+            </Text>
+            <Text style={styles.uploadHint}>
+              {uploaded ? "Tap to replace" : "JPG, PNG or PDF • Max 5MB"}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.tipBox}>
@@ -143,56 +146,3 @@ export default function UploadProofOfResidencyScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: WHITE },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
-  backBtn: { width: 40, height: 40, backgroundColor: CARD_BG, borderRadius: 12, borderWidth: 1, borderColor: CARD_BORDER, alignItems: "center", justifyContent: "center" },
-  headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: DARK },
-  scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 40, gap: 20 },
-  heroContainer: { alignItems: "center", marginTop: 8, marginBottom: 4 },
-  descBlock: { gap: 8, alignItems: "center" },
-  descTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: DARK, textAlign: "center" },
-  descSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, lineHeight: 22, textAlign: "center" },
-  slotsContainer: { gap: 12 },
-  uploadSlot: {
-    backgroundColor: CARD_BG,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: CARD_BORDER,
-    borderStyle: "dashed",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 28,
-    gap: 8,
-  },
-  uploadSlotDone: {
-    borderColor: GREEN,
-    backgroundColor: "#F0FDF4",
-    borderStyle: "solid",
-  },
-  uploadIconArea: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: DIVIDER,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  uploadLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: DARK },
-  uploadLabelDone: { color: "#166534" },
-  uploadHint: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
-  tipBox: {
-    flexDirection: "row",
-    gap: 10,
-    backgroundColor: "#EFF6F8",
-    borderRadius: 10,
-    padding: 14,
-    alignItems: "flex-start",
-  },
-  tipText: { flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: TEAL, lineHeight: 20 },
-  footer: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: WHITE, borderTopWidth: 1, borderTopColor: CARD_BORDER },
-  continueBtn: { backgroundColor: TEAL, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
-  continueBtnDisabled: { backgroundColor: "#A0B8BC" },
-  continueBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
-});

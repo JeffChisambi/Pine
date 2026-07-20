@@ -16,26 +16,22 @@ import * as ImagePicker from "expo-image-picker";
 import Svg, { Path, Circle, Rect, G, Defs, ClipPath, Ellipse } from "react-native-svg";
 import { kycApi } from "../../services/api";
 import { useAuth } from "../../services/auth-context";
+import { useColors } from "@/hooks/useColors";
 
 const TEAL = "#164951";
 const CARD_TEAL = "#2D5B62";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
-const DARK = "#111827";
-const MUTED = "#9CA3AF";
-const DIVIDER = "#EBECEF";
-const CARD_BG = "#F9FAFB";
-const CARD_BORDER = "#F3F4F6";
 
-function BackArrow() {
+function BackArrow({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Path d="M12.5 5.5L7.5 10l5 4.5" stroke={DARK} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12.5 5.5L7.5 10l5 4.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
-function UploadIcon({ color = MUTED }: { color?: string }) {
+function UploadIcon({ color }: { color: string }) {
   return (
     <Svg width={32} height={32} viewBox="0 0 32 32" fill="none">
       <Path d="M16 4v16M10 10l6-6 6 6" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -53,9 +49,10 @@ function CheckIcon() {
   );
 }
 
+// ─── Illustration — untouched ─────────────────────────────────────────────────
 function IdIllustration() {
   return (
-    <View style={styles.heroContainer}>
+    <View style={{ alignItems: "center", marginTop: 8, marginBottom: 4 }}>
       <Svg width={130} height={130} viewBox="0 0 130 130" fill="none">
         <Defs>
           <ClipPath id="clip0">
@@ -93,16 +90,31 @@ function UploadSlot({
   imageUri,
   uploading,
   onPress,
+  c,
 }: {
   label: string;
   imageUri: string | null;
   uploading: boolean;
   onPress: () => void;
+  c: ReturnType<typeof useColors>;
 }) {
   const uploaded = !!imageUri && !uploading;
   return (
     <TouchableOpacity
-      style={[styles.uploadSlot, uploaded && styles.uploadSlotDone]}
+      style={[
+        {
+          backgroundColor: uploaded ? "#F0FDF4" : c.card,
+          borderRadius: 12,
+          borderWidth: 1.5,
+          borderColor: uploaded ? GREEN : c.border,
+          borderStyle: uploaded ? "solid" : "dashed",
+          alignItems: "center",
+          justifyContent: "center",
+          paddingVertical: 28,
+          gap: 8,
+          overflow: "hidden",
+        },
+      ]}
       onPress={onPress}
       activeOpacity={0.8}
       disabled={uploading}
@@ -110,16 +122,16 @@ function UploadSlot({
       {uploading ? (
         <ActivityIndicator size="large" color={TEAL} />
       ) : imageUri ? (
-        <Image source={{ uri: imageUri }} style={styles.previewImage} contentFit="cover" />
+        <Image source={{ uri: imageUri }} style={{ width: "90%", height: 100, borderRadius: 8 }} contentFit="cover" />
       ) : (
-        <View style={styles.uploadIconArea}>
-          <UploadIcon color={MUTED} />
+        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: c.border, alignItems: "center", justifyContent: "center" }}>
+          <UploadIcon color={c.mutedForeground} />
         </View>
       )}
-      <Text style={[styles.uploadLabel, uploaded && styles.uploadLabelDone]}>
+      <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: uploaded ? "#166534" : c.text }}>
         {uploading ? "Uploading..." : uploaded ? "✓ Uploaded" : label}
       </Text>
-      <Text style={styles.uploadHint}>
+      <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: c.mutedForeground }}>
         {uploading ? "Please wait" : uploaded ? "Tap to replace" : "Tap to take photo or choose from gallery"}
       </Text>
     </TouchableOpacity>
@@ -130,6 +142,7 @@ export default function UploadIdScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const { user } = useAuth();
+  const c = useColors();
 
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [frontUri, setFrontUri] = useState<string | null>(null);
@@ -139,7 +152,6 @@ export default function UploadIdScreen() {
   const [starting, setStarting] = useState(true);
   const startedRef = useRef(false);
 
-  // Start KYC application on mount
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
@@ -202,18 +214,36 @@ export default function UploadIdScreen() {
 
   if (starting) {
     return (
-      <View style={[styles.root, styles.centered, { paddingTop: topPad }]}>
+      <View style={[{ flex: 1, backgroundColor: c.background, alignItems: "center", justifyContent: "center" }, { paddingTop: topPad }]}>
         <ActivityIndicator size="large" color={TEAL} />
-        <Text style={[styles.uploadHint, { marginTop: 12 }]}>Starting verification...</Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: c.mutedForeground, marginTop: 12 }}>Starting verification...</Text>
       </View>
     );
   }
+
+  const styles = StyleSheet.create({
+    root: { flex: 1, backgroundColor: c.background },
+    header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
+    backBtn: { width: 40, height: 40, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" },
+    headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text },
+    scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 40, gap: 20 },
+    descBlock: { gap: 8, alignItems: "center" },
+    descTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text, textAlign: "center" },
+    descSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, lineHeight: 22, textAlign: "center" },
+    slotsContainer: { gap: 12 },
+    tipBox: { flexDirection: "row", gap: 10, backgroundColor: c.card, borderRadius: 10, padding: 14, alignItems: "flex-start", borderWidth: 1, borderColor: c.border },
+    tipText: { flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: TEAL, lineHeight: 20 },
+    footer: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: c.background, borderTopWidth: 1, borderTopColor: c.border },
+    continueBtn: { backgroundColor: TEAL, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
+    continueBtnDisabled: { backgroundColor: "#A0B8BC" },
+    continueBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
+  });
 
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <BackArrow />
+          <BackArrow color={c.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Upload Photo ID</Text>
         <View style={{ width: 40 }} />
@@ -230,18 +260,8 @@ export default function UploadIdScreen() {
         </View>
 
         <View style={styles.slotsContainer}>
-          <UploadSlot
-            label="Front of ID"
-            imageUri={frontUri}
-            uploading={frontUploading}
-            onPress={() => pickAndUpload("front")}
-          />
-          <UploadSlot
-            label="Back of ID"
-            imageUri={backUri}
-            uploading={backUploading}
-            onPress={() => pickAndUpload("back")}
-          />
+          <UploadSlot label="Front of ID" imageUri={frontUri} uploading={frontUploading} onPress={() => pickAndUpload("front")} c={c} />
+          <UploadSlot label="Back of ID" imageUri={backUri} uploading={backUploading} onPress={() => pickAndUpload("back")} c={c} />
         </View>
 
         <View style={styles.tipBox}>
@@ -269,63 +289,3 @@ export default function UploadIdScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: WHITE },
-  centered: { alignItems: "center", justifyContent: "center" },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
-  backBtn: { width: 40, height: 40, backgroundColor: CARD_BG, borderRadius: 12, borderWidth: 1, borderColor: CARD_BORDER, alignItems: "center", justifyContent: "center" },
-  headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: DARK },
-  scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 40, gap: 20 },
-  heroContainer: { alignItems: "center", marginTop: 8, marginBottom: 4 },
-  descBlock: { gap: 8, alignItems: "center" },
-  descTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: DARK, textAlign: "center" },
-  descSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, lineHeight: 22, textAlign: "center" },
-  slotsContainer: { gap: 12 },
-  uploadSlot: {
-    backgroundColor: CARD_BG,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: CARD_BORDER,
-    borderStyle: "dashed",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 28,
-    gap: 8,
-    overflow: "hidden",
-  },
-  uploadSlotDone: {
-    borderColor: GREEN,
-    backgroundColor: "#F0FDF4",
-    borderStyle: "solid",
-  },
-  uploadIconArea: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: DIVIDER,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  previewImage: {
-    width: "90%",
-    height: 100,
-    borderRadius: 8,
-  },
-  uploadLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: DARK },
-  uploadLabelDone: { color: "#166534" },
-  uploadHint: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
-  tipBox: {
-    flexDirection: "row",
-    gap: 10,
-    backgroundColor: "#EFF6F8",
-    borderRadius: 10,
-    padding: 14,
-    alignItems: "flex-start",
-  },
-  tipText: { flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: TEAL, lineHeight: 20 },
-  footer: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: WHITE, borderTopWidth: 1, borderTopColor: CARD_BORDER },
-  continueBtn: { backgroundColor: TEAL, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
-  continueBtnDisabled: { backgroundColor: "#A0B8BC" },
-  continueBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
-});

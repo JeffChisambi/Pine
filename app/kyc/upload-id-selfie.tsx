@@ -9,19 +9,17 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, G, Defs, ClipPath } from "react-native-svg";
+import { useColors } from "@/hooks/useColors";
 
 const TEAL  = "#164951";
 const WHITE = "#FFFFFF";
-const DARK  = "#111827";
-const MUTED = "#6B7280";
 
-// ─── Back arrow ───────────────────────────────────────────────────────────────
-function BackArrow() {
+function BackArrow({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
       <Path
         d="M12.5 5.5L7.5 10l5 4.5"
-        stroke={DARK}
+        stroke={color}
         strokeWidth={1.6}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -30,7 +28,7 @@ function BackArrow() {
   );
 }
 
-// ─── Face illustration (uploaded SVG) ─────────────────────────────────────────
+// ─── Face illustration — untouched ────────────────────────────────────────────
 function SelfieIllustration({ size = 280 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 1333 1329" fill="none">
@@ -86,112 +84,52 @@ function SelfieIllustration({ size = 280 }: { size?: number }) {
   );
 }
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
 export default function UploadIdSelfieScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const params = useLocalSearchParams<{ applicationId: string }>();
   const applicationId = params.applicationId;
+  const c = useColors();
+
+  const styles = StyleSheet.create({
+    root: { flex: 1, backgroundColor: c.background },
+    header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 4 },
+    backBtn: { width: 40, height: 40, backgroundColor: c.card, borderRadius: 20, alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+    headerTitle: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text },
+    subtitle: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, textAlign: "center", lineHeight: 22, marginTop: 20, paddingHorizontal: 40 },
+    illustrationWrapper: { flex: 1, alignItems: "center", justifyContent: "center" },
+    footer: { paddingHorizontal: 24, paddingTop: 8 },
+    cta: { backgroundColor: TEAL, borderRadius: 14, paddingVertical: 18, alignItems: "center" },
+    ctaText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
+  });
 
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
-
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
-          <BackArrow />
+          <BackArrow color={c.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Verify with Selfie</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Subtitle */}
       <Text style={styles.subtitle}>
         Position your face within the frame,{"\n"}clear and well-lit.
       </Text>
 
-      {/* Illustration */}
       <View style={styles.illustrationWrapper}>
         <SelfieIllustration size={280} />
       </View>
 
-      {/* CTA pinned to bottom */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 24 }]}>
         <TouchableOpacity
           style={styles.cta}
-          onPress={() =>
-            router.push({
-              pathname: "/kyc/selfie-camera",
-              params: { applicationId },
-            } as any)
-          }
+          onPress={() => router.push({ pathname: "/kyc/selfie-camera", params: { applicationId } } as any)}
           activeOpacity={0.88}
         >
           <Text style={styles.ctaText}>Take Selfie</Text>
         </TouchableOpacity>
       </View>
-
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: WHITE,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-    paddingBottom: 4,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    backgroundColor: WHITE,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  headerTitle: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 17,
-    color: DARK,
-  },
-  subtitle: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 14,
-    color: MUTED,
-    textAlign: "center",
-    lineHeight: 22,
-    marginTop: 20,
-    paddingHorizontal: 40,
-  },
-  illustrationWrapper: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  footer: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
-  },
-  cta: {
-    backgroundColor: TEAL,
-    borderRadius: 14,
-    paddingVertical: 18,
-    alignItems: "center",
-  },
-  ctaText: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 16,
-    color: WHITE,
-  },
-});

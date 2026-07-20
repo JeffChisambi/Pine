@@ -14,24 +14,22 @@ import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { kycApi } from "../../services/api";
 import { useAuth } from "../../services/auth-context";
+import { useColors } from "@/hooks/useColors";
+import { useTheme } from "@/contexts/theme-context";
 
 const TEAL    = "#164951";
 const GREEN   = "#45B369";
 const WHITE   = "#FFFFFF";
-const DARK    = "#111827";
-const MUTED   = "#6B7280";
-const BG      = "#EAF3F4";
 const BRACKET = "#3BA8A0";
 
 const FRAME_SIZE = 300;
 
-// ─── Back arrow ───────────────────────────────────────────────────────────────
-function BackArrow() {
+function BackArrow({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
       <Path
         d="M12.5 5.5L7.5 10l5 4.5"
-        stroke={DARK}
+        stroke={color}
         strokeWidth={1.6}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -40,7 +38,6 @@ function BackArrow() {
   );
 }
 
-// ─── Corner bracket viewfinder ────────────────────────────────────────────────
 const BRACKET_LEN = 28;
 const BRACKET_W   = 3;
 const BRACKET_R   = 6;
@@ -51,13 +48,7 @@ function CornerBrackets({ size }: { size: number }) {
   const r = BRACKET_R;
 
   const corner = (pos: "tl" | "tr" | "bl" | "br") => {
-    const base: any = {
-      position: "absolute",
-      width: l,
-      height: l,
-      borderColor: BRACKET,
-      borderRadius: r,
-    };
+    const base: any = { position: "absolute", width: l, height: l, borderColor: BRACKET, borderRadius: r };
     if (pos === "tl") return { ...base, top: 0,    left: 0,    borderTopWidth: w,    borderLeftWidth: w  };
     if (pos === "tr") return { ...base, top: 0,    right: 0,   borderTopWidth: w,    borderRightWidth: w };
     if (pos === "bl") return { ...base, bottom: 0, left: 0,    borderBottomWidth: w, borderLeftWidth: w  };
@@ -74,49 +65,34 @@ function CornerBrackets({ size }: { size: number }) {
   );
 }
 
-// ─── Face scanning dots ───────────────────────────────────────────────────────
 const DOTS = [
-  { cx: 0.38, cy: 0.33, r: 4 },
-  { cx: 0.46, cy: 0.31, r: 3 },
-  { cx: 0.54, cy: 0.31, r: 3 },
-  { cx: 0.62, cy: 0.33, r: 4 },
-  { cx: 0.50, cy: 0.44, r: 3 },
-  { cx: 0.42, cy: 0.58, r: 3 },
-  { cx: 0.58, cy: 0.58, r: 3 },
-  { cx: 0.50, cy: 0.68, r: 4 },
-  { cx: 0.32, cy: 0.48, r: 3 },
+  { cx: 0.38, cy: 0.33, r: 4 }, { cx: 0.46, cy: 0.31, r: 3 }, { cx: 0.54, cy: 0.31, r: 3 },
+  { cx: 0.62, cy: 0.33, r: 4 }, { cx: 0.50, cy: 0.44, r: 3 }, { cx: 0.42, cy: 0.58, r: 3 },
+  { cx: 0.58, cy: 0.58, r: 3 }, { cx: 0.50, cy: 0.68, r: 4 }, { cx: 0.32, cy: 0.48, r: 3 },
   { cx: 0.68, cy: 0.48, r: 3 },
 ];
 
 function ScanDots({ size }: { size: number }) {
   return (
-    <Svg
-      width={size}
-      height={size}
-      style={{ position: "absolute" }}
-      pointerEvents="none"
-    >
+    <Svg width={size} height={size} style={{ position: "absolute" }} pointerEvents="none">
       {DOTS.map((d, i) => (
-        <Circle
-          key={i}
-          cx={d.cx * size}
-          cy={d.cy * size}
-          r={d.r}
-          fill={WHITE}
-          opacity={0.9}
-        />
+        <Circle key={i} cx={d.cx * size} cy={d.cy * size} r={d.r} fill={WHITE} opacity={0.9} />
       ))}
     </Svg>
   );
 }
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
 export default function SelfieCameraScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const { refreshProfile } = useAuth();
   const params = useLocalSearchParams<{ applicationId: string }>();
   const applicationId = params.applicationId;
+  const c = useColors();
+  const { isDark } = useTheme();
+
+  const BG = isDark ? "#0F1F22" : "#EAF3F4";
+  const MUTED = c.mutedForeground;
 
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
@@ -124,7 +100,6 @@ export default function SelfieCameraScreen() {
   const [processing, setProcessing] = useState(false);
   const [progress,   setProgress]   = useState(0);
 
-  // Animate progress while processing
   useEffect(() => {
     if (!processing) { setProgress(0); return; }
     setProgress(0);
@@ -163,21 +138,19 @@ export default function SelfieCameraScreen() {
     }
   };
 
-  // ── Permission not yet determined ──
   if (!permission) {
-    return <View style={styles.root} />;
+    return <View style={{ flex: 1, backgroundColor: BG }} />;
   }
 
-  // ── Permission denied ──
   if (!permission.granted) {
     return (
-      <View style={[styles.root, styles.permCenter, { paddingTop: topPad }]}>
-        <Text style={styles.permTitle}>Camera access needed</Text>
-        <Text style={styles.permBody}>
+      <View style={{ flex: 1, backgroundColor: BG, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, gap: 16, paddingTop: topPad }}>
+        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 18, color: c.text, textAlign: "center" }}>Camera access needed</Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center", lineHeight: 22 }}>
           Pine needs access to your camera to take your verification selfie.
         </Text>
-        <TouchableOpacity style={styles.permBtn} onPress={requestPermission} activeOpacity={0.85}>
-          <Text style={styles.permBtnText}>Allow Camera</Text>
+        <TouchableOpacity style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 40, marginTop: 8 }} onPress={requestPermission} activeOpacity={0.85}>
+          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE }}>Allow Camera</Text>
         </TouchableOpacity>
       </View>
     );
@@ -185,36 +158,40 @@ export default function SelfieCameraScreen() {
 
   const busy = uploading || processing;
 
+  const styles = StyleSheet.create({
+    root: { flex: 1, backgroundColor: BG },
+    header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 4 },
+    backBtn: { width: 36, height: 36, backgroundColor: c.card, borderRadius: 18, alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+    headerTitle: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text },
+    subtitle: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center", lineHeight: 22, marginTop: 28, paddingHorizontal: 40 },
+    frameOuter: { flex: 1, alignItems: "center", justifyContent: "center" },
+    frame: { borderRadius: 16, overflow: "hidden", position: "relative", alignItems: "center", justifyContent: "center" },
+    busyOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center" },
+    statusArea: { height: 64, alignItems: "center", justifyContent: "center", gap: 4 },
+    progressPct: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 28, color: c.text, letterSpacing: -0.5 },
+    progressLabel: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED },
+    footer: { alignItems: "center", paddingTop: 8 },
+    shutterRing: { width: 72, height: 72, borderRadius: 36, borderWidth: 4, borderColor: TEAL, alignItems: "center", justifyContent: "center" },
+    shutterInner: { width: 52, height: 52, borderRadius: 26, backgroundColor: TEAL },
+  });
+
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
-
-      {/* ── Header ── */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7} disabled={busy}>
-          <BackArrow />
+          <BackArrow color={c.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Face recognition</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      {/* ── Subtitle ── */}
-      <Text style={styles.subtitle}>
-        Please look into the camera and hold still
-      </Text>
+      <Text style={styles.subtitle}>Please look into the camera and hold still</Text>
 
-      {/* ── Viewfinder ── */}
       <View style={styles.frameOuter}>
         <View style={[styles.frame, { width: FRAME_SIZE, height: FRAME_SIZE }]}>
-          <CameraView
-            ref={cameraRef}
-            style={StyleSheet.absoluteFill}
-            facing={"front" as CameraType}
-          />
-          {/* Dots overlay — visible before capture */}
+          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={"front" as CameraType} />
           {!busy && <ScanDots size={FRAME_SIZE} />}
-          {/* Corner brackets always visible */}
           <CornerBrackets size={FRAME_SIZE} />
-          {/* Busy overlay */}
           {busy && (
             <View style={styles.busyOverlay}>
               <ActivityIndicator size="large" color={WHITE} />
@@ -223,7 +200,6 @@ export default function SelfieCameraScreen() {
         </View>
       </View>
 
-      {/* ── Progress / status ── */}
       <View style={styles.statusArea}>
         {processing ? (
           <>
@@ -235,157 +211,11 @@ export default function SelfieCameraScreen() {
         ) : null}
       </View>
 
-      {/* ── Shutter button pinned to bottom ── */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 32 }]}>
-        <TouchableOpacity
-          style={[styles.shutterRing, busy && { opacity: 0.5 }]}
-          onPress={handleCapture}
-          activeOpacity={0.8}
-          disabled={busy}
-        >
+        <TouchableOpacity style={[styles.shutterRing, busy && { opacity: 0.5 }]} onPress={handleCapture} activeOpacity={0.8} disabled={busy}>
           <View style={styles.shutterInner} />
         </TouchableOpacity>
       </View>
-
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: BG,
-  },
-
-  // Permission screen
-  permCenter: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 32,
-    gap: 16,
-  },
-  permTitle: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 18,
-    color: DARK,
-    textAlign: "center",
-  },
-  permBody: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 14,
-    color: MUTED,
-    textAlign: "center",
-    lineHeight: 22,
-  },
-  permBtn: {
-    backgroundColor: TEAL,
-    borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 40,
-    marginTop: 8,
-  },
-  permBtnText: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 16,
-    color: WHITE,
-  },
-
-  // Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 4,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    backgroundColor: WHITE,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  headerTitle: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 17,
-    color: DARK,
-  },
-
-  // Subtitle
-  subtitle: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 14,
-    color: MUTED,
-    textAlign: "center",
-    lineHeight: 22,
-    marginTop: 28,
-    paddingHorizontal: 40,
-  },
-
-  // Viewfinder
-  frameOuter: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  frame: {
-    borderRadius: 16,
-    overflow: "hidden",
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  busyOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // Status
-  statusArea: {
-    height: 64,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
-  progressPct: {
-    fontFamily: "PlusJakartaSans_700Bold",
-    fontSize: 28,
-    color: DARK,
-    letterSpacing: -0.5,
-  },
-  progressLabel: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 14,
-    color: MUTED,
-  },
-
-  // Shutter button
-  footer: {
-    alignItems: "center",
-    paddingTop: 8,
-  },
-  shutterRing: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 4,
-    borderColor: TEAL,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  shutterInner: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: TEAL,
-  },
-});

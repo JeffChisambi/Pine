@@ -10,26 +10,21 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import Svg, { Path, Circle, Rect, G, Defs, ClipPath } from "react-native-svg";
+import { useColors } from "@/hooks/useColors";
 
 const TEAL = "#164951";
 const CARD_TEAL = "#2D5B62";
-const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
-const DARK = "#111827";
-const MUTED = "#9CA3AF";
-const DIVIDER = "#EBECEF";
-const CARD_BG = "#F9FAFB";
-const CARD_BORDER = "#F3F4F6";
-const GOLD = "#FFD84A";
 
-function BackArrow() {
+function BackArrow({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Path d="M12.5 5.5L7.5 10l5 4.5" stroke={DARK} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12.5 5.5L7.5 10l5 4.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
+// ─── Icons — untouched ────────────────────────────────────────────────────────
 function IdIcon() {
   return (
     <Svg width={40} height={40} viewBox="0 0 40 40" fill="none">
@@ -55,17 +50,12 @@ function PassportIcon() {
   return (
     <Svg width={40} height={40} viewBox="0 0 40 40" fill="none">
       <G clipPath="url(#clip_passport)">
-        {/* Background circle */}
         <Rect width={40} height={40} rx={20} fill="#2D5B62" />
-        {/* Open passport cover */}
         <Rect x={6} y={12} width={28} height={20} rx={2} fill="#FFFFFF" />
-        {/* Center fold */}
         <Rect x={19.5} y={12} width={1} height={20} fill="#164951" opacity={0.25} />
-        {/* Left page: Photo & data */}
         <Rect x={9} y={15} width={5} height={6} rx={1} fill="#164951" />
         <Rect x={9} y={23} width={7} height={1.5} rx={0.75} fill="#164951" />
         <Rect x={9} y={26} width={5} height={1.5} rx={0.75} fill="#164951" />
-        {/* Right page: Data lines */}
         <Rect x={22} y={15} width={9} height={1.5} rx={0.75} fill="#164951" />
         <Rect x={22} y={19} width={7} height={1.5} rx={0.75} fill="#164951" />
         <Rect x={22} y={23} width={8} height={1.5} rx={0.75} fill="#164951" />
@@ -89,20 +79,47 @@ export default function ProofOfResidencyScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const [selected, setSelected] = useState("national_id");
+  const c = useColors();
+
+  const styles = StyleSheet.create({
+    root: { flex: 1, backgroundColor: c.background },
+    header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
+    backBtn: { width: 40, height: 40, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" },
+    headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text },
+    scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 40, gap: 24 },
+    descBlock: { gap: 8, alignItems: "center" },
+    descTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text, textAlign: "center" },
+    descSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, lineHeight: 22, textAlign: "center" },
+    docsGroup: { backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, overflow: "hidden" },
+    docRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 16, gap: 14, backgroundColor: c.card },
+    docRowActive: { backgroundColor: TEAL },
+    docIconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.border, alignItems: "center", justifyContent: "center" },
+    docIconWrapActive: { backgroundColor: CARD_TEAL },
+    docTextBlock: { flex: 1 },
+    docLabel: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: c.text, marginBottom: 2 },
+    docLabelActive: { color: WHITE },
+    docSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: c.mutedForeground },
+    docSubActive: { color: "rgba(255,255,255,0.65)" },
+    radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: c.border, alignItems: "center", justifyContent: "center" },
+    radioOuterActive: { borderColor: WHITE },
+    radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: WHITE },
+    rowDivider: { height: 1, backgroundColor: c.border, marginHorizontal: 16 },
+    footer: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: c.background, borderTopWidth: 1, borderTopColor: c.border },
+    continueBtn: { backgroundColor: TEAL, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
+    continueBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
+  });
 
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <BackArrow />
+          <BackArrow color={c.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Choose Verification Method</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-
-
         <View style={styles.descBlock}>
           <Text style={styles.descTitle}>Choose Verification Method</Text>
           <Text style={styles.descSub}>
@@ -150,31 +167,3 @@ export default function ProofOfResidencyScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: WHITE },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
-  backBtn: { width: 40, height: 40, backgroundColor: CARD_BG, borderRadius: 12, borderWidth: 1, borderColor: CARD_BORDER, alignItems: "center", justifyContent: "center" },
-  headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: DARK },
-  scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 40, gap: 24 },
-  descBlock: { gap: 8, alignItems: "center" },
-  descTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: DARK, textAlign: "center" },
-  descSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, lineHeight: 22, textAlign: "center" },
-  docsGroup: { backgroundColor: CARD_BG, borderRadius: 12, borderWidth: 1, borderColor: CARD_BORDER, overflow: "hidden" },
-  docRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 16, gap: 14, backgroundColor: CARD_BG },
-  docRowActive: { backgroundColor: TEAL },
-  docIconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: DIVIDER, alignItems: "center", justifyContent: "center" },
-  docIconWrapActive: { backgroundColor: CARD_TEAL },
-  docTextBlock: { flex: 1 },
-  docLabel: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: DARK, marginBottom: 2 },
-  docLabelActive: { color: WHITE },
-  docSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED },
-  docSubActive: { color: "rgba(255,255,255,0.65)" },
-  radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: DIVIDER, alignItems: "center", justifyContent: "center" },
-  radioOuterActive: { borderColor: WHITE },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: WHITE },
-  rowDivider: { height: 1, backgroundColor: DIVIDER, marginHorizontal: 16 },
-  footer: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: WHITE, borderTopWidth: 1, borderTopColor: CARD_BORDER },
-  continueBtn: { backgroundColor: TEAL, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
-  continueBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
-});
