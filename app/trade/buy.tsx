@@ -36,7 +36,7 @@ function PortfolioIcon() {
 export default function BuyScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
-  const params = useLocalSearchParams<{ mode?: string }>();
+  const params = useLocalSearchParams<{ mode?: string; ticker?: string }>();
   const c = useColors();
 
   const [mode, setMode] = useState<"buy" | "sell">(params.mode === "sell" ? "sell" : "buy");
@@ -46,8 +46,16 @@ export default function BuyScreen() {
   const [showStockPicker, setShowStockPicker] = useState(false);
 
   useEffect(() => {
-    if (stocks.length > 0 && !selectedStock) setSelectedStock(stocks[0]);
-  }, [stocks]);
+    if (stocks.length === 0) return;
+    if (params.ticker) {
+      const match = stocks.find(
+        (s) => s.symbol.toUpperCase() === params.ticker!.toUpperCase()
+      );
+      setSelectedStock(match ?? stocks[0]);
+    } else if (!selectedStock) {
+      setSelectedStock(stocks[0]);
+    }
+  }, [stocks, params.ticker]);
 
   const { data: walletBalanceData } = useWalletBalance();
   const walletBalance = Number(walletBalanceData?.availableBalance || walletBalanceData?.balance || 0);
