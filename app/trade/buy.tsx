@@ -7,6 +7,8 @@ import {
   ScrollView,
   Platform,
   Image,
+  InputAccessoryView,
+  Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -22,6 +24,7 @@ const GREEN = "#45B369";
 const RED = "#EF4770";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
+const DONE_ACCESSORY_ID = "buy-amount-done";
 
 function PortfolioIcon() {
   return (
@@ -42,7 +45,16 @@ export default function BuyScreen() {
   const [mode, setMode] = useState<"buy" | "sell">(params.mode === "sell" ? "sell" : "buy");
   const { data: stocks = [] } = useStocks();
   const [selectedStock, setSelectedStock] = useState<ApiStock | null>(null);
-  const [amount, setAmount] = useState("");
+  const [rawAmount, setRawAmount] = useState("");
+
+  const handleAmountChange = (text: string) => {
+    const digits = text.replace(/\D/g, "");
+    setRawAmount(digits);
+  };
+
+  const displayAmount = rawAmount
+    ? parseInt(rawAmount, 10).toLocaleString("en-US")
+    : "";
   const [showStockPicker, setShowStockPicker] = useState(false);
 
   useEffect(() => {
@@ -138,17 +150,20 @@ export default function BuyScreen() {
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED }}>How many</Text>
             <TextInput
               style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: c.text, minWidth: 80, textAlign: "right", padding: 0 }}
-              value={amount}
-              onChangeText={setAmount}
+              value={displayAmount}
+              onChangeText={handleAmountChange}
               placeholder="0"
               placeholderTextColor={MUTED}
               keyboardType="number-pad"
+              returnKeyType="done"
+              onSubmitEditing={() => Keyboard.dismiss()}
+              inputAccessoryViewID={Platform.OS === "ios" ? DONE_ACCESSORY_ID : undefined}
             />
           </View>
         </View>
 
         {/* Order summary preview */}
-        {amount.length > 0 && (
+        {rawAmount.length > 0 && (
           <View style={{ backgroundColor: c.card, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 4, borderWidth: 1, borderColor: c.border }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 12 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED }}>Asset</Text>
@@ -169,7 +184,7 @@ export default function BuyScreen() {
               <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED }}>Estimated Amount</Text>
               <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 13, color: c.text }}>
                 {(() => {
-                  const qty = parseInt(amount, 10);
+                  const qty = parseInt(rawAmount, 10);
                   const rawPrice = selectedStock?.priceRaw ?? 0;
                   if (!qty || qty <= 0 || !rawPrice) return "—";
                   const total = qty * rawPrice;
@@ -181,14 +196,25 @@ export default function BuyScreen() {
         )}
       </ScrollView>
 
+      {/* Keyboard Done toolbar (iOS) */}
+      {Platform.OS === "ios" && (
+        <InputAccessoryView nativeID={DONE_ACCESSORY_ID}>
+          <View style={{ backgroundColor: "#F2F2F7", paddingVertical: 8, paddingHorizontal: 16, alignItems: "flex-end", borderTopWidth: 1, borderTopColor: "#C7C7CC" }}>
+            <TouchableOpacity onPress={() => Keyboard.dismiss()} style={{ paddingHorizontal: 12, paddingVertical: 4 }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: "#007AFF" }}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </InputAccessoryView>
+      )}
+
       {/* Bottom CTA */}
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
         <TouchableOpacity
-          style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: amount && selectedStock ? 1 : 0.5 }}
-          disabled={!amount || !selectedStock}
+          style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: rawAmount && selectedStock ? 1 : 0.5 }}
+          disabled={!rawAmount || !selectedStock}
           onPress={() => router.push({
             pathname: "/trade/confirm" as any,
-            params: { stockId: selectedStock?.id ?? "", symbol: selectedStock?.symbol ?? "", name: selectedStock?.name ?? "", side: mode.toUpperCase(), amount, price: String(selectedStock?.priceRaw ?? 0) },
+            params: { stockId: selectedStock?.id ?? "", symbol: selectedStock?.symbol ?? "", name: selectedStock?.name ?? "", side: mode.toUpperCase(), amount: rawAmount, price: String(selectedStock?.priceRaw ?? 0) },
           })}
         >
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE }}>Review Order</Text>
