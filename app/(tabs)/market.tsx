@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import { guardedPush } from "@/utils/navigation";
 import {
   View,
   Text,
@@ -445,7 +446,7 @@ export default function MarketScreen() {
             <TouchableOpacity
               key={s.id}
               style={{ width: 240, height: 134, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 14, justifyContent: "space-between" }}
-              onPress={() => router.push(`/stock/${s.symbol}` as any)}
+              onPress={() => guardedPush(() => router.push(`/stock/${s.symbol}` as any))}
               activeOpacity={0.85}
             >
               <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -527,7 +528,7 @@ export default function MarketScreen() {
           <TouchableOpacity
             key={s.id}
             style={{ flexDirection: "row", alignItems: "center", marginHorizontal: 24, paddingVertical: 14, borderBottomWidth: i < allStocks.length - 1 ? 1 : 0, borderBottomColor: c.border }}
-            onPress={() => router.push(`/stock/${s.symbol}` as any)}
+            onPress={() => guardedPush(() => router.push(`/stock/${s.symbol}` as any))}
             activeOpacity={0.8}
           >
             <StockLogo symbol={s.symbol} c={c} />

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { guardedPush } from "@/utils/navigation";
 import {
   View,
   Text,
@@ -109,7 +110,7 @@ export default function StockSearchScreen() {
               { flexDirection: "row", alignItems: "center", paddingVertical: 14 },
               i < displayList.length - 1 && { borderBottomWidth: 1, borderBottomColor: c.border },
             ]}
-            onPress={() => router.push(`/stock/${s.symbol}` as any)}
+            onPress={() => guardedPush(() => router.push(`/stock/${s.symbol}` as any))}
             activeOpacity={0.8}
           >
             <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: c.card, overflow: "hidden", borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}>

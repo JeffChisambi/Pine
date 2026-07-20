@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { guardedPush } from "@/utils/navigation";
 import {
   View,
   Text,
@@ -322,7 +323,7 @@ export default function PortfolioScreen() {
             <TouchableOpacity
               key={asset.ticker}
               style={[styles.assetCard, i < filtered.length - 1 && styles.assetCardBorder]}
-              onPress={() => router.push(`/stock/${asset.ticker}` as any)}
+              onPress={() => guardedPush(() => router.push(`/stock/${asset.ticker}` as any))}
               activeOpacity={0.75}
             >
               <View style={styles.logoCircle}>

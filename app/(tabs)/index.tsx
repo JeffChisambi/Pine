@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { guardedPush } from "@/utils/navigation";
 import {
   ScrollView,
   View,
@@ -261,7 +262,7 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
           borderColor: c.border,
         }]}>
           <TouchableOpacity activeOpacity={1} onPress={() => {
-            if (isOpen.value) { dismiss(); } else { router.push(`/stock/${symbol}`); }
+            if (isOpen.value) { dismiss(); } else { guardedPush(() => router.push(`/stock/${symbol}`)); }
           }}>
             <View style={{
               height: 77,
@@ -323,7 +324,7 @@ function TrendCard({ logoImg, symbol, name, price, changePctNum, change, positiv
   return (
     <TouchableOpacity
       activeOpacity={0.85}
-      onPress={() => router.push(`/stock/${symbol}`)}
+      onPress={() => guardedPush(() => router.push(`/stock/${symbol}`))}
       style={{
         width: 240, height: 134,
         backgroundColor: c.card,
