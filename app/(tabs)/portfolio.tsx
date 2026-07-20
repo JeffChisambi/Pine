@@ -289,7 +289,7 @@ export default function PortfolioScreen() {
         <View style={styles.actionCard}>
           <TouchableOpacity style={styles.actionItem} onPress={() => router.push("/trade/sell" as any)}>
             <SellIcon />
-            <Text style={[styles.actionLabel, { color: "#374151" }]}>Sell</Text>
+            <Text style={[styles.actionLabel, { color: "#9CA3AF" }]}>Sell</Text>
           </TouchableOpacity>
         </View>
 
