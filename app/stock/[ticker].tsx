@@ -322,12 +322,13 @@ export default function StockDetailScreen() {
   })) ?? [];
 
   const keyStats = [
-    { label: "Market Cap",    value: stock?.listedShares ?? "—" },
-    { label: "Current Price", value: displayStock.price },
     { label: "Open",          value: stock?.openPrice ?? "—" },
     { label: "High",          value: stock?.highPrice ?? "—" },
     { label: "Low",           value: stock?.lowPrice ?? "—" },
+    { label: "Current Price", value: displayStock.price },
     { label: "Volume",        value: displayStock.volume },
+    { label: "Turnover",      value: stock?.turnover ?? "—" },
+    { label: "Market Cap",    value: stock?.marketCap ?? "—" },
     ...(displayStock.sector ? [{ label: "Sector", value: displayStock.sector }] : []),
   ];
 
@@ -426,11 +427,26 @@ export default function StockDetailScreen() {
               <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: c.text }}>Key Statistics</Text>
               <TouchableOpacity><Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: TEAL }}>See All</Text></TouchableOpacity>
             </View>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 16 }}>
-              {keyStats.map((stat) => (
-                <View key={stat.label} style={{ width: "50%" }}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+              {keyStats.map((stat, idx) => (
+                <View
+                  key={stat.label}
+                  style={{
+                    width: "50%",
+                    paddingLeft: idx % 2 === 0 ? 0 : 12,
+                    paddingRight: idx % 2 === 0 ? 12 : 0,
+                    marginBottom: 20,
+                    alignItems: idx % 2 === 0 ? "flex-start" : "flex-end",
+                  }}
+                >
                   <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, marginBottom: 3 }}>{stat.label}</Text>
-                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text }}>{stat.value}</Text>
+                  <Text
+                    style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, textAlign: idx % 2 === 0 ? "left" : "right" }}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {stat.value}
+                  </Text>
                 </View>
               ))}
             </View>

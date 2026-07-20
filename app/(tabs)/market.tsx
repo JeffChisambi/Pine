@@ -274,10 +274,10 @@ function SectorFinanceIcon({ color }: { color: string }) {
 
 const SECTORS: { key: string; label: string; icon: (color: string) => React.ReactElement }[] = [
   { key: "Agriculture",  label: "Agriculture", icon: (color) => <SectorAgricultureIcon color={color} /> },
-  { key: "Banks",        label: "Banks",       icon: (color) => <SectorBankIcon color={color} /> },
+  { key: "Banking",      label: "Banks",       icon: (color) => <SectorBankIcon color={color} /> },
   { key: "Real Estate",  label: "Real Estate", icon: (color) => <SectorRealEstateIcon color={color} /> },
   { key: "Investment",   label: "Investment",  icon: (color) => <SectorInvestmentIcon color={color} /> },
-  { key: "Technology",   label: "Telecommunication", icon: (color) => <SectorTelecomIcon color={color} /> },
+  { key: "Telecommunications", label: "Telecommunication", icon: (color) => <SectorTelecomIcon color={color} /> },
   { key: "Energy",       label: "Energy",      icon: (color) => <SectorEnergyIcon color={color} /> },
   { key: "Finance",      label: "Finance",     icon: (color) => <SectorFinanceIcon color={color} /> },
   { key: "Travel",       label: "Travel",      icon: (color) => <SectorTravelIcon color={color} /> },
