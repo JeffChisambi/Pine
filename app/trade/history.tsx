@@ -82,7 +82,7 @@ export default function HistoryScreen() {
       </View>
 
       {/* Filter tabs */}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 20, gap: 8, paddingBottom: 12 }}>
+      <View style={{ flexDirection: "row", paddingHorizontal: 20, gap: 8, paddingBottom: 12 }}>
         {FILTERS.map((f) => {
           const active = f === activeFilter;
           return (
@@ -91,7 +91,7 @@ export default function HistoryScreen() {
               onPress={() => setActiveFilter(f)}
               activeOpacity={0.75}
               style={[
-                { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 20, borderWidth: 1 },
+                { flex: 1, paddingVertical: 9, borderRadius: 20, borderWidth: 1, alignItems: "center" },
                 active ? { backgroundColor: TEAL, borderColor: TEAL } : { backgroundColor: c.card, borderColor: c.border },
               ]}
             >
