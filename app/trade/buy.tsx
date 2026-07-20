@@ -156,14 +156,25 @@ export default function BuyScreen() {
             </View>
             <View style={{ height: 1, backgroundColor: c.border }} />
             <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 12 }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED }}>Price per Share</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: c.text }}>{selectedStock?.price ?? "—"}</Text>
+            </View>
+            <View style={{ height: 1, backgroundColor: c.border }} />
+            <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 12 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED }}>Order Type</Text>
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: c.text }}>Market {isBuy ? "Buy" : "Sell"}</Text>
             </View>
             <View style={{ height: 1, backgroundColor: c.border }} />
             <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 12 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED }}>Estimated Amount</Text>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: isBuy ? GREEN : RED }}>
-                {isBuy ? "+" : "-"}MK {selectedStock?.price ? (Number(amount) * Number(selectedStock.price)).toLocaleString() : "0"}
+              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 13, color: c.text }}>
+                {(() => {
+                  const qty = parseInt(amount, 10);
+                  const rawPrice = selectedStock?.priceRaw ?? 0;
+                  if (!qty || qty <= 0 || !rawPrice) return "—";
+                  const total = qty * rawPrice;
+                  return `${isBuy ? "+" : "-"}MWK ${total.toLocaleString("en-MW", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                })()}
               </Text>
             </View>
           </View>
@@ -177,7 +188,7 @@ export default function BuyScreen() {
           disabled={!amount || !selectedStock}
           onPress={() => router.push({
             pathname: "/trade/confirm" as any,
-            params: { stockId: selectedStock?.id ?? "", symbol: selectedStock?.symbol ?? "", name: selectedStock?.name ?? "", side: mode.toUpperCase(), amount, price: selectedStock?.price ?? "0" },
+            params: { stockId: selectedStock?.id ?? "", symbol: selectedStock?.symbol ?? "", name: selectedStock?.name ?? "", side: mode.toUpperCase(), amount, price: String(selectedStock?.priceRaw ?? 0) },
           })}
         >
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE }}>Review Order</Text>
