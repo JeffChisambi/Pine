@@ -32,8 +32,8 @@ function ArrowIcon({ type }: { type: "buy" | "sell" }) {
   );
 }
 
-type FilterType = "All" | "Pending" | "Complete" | "Cancelled";
-const FILTERS: FilterType[] = ["All", "Pending", "Complete", "Cancelled"];
+type FilterType = "All" | "Pending" | "Complete";
+const FILTERS: FilterType[] = ["All", "Pending", "Complete"];
 
 interface Order {
   id: string; ticker: string; name: string; image: any;
