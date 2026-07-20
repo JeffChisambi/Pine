@@ -296,9 +296,6 @@ export default function PortfolioScreen() {
         <ScrollView style={styles.listArea} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
           <View style={styles.sectionRow}>
             <Text style={styles.sectionTitle}>Your Assets</Text>
-            <TouchableOpacity onPress={() => router.push("/trade/history" as any)}>
-              <Text style={styles.viewAll}>View all</Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.searchBar}>
