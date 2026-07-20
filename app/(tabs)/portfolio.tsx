@@ -287,7 +287,11 @@ export default function PortfolioScreen() {
       {/* Content sheet */}
       <View style={styles.whiteSheet}>
         <View style={styles.actionCard}>
-          <TouchableOpacity style={styles.actionItem} onPress={() => router.push("/trade/sell" as any)}>
+          <TouchableOpacity
+            style={[styles.actionItem, holdings.length === 0 && { opacity: 0.35 }]}
+            onPress={() => holdings.length > 0 && router.push("/trade/sell" as any)}
+            activeOpacity={holdings.length > 0 ? 0.7 : 1}
+          >
             <SellIcon />
             <Text style={[styles.actionLabel, { color: "#9CA3AF" }]}>Sell</Text>
           </TouchableOpacity>
