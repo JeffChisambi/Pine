@@ -176,7 +176,7 @@ export default function PortfolioScreen() {
     root: { flex: 1, backgroundColor: TEAL },
     header: { backgroundColor: TEAL, paddingHorizontal: 24, paddingBottom: 48, minHeight: 200, position: "relative" },
     whiteSheet: { flex: 1, backgroundColor: c.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -24, overflow: "hidden" },
-    topRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", marginBottom: 20 },
+    topRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", marginBottom: 20, marginTop: 12 },
     receiptBtn: { padding: 4 },
     titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
     titleLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: "rgba(255,255,255,0.8)", letterSpacing: 0.3 },
