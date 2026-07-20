@@ -33,6 +33,7 @@ import Svg, {
 import { useQueryClient } from "@tanstack/react-query";
 import { useStockDetail, stockKeys } from "../../hooks/useStocks";
 import { useIsWatched, useToggleWatchlist } from "../../hooks/useWatchlist";
+import { useHoldingQuantity } from "../../hooks/usePortfolio";
 import { ApiStock } from "../../services/api";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
@@ -248,6 +249,8 @@ export default function StockDetailScreen() {
 
   const isInWatchlist = useIsWatched(ticker);
   const toggleMutation = useToggleWatchlist();
+  const holdingQty = useHoldingQuantity(ticker);
+  const canSell = holdingQty > 0;
 
   const queryClient = useQueryClient();
   const cachedStock = useMemo<ApiStock | null>(() => {
@@ -448,8 +451,21 @@ export default function StockDetailScreen() {
 
       {/* Sticky Sell / Buy bar */}
       <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", paddingHorizontal: 24, paddingTop: 14, paddingBottom: bottomPad > 0 ? bottomPad : 16, gap: 12, backgroundColor: c.background, borderTopWidth: 1, borderTopColor: c.border }}>
-        <TouchableOpacity style={{ flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: TEAL, backgroundColor: c.background }} activeOpacity={0.85} onPress={() => router.push(`/trade/sell?ticker=${ticker}` as any)}>
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: TEAL }}>Sell</Text>
+        <TouchableOpacity
+          style={[
+            { flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1.5 },
+            canSell
+              ? { borderColor: TEAL, backgroundColor: c.background }
+              : { borderColor: MUTED, backgroundColor: c.background, opacity: 0.45 },
+          ]}
+          activeOpacity={canSell ? 0.85 : 1}
+          onPress={() => canSell && router.push(`/trade/sell?ticker=${ticker}` as any)}
+          disabled={!canSell}
+        >
+          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: canSell ? TEAL : MUTED }}>Sell</Text>
+          {!canSell && (
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 9, color: MUTED, marginTop: 1 }}>No shares owned</Text>
+          )}
         </TouchableOpacity>
         <TouchableOpacity style={{ flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: TEAL, shadowColor: TEAL, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 5 }} activeOpacity={0.85} onPress={() => router.push(`/trade/buy?ticker=${ticker}` as any)}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: WHITE }}>Buy</Text>
