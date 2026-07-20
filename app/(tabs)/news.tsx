@@ -346,13 +346,21 @@ export default function NewsScreen() {
               key={cat} activeOpacity={0.75}
               onPress={() => setActiveCategory(cat)}
               style={[
-                { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, borderWidth: 1 },
+                { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20, borderWidth: 1, alignItems: "center", justifyContent: "center" },
                 active
                   ? { backgroundColor: TEAL, borderColor: TEAL }
                   : { backgroundColor: c.card, borderColor: c.border },
               ]}
             >
-              <Text style={[{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13 }, active ? { color: "#FFFFFF" } : { color: c.text }]}>{cat}</Text>
+              <Text
+                numberOfLines={1}
+                style={[
+                  { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, textAlign: "center" },
+                  active ? { color: "#FFFFFF" } : { color: c.text },
+                ]}
+              >
+                {cat}
+              </Text>
             </TouchableOpacity>
           );
         })}
