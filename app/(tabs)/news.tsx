@@ -338,7 +338,7 @@ export default function NewsScreen() {
       </View>
 
       {/* Category pills */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }} style={{ flexGrow: 0, marginBottom: 10 }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 20, gap: 8, marginBottom: 10 }}>
         {CATEGORIES.map((cat) => {
           const active = cat === activeCategory;
           return (
@@ -363,7 +363,7 @@ export default function NewsScreen() {
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </View>
 
       {/* News list */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
