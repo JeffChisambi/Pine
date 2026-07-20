@@ -2,7 +2,6 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,8 +12,8 @@ import {
   View,
   Image,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AnimatedEyeButton from "../components/AnimatedEyeButton";
 import { useAuth } from "../services/auth-context";
 import { ApiError } from "../services/api";
@@ -94,20 +93,6 @@ function LockIcon() {
   );
 }
 
-// ── Phone icon (handset) ──────────────────────────────────────────
-function PhoneIcon() {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Path
-        d="M7.033 3.18c-.206-.62-.77-1.055-1.424-1.055H3.75A1.667 1.667 0 0 0 2.083 3.75c0 7.834 6.333 14.167 14.167 14.167a1.667 1.667 0 0 0 1.667-1.667v-1.858c0-.654-.435-1.218-1.055-1.424l-2.22-.74a1.458 1.458 0 0 0-1.52.369l-.86.86a11.3 11.3 0 0 1-4.969-4.969l.86-.86a1.458 1.458 0 0 0 .37-1.52l-.74-2.22Z"
-        stroke={MUTED}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
 
 
 export default function LoginScreen() {
@@ -116,13 +101,14 @@ export default function LoginScreen() {
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
 
   const auth = useAuth();
-  const [identifier, setIdentifier] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const canSubmit = identifier.trim().length > 0 && password.length > 0 && !loading;
+  const identifier = "+265" + phoneNumber.trim();
+  const canSubmit = phoneNumber.trim().length > 0 && password.length > 0 && !loading;
 
   const handleLogin = async () => {
     if (!canSubmit) return;
@@ -166,19 +152,29 @@ export default function LoginScreen() {
       </View>
 
       {/* ── Phone number field ── */}
-      <View style={styles.fieldWrap}>
-        <View style={styles.inputRow}>
-          <View style={styles.iconWrap}>
-            <PhoneIcon />
+      <View style={[styles.fieldWrap, { flexDirection: "row", gap: 10 }]}>
+        {/* Country code box */}
+        <View style={styles.countryBox}>
+          <Text style={styles.countryLabel}>Country code</Text>
+          <View style={styles.countryInner}>
+            <Text style={styles.flagText}>🇲🇼</Text>
+            <Text style={styles.countryCode}>+265</Text>
+            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+              <Path d="M6 9l6 6 6-6" stroke={MUTED} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
           </View>
+        </View>
+
+        {/* Phone number input box */}
+        <View style={[styles.inputRow, { flex: 1 }]}>
           <TextInput
-            style={styles.input}
-            placeholder="Phone number (+265...)"
+            style={[styles.input, { paddingHorizontal: 4 }]}
+            placeholder="Phone Number"
             placeholderTextColor={MUTED}
             keyboardType="phone-pad"
             autoCapitalize="none"
-            value={identifier}
-            onChangeText={(t) => { setIdentifier(t); setErrorMsg(""); }}
+            value={phoneNumber}
+            onChangeText={(t) => { setPhoneNumber(t); setErrorMsg(""); }}
           />
         </View>
       </View>
@@ -380,6 +376,36 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontFamily: "PlusJakartaSans_400Regular",
+    color: DARK,
+  },
+  // ── Country code box ────────────────────────────────────────────
+  countryBox: {
+    backgroundColor: BG_INPUT,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    paddingBottom: 10,
+    justifyContent: "center",
+    height: 56,
+  },
+  countryLabel: {
+    fontSize: 10,
+    fontFamily: "PlusJakartaSans_500Medium",
+    color: TEAL,
+    marginBottom: 2,
+  },
+  countryInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  flagText: {
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  countryCode: {
+    fontSize: 15,
+    fontFamily: "PlusJakartaSans_600SemiBold",
     color: DARK,
   },
   eyeBtn: {
