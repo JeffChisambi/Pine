@@ -242,7 +242,7 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
             <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: c.text }}>{item.source}</Text>
           </View>
 
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text, lineHeight: 30, paddingHorizontal: 20, marginTop: 12 }}>{item.title}</Text>
+          <Text style={{ fontFamily: "Lora_600SemiBold", fontSize: 20, color: c.text, lineHeight: 30, paddingHorizontal: 20, marginTop: 12 }}>{item.title}</Text>
           <View style={{ height: 1, backgroundColor: c.border, marginHorizontal: 20, marginVertical: 20 }} />
 
           {item.metrics && item.metrics.length > 0 && (
@@ -276,7 +276,7 @@ function HeroCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c
     <TouchableOpacity activeOpacity={0.88} style={{ paddingHorizontal: 20 }} onPress={onPress}>
       <Image source={imgSrc(item.image)} style={{ width: "100%", height: 220, borderRadius: 4, backgroundColor: c.card }} resizeMode="cover" />
       <View style={{ marginTop: 14, gap: 6 }}>
-        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text, lineHeight: 29 }} numberOfLines={3}>{item.title}</Text>
+        <Text style={{ fontFamily: "Lora_600SemiBold", fontSize: 20, color: c.text, lineHeight: 29 }} numberOfLines={3}>{item.title}</Text>
         <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, lineHeight: 19 }} numberOfLines={2}>{item.summary}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{item.time}</Text>
@@ -298,7 +298,7 @@ function ThumbCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; 
     <TouchableOpacity activeOpacity={0.82} style={{ flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 20, gap: 14 }} onPress={onPress}>
       <Image source={imgSrc(item.image)} style={{ width: 90, height: 90, borderRadius: 4, backgroundColor: c.card, flexShrink: 0 }} resizeMode="cover" />
       <View style={{ flex: 1, gap: 4 }}>
-        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 14, color: c.text, lineHeight: 21 }} numberOfLines={2}>{item.title}</Text>
+        <Text style={{ fontFamily: "Lora_600SemiBold", fontSize: 14, color: c.text, lineHeight: 21 }} numberOfLines={2}>{item.title}</Text>
         <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, lineHeight: 18 }} numberOfLines={2}>{item.summary}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{item.time}</Text>

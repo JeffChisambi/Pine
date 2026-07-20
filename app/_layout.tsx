@@ -5,6 +5,10 @@ import {
   PlusJakartaSans_700Bold,
   useFonts,
 } from "@expo-google-fonts/plus-jakarta-sans";
+import {
+  Lora_400Regular,
+  Lora_600SemiBold,
+} from "@expo-google-fonts/lora";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, router, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -175,6 +179,8 @@ export default function RootLayout() {
     PlusJakartaSans_500Medium,
     PlusJakartaSans_600SemiBold,
     PlusJakartaSans_700Bold,
+    Lora_400Regular,
+    Lora_600SemiBold,
   });
 
   const [fontTimeout, setFontTimeout] = React.useState(false);
