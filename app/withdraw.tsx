@@ -25,7 +25,7 @@ const DIVIDER   = "#EBECEF";
 const GREEN     = "#45B369";
 const RED       = "#EF4770";
 
-const QUICK_AMOUNTS = ["500", "1,000", "2,500", "5,000"];
+const QUICK_AMOUNTS = ["10,000", "25,000", "50,000", "100,000"];
 
 const METHODS = [
   {
@@ -104,7 +104,7 @@ export default function WithdrawScreen() {
 
   const numericValue = parseFloat(rawAmount.replace(/,/g, "")) || 0;
   const exceeds      = numericValue > walletBalance;
-  const canWithdraw  = numericValue >= 100 && !exceeds;
+  const canWithdraw  = numericValue >= 10000 && !exceeds;
 
 
   const fee = activeMethod.fee === "Free" ? 0 : 200;
@@ -145,7 +145,7 @@ export default function WithdrawScreen() {
           {exceeds ? (
             <Text style={styles.amountError}>Amount exceeds available balance</Text>
           ) : (
-            <Text style={styles.amountHint}>Minimum withdrawal: MK 100</Text>
+            <Text style={styles.amountHint}>Minimum withdrawal: MK 10,000</Text>
           )}
         </View>
 
