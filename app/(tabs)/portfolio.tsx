@@ -64,9 +64,21 @@ function BuyIcon() {
 
 function SellIcon() {
   return (
-    <Svg width={28} height={28} viewBox="0 0 28 28" fill="none">
-      <Circle cx={14} cy={14} r={14} fill={CARD_TEAL} />
-      <Path d="M14 9v10M9.5 13l4.5-4 4.5 4" stroke={WHITE} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Svg width={41} height={41} viewBox="0 0 41 41" fill="none">
+      <Circle cx={20.5} cy={20.5} r={20} fill="#F3F6F6" stroke="#D0DBDC" />
+      <Path d="M18.7667 20.7666L20.9001 18.6333L23.0334 20.7666" stroke="#164951" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M20.9 27.1667V18.6917" stroke="#164951" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M27.6667 20.3501C27.6667 16.6668 25.1667 13.6834 21 13.6834C16.8334 13.6834 14.3334 16.6668 14.3334 20.3501" stroke="#164951" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function ReceiptIcon() {
+  return (
+    <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
+      <Path d="M7.5 15.75V2.25L9 3L10.5 2.25L11.9972 3L13.5145 2.25L15 3L16.4902 2.25L17.9869 3L19.5 2.25L21.0005 3L22.5 2.25V12.75" stroke="rgba(255,255,255,0.85)" strokeWidth={1.5} strokeLinejoin="round" />
+      <Path d="M22.5 12.75V18C22.5 18.9946 22.1049 19.9484 21.4017 20.6517C20.6984 21.3549 19.7446 21.75 18.75 21.75C17.7555 21.75 16.8016 21.3549 16.0984 20.6517C15.3951 19.9484 15 18.9946 15 18V15.75H2.25003C2.15129 15.7491 2.05337 15.7679 1.96198 15.8053C1.87059 15.8427 1.78757 15.8979 1.71775 15.9677C1.64793 16.0375 1.59272 16.1206 1.55534 16.212C1.51796 16.3033 1.49915 16.4013 1.50003 16.5C1.50003 19.5 1.81597 21.75 5.25003 21.75H18.75" stroke="rgba(255,255,255,0.85)" strokeWidth={1.5} strokeLinejoin="round" />
+      <Path d="M10.5 6.75H19.5M13.5 10.5H19.5" stroke="rgba(255,255,255,0.85)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -114,6 +126,7 @@ export default function PortfolioScreen() {
   const [balanceHidden, setBalanceHidden] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [period, setPeriod] = useState("1D");
+  const [month, setMonth] = useState("November");
 
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [totalValue, setTotalValue] = useState<string | null>(null);
@@ -160,17 +173,20 @@ export default function PortfolioScreen() {
 
   const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: TEAL },
-    header: { backgroundColor: TEAL, paddingHorizontal: 24, paddingBottom: 48, minHeight: 210, position: "relative" },
+    header: { backgroundColor: TEAL, paddingHorizontal: 24, paddingBottom: 48, minHeight: 200, position: "relative" },
     whiteSheet: { flex: 1, backgroundColor: c.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -24, overflow: "hidden" },
-    titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
+    topRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", marginBottom: 20 },
+    receiptBtn: { padding: 4 },
+    titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
     titleLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: "rgba(255,255,255,0.8)", letterSpacing: 0.3 },
     eyeBtn: { padding: 4 },
-    periodPill: { position: "absolute", top: 0, right: 24, backgroundColor: CARD_TEAL, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, marginTop: 4, alignSelf: "flex-end" },
-    periodText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: WHITE },
-    balanceBlock: { alignItems: "center", marginTop: 20 },
-    balanceAmount: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 40, color: WHITE, letterSpacing: -1, marginBottom: 8 },
-    balanceHidden: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 40, color: "rgba(255,255,255,0.5)", marginBottom: 8 },
-    changeChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
+    balanceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    balanceBlock: { flex: 1 },
+    balanceAmount: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 38, color: WHITE, letterSpacing: -1, marginBottom: 8 },
+    balanceHidden: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 38, color: "rgba(255,255,255,0.5)", marginBottom: 8 },
+    monthPill: { backgroundColor: CARD_TEAL, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, flexDirection: "row", alignItems: "center", gap: 4 },
+    monthText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: WHITE },
+    changeChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, alignSelf: "flex-start" },
     changeText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: GREEN },
     actionCard: {
       marginHorizontal: 20,
@@ -228,31 +244,42 @@ export default function PortfolioScreen() {
     <View style={styles.root}>
       {/* Teal Header */}
       <View style={[styles.header, { paddingTop: topPad }]}>
+        {/* Receipt icon top-right */}
+        <View style={styles.topRow}>
+          <TouchableOpacity style={styles.receiptBtn} onPress={() => router.push("/trade/history" as any)}>
+            <ReceiptIcon />
+          </TouchableOpacity>
+        </View>
+
+        {/* "Portfolio Balance" + eye */}
         <View style={styles.titleRow}>
-          <Text style={styles.titleLabel}>Portfolio</Text>
+          <Text style={styles.titleLabel}>Portfolio Balance</Text>
           <TouchableOpacity onPress={() => setBalanceHidden((v) => !v)} style={styles.eyeBtn}>
             <EyeIcon hidden={balanceHidden} />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.periodPill}>
-          <Text style={styles.periodText}>Now {period} ▾</Text>
-        </View>
-
-        <View style={styles.balanceBlock}>
-          {balanceHidden ? (
-            <Text style={styles.balanceHidden} adjustsFontSizeToFit numberOfLines={1}>K  ••••••</Text>
-          ) : (
-            <Text style={styles.balanceAmount} adjustsFontSizeToFit numberOfLines={1}>
-              {totalValue ?? "—"}
-            </Text>
-          )}
-          {totalGain !== null && (
-            <View style={styles.changeChip}>
-              {gainPositive ? <ArrowUpIcon color={GREEN} /> : <ArrowDownIcon color={RED} />}
-              <Text style={styles.changeText}>{totalGain}</Text>
-            </View>
-          )}
+        {/* Balance + month pill */}
+        <View style={styles.balanceRow}>
+          <View style={styles.balanceBlock}>
+            {balanceHidden ? (
+              <Text style={styles.balanceHidden} adjustsFontSizeToFit numberOfLines={1}>K  ••••••</Text>
+            ) : (
+              <Text style={styles.balanceAmount} adjustsFontSizeToFit numberOfLines={1}>
+                {totalValue ?? "—"}
+              </Text>
+            )}
+            {totalGain !== null && (
+              <View style={styles.changeChip}>
+                {gainPositive ? <ArrowUpIcon color={GREEN} /> : <ArrowDownIcon color={RED} />}
+                <Text style={styles.changeText}>{totalGain}</Text>
+              </View>
+            )}
+          </View>
+          <TouchableOpacity style={styles.monthPill}>
+            <Text style={styles.monthText}>{month}</Text>
+            <Text style={styles.monthText}>▾</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
