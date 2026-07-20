@@ -548,7 +548,7 @@ export default function HomeScreen() {
             {/* Watchlist */}
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Watchlist</Text>
-              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED2 }}>{watchlistTickers.size}/{MAX_WATCHLIST}</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED2 }}>{watchlistData?.count ?? 0} stocks</Text>
             </View>
 
             {watchlist.length === 0 ? (
