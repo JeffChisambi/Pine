@@ -9,6 +9,7 @@
  */
 import Constants from 'expo-constants';
 import { AuthStore } from './auth-store';
+import { normalizeMalawiPhoneNumber } from './phone';
 
 function resolveBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -175,7 +176,11 @@ export const authApi = {
   }): Promise<AuthTokens> =>
     request<AuthTokens>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ ...data, platform: data.platform ?? 'mobile' }),
+      body: JSON.stringify({
+        ...data,
+        phone: normalizeMalawiPhoneNumber(data.phone),
+        platform: data.platform ?? 'mobile',
+      }),
       skipAuth: true,
     }),
 
@@ -187,7 +192,11 @@ export const authApi = {
   }): Promise<AuthTokens> =>
     request<AuthTokens>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ ...data, platform: data.platform ?? 'mobile' }),
+      body: JSON.stringify({
+        ...data,
+        phone: data.phone ? normalizeMalawiPhoneNumber(data.phone) : undefined,
+        platform: data.platform ?? 'mobile',
+      }),
       skipAuth: true,
     }),
 
@@ -197,28 +206,28 @@ export const authApi = {
   forgotPassword: (phone: string): Promise<{ message: string }> =>
     request('/auth/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({ phone }),
+      body: JSON.stringify({ phone: normalizeMalawiPhoneNumber(phone) }),
       skipAuth: true,
     }),
 
   resetPassword: (phone: string, otp: string, newPassword: string): Promise<{ message: string }> =>
     request('/auth/reset-password', {
       method: 'POST',
-      body: JSON.stringify({ phone, otp, newPassword }),
+      body: JSON.stringify({ phone: normalizeMalawiPhoneNumber(phone), otp, newPassword }),
       skipAuth: true,
     }),
 
   sendOtp: (destination: string, purpose: string): Promise<{ message: string; expiresInSeconds: number }> =>
     request('/auth/otp/send', {
       method: 'POST',
-      body: JSON.stringify({ destination, purpose }),
+      body: JSON.stringify({ destination: normalizeMalawiPhoneNumber(destination), purpose }),
       skipAuth: true,
     }),
 
   verifyOtp: (destination: string, purpose: string, code: string): Promise<{ verified: boolean }> =>
     request('/auth/otp/verify', {
       method: 'POST',
-      body: JSON.stringify({ destination, purpose, code }),
+      body: JSON.stringify({ destination: normalizeMalawiPhoneNumber(destination), purpose, code }),
       skipAuth: true,
     }),
 
