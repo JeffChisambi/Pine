@@ -91,7 +91,7 @@ export default function SelfieCameraScreen() {
   const c = useColors();
   const { isDark } = useTheme();
 
-  const BG = isDark ? "#0F1F22" : "#EAF3F4";
+  const BG = c.background;
   const MUTED = c.mutedForeground;
 
   const cameraRef = useRef<CameraView>(null);
@@ -161,7 +161,7 @@ export default function SelfieCameraScreen() {
   const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: BG },
     header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 4 },
-    backBtn: { width: 36, height: 36, backgroundColor: c.card, borderRadius: 18, alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+    backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
     headerTitle: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text },
     subtitle: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center", lineHeight: 22, marginTop: 28, paddingHorizontal: 40 },
     frameOuter: { flex: 1, alignItems: "center", justifyContent: "center" },
