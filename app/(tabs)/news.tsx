@@ -345,9 +345,14 @@ export default function NewsScreen() {
             <TouchableOpacity
               key={cat} activeOpacity={0.75}
               onPress={() => setActiveCategory(cat)}
-              style={[{ paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20 }, active ? { backgroundColor: TEAL } : { backgroundColor: c.card }]}
+              style={[
+                { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, borderWidth: 1 },
+                active
+                  ? { backgroundColor: TEAL, borderColor: TEAL }
+                  : { backgroundColor: c.card, borderColor: c.border },
+              ]}
             >
-              <Text style={[{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13 }, active ? { color: "#FFFFFF" } : { color: MUTED }]}>{cat}</Text>
+              <Text style={[{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13 }, active ? { color: "#FFFFFF" } : { color: c.text }]}>{cat}</Text>
             </TouchableOpacity>
           );
         })}
