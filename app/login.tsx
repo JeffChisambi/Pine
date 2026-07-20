@@ -2,7 +2,9 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -24,6 +26,23 @@ const DARK = "#111827";
 const BORDER_LIGHT = "#F3F4F6";
 const MUTED = "#9CA3AF";
 const BG_INPUT = "#F9FAFB";
+
+// ── Country list ──────────────────────────────────────────────────
+type Country = { flag: string; name: string; dial: string };
+const COUNTRIES: Country[] = [
+  { flag: "🇲🇼", name: "Malawi",       dial: "+265" },
+  { flag: "🇿🇦", name: "South Africa", dial: "+27"  },
+  { flag: "🇿🇲", name: "Zambia",       dial: "+260" },
+  { flag: "🇿🇼", name: "Zimbabwe",     dial: "+263" },
+  { flag: "🇲🇿", name: "Mozambique",   dial: "+258" },
+  { flag: "🇹🇿", name: "Tanzania",     dial: "+255" },
+  { flag: "🇰🇪", name: "Kenya",        dial: "+254" },
+  { flag: "🇺🇬", name: "Uganda",       dial: "+256" },
+  { flag: "🇧🇼", name: "Botswana",     dial: "+267" },
+  { flag: "🇳🇦", name: "Namibia",      dial: "+264" },
+  { flag: "🇬🇧", name: "United Kingdom", dial: "+44" },
+  { flag: "🇺🇸", name: "United States", dial: "+1"  },
+];
 
 // ── Google logo (colour) ──────────────────────────────────────────
 function GoogleLogo() {
@@ -101,14 +120,22 @@ export default function LoginScreen() {
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
 
   const auth = useAuth();
+  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const identifier = "+265" + phoneNumber.trim();
+  const identifier = selectedCountry.dial + phoneNumber.trim();
   const canSubmit = phoneNumber.trim().length > 0 && password.length > 0 && !loading;
+
+  const filteredCountries = COUNTRIES.filter((c) =>
+    c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+    c.dial.includes(countrySearch)
+  );
 
   const handleLogin = async () => {
     if (!canSubmit) return;
@@ -151,21 +178,72 @@ export default function LoginScreen() {
         <Text style={styles.subheadline}>Sign in to your Pine account to continue investing.</Text>
       </View>
 
+      {/* ── Country picker modal ── */}
+      <Modal visible={showCountryPicker} animationType="slide" transparent>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => { setShowCountryPicker(false); setCountrySearch(""); }}
+        />
+        <View style={[styles.modalSheet, { paddingBottom: Math.max(bottomPad, 24) }]}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.modalTitle}>Select country</Text>
+          <View style={styles.modalSearch}>
+            <TextInput
+              style={styles.modalSearchInput}
+              placeholder="Search country or code…"
+              placeholderTextColor={MUTED}
+              value={countrySearch}
+              onChangeText={setCountrySearch}
+              autoFocus
+            />
+          </View>
+          <FlatList
+            data={filteredCountries}
+            keyExtractor={(item) => item.dial + item.name}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={[
+                  styles.countryRow,
+                  selectedCountry.dial === item.dial && selectedCountry.name === item.name
+                    && styles.countryRowActive,
+                ]}
+                onPress={() => {
+                  setSelectedCountry(item);
+                  setShowCountryPicker(false);
+                  setCountrySearch("");
+                }}
+              >
+                <Text style={styles.countryRowFlag}>{item.flag}</Text>
+                <Text style={styles.countryRowName}>{item.name}</Text>
+                <Text style={styles.countryRowDial}>{item.dial}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </Modal>
+
       {/* ── Phone number field ── */}
       <View style={[styles.fieldWrap, { flexDirection: "row", gap: 10 }]}>
-        {/* Country code box */}
-        <View style={styles.countryBox}>
+        {/* Country code selector */}
+        <TouchableOpacity
+          activeOpacity={0.75}
+          style={styles.countryBox}
+          onPress={() => setShowCountryPicker(true)}
+        >
           <Text style={styles.countryLabel}>Country code</Text>
           <View style={styles.countryInner}>
-            <Text style={styles.flagText}>🇲🇼</Text>
-            <Text style={styles.countryCode}>+265</Text>
+            <Text style={styles.flagText}>{selectedCountry.flag}</Text>
+            <Text style={styles.countryCode}>{selectedCountry.dial}</Text>
             <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
               <Path d="M6 9l6 6 6-6" stroke={MUTED} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
           </View>
-        </View>
+        </TouchableOpacity>
 
-        {/* Phone number input box */}
+        {/* Phone number input */}
         <View style={[styles.inputRow, { flex: 1 }]}>
           <TextInput
             style={[styles.input, { paddingHorizontal: 4 }]}
@@ -409,6 +487,76 @@ const styles = StyleSheet.create({
     color: DARK,
   },
   eyeBtn: {
+    padding: 4,
+  },
+
+  // ── Country picker modal ─────────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  modalSheet: {
+    backgroundColor: WHITE,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    maxHeight: "70%",
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: BORDER_LIGHT,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontFamily: "PlusJakartaSans_700Bold",
+    color: DARK,
+    marginBottom: 14,
+  },
+  modalSearch: {
+    backgroundColor: BG_INPUT,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    height: 44,
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  modalSearchInput: {
+    fontSize: 14,
+    fontFamily: "PlusJakartaSans_400Regular",
+    color: DARK,
+  },
+  countryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER_LIGHT,
+    gap: 12,
+  },
+  countryRowActive: {
+    backgroundColor: TEAL + "10",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+  },
+  countryRowFlag: {
+    fontSize: 22,
+  },
+  countryRowName: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: "PlusJakartaSans_500Medium",
+    color: DARK,
+  },
+  countryRowDial: {
+    fontSize: 14,
+    fontFamily: "PlusJakartaSans_400Regular",
+    color: MUTED,
+  },
     padding: 4,
   },
 
