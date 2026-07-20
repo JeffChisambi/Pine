@@ -346,16 +346,15 @@ export default function NewsScreen() {
               key={cat} activeOpacity={0.75}
               onPress={() => setActiveCategory(cat)}
               style={[
-                { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+                { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 20, borderWidth: 1 },
                 active
                   ? { backgroundColor: TEAL, borderColor: TEAL }
                   : { backgroundColor: c.card, borderColor: c.border },
               ]}
             >
               <Text
-                numberOfLines={1}
                 style={[
-                  { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, textAlign: "center" },
+                  { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, lineHeight: 18 },
                   active ? { color: "#FFFFFF" } : { color: c.text },
                 ]}
               >
