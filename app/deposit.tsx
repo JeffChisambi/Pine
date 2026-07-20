@@ -28,7 +28,7 @@ const BG        = "#F9FAFB";
 const DIVIDER   = "#EBECEF";
 const GREEN     = "#45B369";
 
-const QUICK_AMOUNTS = ["500", "1,000", "2,500", "5,000"];
+const QUICK_AMOUNTS = ["10,000", "25,000", "50,000", "100,000"];
 
 function BackIcon() {
   return (
