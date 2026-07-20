@@ -74,7 +74,7 @@ export default function DepositScreen() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const numericValue = parseFloat(rawAmount.replace(/,/g, "")) || 0;
-  const canDeposit   = numericValue >= 100 && !loading;
+  const canDeposit   = numericValue >= 10000 && !loading;
 
   const handleQuick = (label: string) => {
     setRawAmount(label);
@@ -143,7 +143,7 @@ export default function DepositScreen() {
             />
           </View>
           <View style={styles.amountDivider} />
-          <Text style={styles.amountHint}>Minimum deposit: MK 100</Text>
+          <Text style={styles.amountHint}>Minimum deposit: MK 10,000</Text>
         </View>
 
         {/* ── White body ── */}
