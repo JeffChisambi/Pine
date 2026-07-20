@@ -17,6 +17,7 @@ import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 
 const PAYCHANGU_LOGO = require("../../assets/images/paychangu-logo.png");
+const BANK_CARD_LOGO  = require("../../assets/images/bankcard.png");
 
 const TEAL  = "#164951";
 const GREEN = "#45B369";
@@ -55,6 +56,7 @@ export default function ConfirmScreen() {
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const c = useColors();
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"paychangu" | "bankcard">("paychangu");
 
   const params = useLocalSearchParams<{
     stockId?: string; symbol?: string; name?: string;
@@ -127,12 +129,10 @@ export default function ConfirmScreen() {
             )}
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: c.text, marginBottom: 3 }}>{stockName}</Text>
-            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED }}>{symbol} · Market {isBuy ? "Buy" : "Sell"}</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: c.text, marginBottom: 3 }}>{symbol}</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED }}>{stockName}</Text>
           </View>
-          <View style={{ backgroundColor: isBuy ? "#D1FAE5" : "#FEE2E2", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 12, color: isBuy ? "#065F46" : "#991B1B" }}>{isBuy ? "BUY" : "SELL"}</Text>
-          </View>
+
         </View>
 
         {/* Single order summary card */}
@@ -146,20 +146,74 @@ export default function ConfirmScreen() {
           <Row label="Total" value={fmt(total)} bold />
         </View>
 
-        {/* Payment method — Paychangu */}
+        {/* Payment method */}
         {isBuy && (
           <>
             <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, marginBottom: 10 }}>Payment Method</Text>
-            <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20, gap: 12 }}>
+
+            {/* Paychangu */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setPaymentMethod("paychangu")}
+              style={{
+                flexDirection: "row", alignItems: "center",
+                backgroundColor: c.card, borderRadius: 14,
+                borderWidth: paymentMethod === "paychangu" ? 2 : 1,
+                borderColor: paymentMethod === "paychangu" ? TEAL : c.border,
+                paddingHorizontal: 16, paddingVertical: 14, marginBottom: 10, gap: 12,
+              }}
+            >
               <PaychanguIcon />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, marginBottom: 2 }}>Paychangu</Text>
-                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>Secure mobile & card payments</Text>
+                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>Mobile money & card payments</Text>
               </View>
-              <View style={{ backgroundColor: "#D1FAE5", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
-                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: "#065F46" }}>Active</Text>
+              <View style={{
+                width: 20, height: 20, borderRadius: 10,
+                borderWidth: 2,
+                borderColor: paymentMethod === "paychangu" ? TEAL : MUTED,
+                backgroundColor: paymentMethod === "paychangu" ? TEAL : "transparent",
+                alignItems: "center", justifyContent: "center",
+              }}>
+                {paymentMethod === "paychangu" && (
+                  <Svg width={10} height={10} viewBox="0 0 10 10" fill="none">
+                    <Path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                )}
               </View>
-            </View>
+            </TouchableOpacity>
+
+            {/* Bank Card */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setPaymentMethod("bankcard")}
+              style={{
+                flexDirection: "row", alignItems: "center",
+                backgroundColor: c.card, borderRadius: 14,
+                borderWidth: paymentMethod === "bankcard" ? 2 : 1,
+                borderColor: paymentMethod === "bankcard" ? TEAL : c.border,
+                paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20, gap: 12,
+              }}
+            >
+              <Image source={BANK_CARD_LOGO} style={{ width: 36, height: 36, borderRadius: 8 }} resizeMode="contain" />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, marginBottom: 2 }}>Bank Card</Text>
+                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>Visa, Mastercard & local debit cards</Text>
+              </View>
+              <View style={{
+                width: 20, height: 20, borderRadius: 10,
+                borderWidth: 2,
+                borderColor: paymentMethod === "bankcard" ? TEAL : MUTED,
+                backgroundColor: paymentMethod === "bankcard" ? TEAL : "transparent",
+                alignItems: "center", justifyContent: "center",
+              }}>
+                {paymentMethod === "bankcard" && (
+                  <Svg width={10} height={10} viewBox="0 0 10 10" fill="none">
+                    <Path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                )}
+              </View>
+            </TouchableOpacity>
           </>
         )}
 

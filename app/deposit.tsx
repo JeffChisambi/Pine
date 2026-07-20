@@ -17,6 +17,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { paymentsApi } from "../services/api";
 
+const BANK_CARD_LOGO = require("../assets/images/bankcard.png");
+
 const TEAL      = "#164951";
 const TEAL_MED  = "#2D5B62";
 const WHITE     = "#FFFFFF";
@@ -57,13 +59,7 @@ function InfoIcon() {
 
 function BankCardIcon() {
   return (
-    <Svg width={42} height={42} viewBox="0 0 24 24" fill="none">
-      <Rect x={2} y={5} width={20} height={14} rx={3} fill={TEAL} />
-      <Path d="M2 10h20" stroke={WHITE} strokeWidth={1.5} strokeOpacity={0.2} />
-      <Rect x={5} y={13.5} width={4} height={2.5} rx={1} fill={GREEN} />
-      <Circle cx={17} cy={14.5} r={2.5} fill={WHITE} fillOpacity={0.5} />
-      <Circle cx={15} cy={14.5} r={2.5} fill={WHITE} fillOpacity={0.8} />
-    </Svg>
+    <Image source={BANK_CARD_LOGO} style={{ width: 42, height: 42, borderRadius: 8 }} resizeMode="contain" />
   );
 }
 

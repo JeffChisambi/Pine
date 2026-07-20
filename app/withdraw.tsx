@@ -8,10 +8,13 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  Image,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
+
+const BANK_CARD_LOGO = require("../assets/images/bankcard.png");
 
 const TEAL      = "#164951";
 const WHITE     = "#FFFFFF";
@@ -29,7 +32,7 @@ const METHODS = [
     id: "bank",
     name: "Bank Transfer",
     sub: "Direct bank account transfer",
-    fee: "MK 200",
+    fee: "Free",
     time: "1–2 business days",
     color: TEAL,
     letter: "B",
@@ -74,13 +77,7 @@ function ClockIcon() {
 
 function BankCardIcon() {
   return (
-    <Svg width={42} height={42} viewBox="0 0 24 24" fill="none">
-      <Rect x={2} y={5} width={20} height={14} rx={3} fill={TEAL} />
-      <Path d="M2 10h20" stroke={WHITE} strokeWidth={1.5} strokeOpacity={0.2} />
-      <Rect x={5} y={13.5} width={4} height={2.5} rx={1} fill={GREEN} />
-      <Circle cx={17} cy={14.5} r={2.5} fill={WHITE} fillOpacity={0.5} />
-      <Circle cx={15} cy={14.5} r={2.5} fill={WHITE} fillOpacity={0.8} />
-    </Svg>
+    <Image source={BANK_CARD_LOGO} style={{ width: 42, height: 42, borderRadius: 8 }} resizeMode="contain" />
   );
 }
 
@@ -183,14 +180,13 @@ export default function WithdrawScreen() {
               <View style={styles.methodMeta}>
                 <ClockIcon />
                 <Text style={styles.methodMetaText}>1–2 business days</Text>
-                <Text style={styles.methodFee}>· Fee: MK 200</Text>
               </View>
             </View>
             <CheckIcon />
           </View>
 
           {/* Info note */}
-          <View style={styles.noteRow}>
+          <View style={[styles.noteRow, { marginTop: 20 }]}>
             <InfoIcon />
             <Text style={styles.noteText}>
               Withdrawals are sent directly to your registered bank account. Please ensure your bank details are up to date in your profile.
@@ -204,17 +200,11 @@ export default function WithdrawScreen() {
                 <Text style={styles.summaryLabel}>Withdraw amount</Text>
                 <Text style={styles.summaryValue}>MK {rawAmount}</Text>
               </View>
-              <View style={[styles.summaryRow, { marginTop: 8 }]}>
-                <Text style={styles.summaryLabel}>Processing fee</Text>
-                <Text style={[styles.summaryValue, { color: fee === 0 ? GREEN : DARK }]}>
-                  {activeMethod.fee}
-                </Text>
-              </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
                 <Text style={[styles.summaryLabel, { color: DARK, fontFamily: "PlusJakartaSans_600SemiBold" }]}>You receive</Text>
                 <Text style={[styles.summaryValue, { color: TEAL, fontFamily: "PlusJakartaSans_700Bold" }]}>
-                  MK {youReceive.toLocaleString()}
+                  MK {numericValue.toLocaleString()}
                 </Text>
               </View>
             </View>
