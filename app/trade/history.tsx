@@ -82,12 +82,20 @@ export default function HistoryScreen() {
       </View>
 
       {/* Filter tabs */}
-      <View style={{ flexDirection: "row", paddingHorizontal: 20, gap: 8, paddingBottom: 12 }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 20, gap: 8, paddingBottom: 12 }}>
         {FILTERS.map((f) => {
           const active = f === activeFilter;
           return (
-            <TouchableOpacity key={f} style={{ flex: 1, height: 34, justifyContent: "center", alignItems: "center", borderRadius: 17, backgroundColor: active ? GREEN : c.card, borderWidth: active ? 0 : 1, borderColor: c.border }} onPress={() => setActiveFilter(f)}>
-              <Text style={{ fontFamily: active ? "PlusJakartaSans_600SemiBold" : "PlusJakartaSans_500Medium", fontSize: 13, color: active ? WHITE : MUTED }}>{f}</Text>
+            <TouchableOpacity
+              key={f}
+              onPress={() => setActiveFilter(f)}
+              activeOpacity={0.75}
+              style={[
+                { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 20, borderWidth: 1 },
+                active ? { backgroundColor: TEAL, borderColor: TEAL } : { backgroundColor: c.card, borderColor: c.border },
+              ]}
+            >
+              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, lineHeight: 18, color: active ? WHITE : c.text }}>{f}</Text>
             </TouchableOpacity>
           );
         })}
