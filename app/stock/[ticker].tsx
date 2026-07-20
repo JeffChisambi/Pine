@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -19,7 +19,6 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, {
@@ -33,6 +32,7 @@ import Svg, {
 } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStockDetail, stockKeys } from "../../hooks/useStocks";
+import { useIsWatched, useToggleWatchlist } from "../../hooks/useWatchlist";
 import { ApiStock } from "../../services/api";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
@@ -242,13 +242,12 @@ export default function StockDetailScreen() {
   const c = useColors();
 
   const [activeTimeTab, setActiveTimeTab] = useState<TimePeriod>("1M");
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [aboutExpanded, setAboutExpanded] = useState(false);
 
-  const WATCHLIST_KEY = "@pine_watchlist_tickers";
-  const MAX_WATCHLIST = 4;
-
   const { data: stock, isLoading, error, refetch } = useStockDetail(ticker, activeTimeTab);
+
+  const isInWatchlist = useIsWatched(ticker);
+  const toggleMutation = useToggleWatchlist();
 
   const queryClient = useQueryClient();
   const cachedStock = useMemo<ApiStock | null>(() => {
@@ -265,37 +264,20 @@ export default function StockDetailScreen() {
 
   const displayStock = stock ?? cachedStock;
 
-  useEffect(() => {
-    AsyncStorage.getItem(WATCHLIST_KEY)
-      .then((val) => {
-        if (val) {
-          const tickers: string[] = JSON.parse(val);
-          setIsInWatchlist(tickers.includes(ticker?.toUpperCase()));
-        }
-      })
-      .catch(() => {});
-  }, [ticker]);
-
-  const toggleWatchlist = async () => {
-    try {
-      const val = await AsyncStorage.getItem(WATCHLIST_KEY);
-      const tickers: string[] = val ? JSON.parse(val) : [];
-      const sym = ticker?.toUpperCase();
-      if (tickers.includes(sym)) {
-        const next = tickers.filter((t) => t !== sym);
-        await AsyncStorage.setItem(WATCHLIST_KEY, JSON.stringify(next));
-        setIsInWatchlist(false);
-      } else {
-        if (tickers.length >= MAX_WATCHLIST) {
-          Alert.alert("Watchlist Full", `You can only add up to ${MAX_WATCHLIST} stocks to your watchlist. Remove one first.`);
-          return;
-        }
-        const next = [...tickers, sym];
-        await AsyncStorage.setItem(WATCHLIST_KEY, JSON.stringify(next));
-        setIsInWatchlist(true);
+  const toggleWatchlist = useCallback(() => {
+    if (toggleMutation.isPending) return; // debounce rapid taps
+    toggleMutation.mutate(
+      { symbol: ticker ?? '', currentlyWatched: isInWatchlist },
+      {
+        onError: (err) => {
+          Alert.alert(
+            "Watchlist Error",
+            err.message ?? "Could not update watchlist. Please try again."
+          );
+        },
       }
-    } catch {}
-  };
+    );
+  }, [ticker, isInWatchlist, toggleMutation]);
 
   if (error && !displayStock) {
     return (

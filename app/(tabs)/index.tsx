@@ -30,6 +30,7 @@ import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { StockData } from "../data/stocks";
 import { useAuth } from "../../services/auth-context";
 import { stocksApi, type ApiStock } from "../../services/api";
+import { useWatchlist, useToggleWatchlist } from "../../hooks/useWatchlist";
 import {
   useWalletBalance,
   useWalletQueryClient,
@@ -388,16 +389,29 @@ export default function HomeScreen() {
     : null;
 
   const [allStocks, setAllStocks] = useState<StockData[]>([]);
-  const [watchlist, setWatchlist] = useState<StockData[]>([]);
-  const [watchlistTickers, setWatchlistTickers] = useState<Set<string>>(new Set());
-  // null = not yet read from storage; false = key absent (fresh install); true = key exists (respect whatever is stored, even empty)
-  const [watchlistKeyExists, setWatchlistKeyExists] = useState<boolean | null>(null);
   const [trending, setTrending] = useState<StockData[]>([]);
   const [losers, setLosers] = useState<StockData[]>([]);
   const [bannerPage, setBannerPage] = useState(0);
   const bannerScrollRef = useRef<ScrollView>(null);
-  const MAX_WATCHLIST = 4;
-  const WATCHLIST_KEY = "@pine_watchlist_tickers";
+
+  // ── Watchlist (API-backed via React Query) ──────────────────────────────
+  const { data: watchlistData, isLoading: watchlistLoading } = useWatchlist();
+  const toggleMutation = useToggleWatchlist();
+
+  const watchlist: StockData[] = (watchlistData?.stocks ?? []).map((s: any) => ({
+    id: s.id,
+    ticker: s.symbol,
+    name: s.name,
+    logo: getStockLogo(s.symbol),
+    price: s.price,
+    change: s.change,
+    positive: s.positive,
+    changePctNum: s.changePct,
+  }));
+
+  const removeFromWatchlist = (ticker: string) => {
+    toggleMutation.mutate({ symbol: ticker, currentlyWatched: true });
+  };
 
   const reconcileRef = useRef(false);
   const reconcilingRef = useRef(false);
@@ -443,23 +457,6 @@ export default function HomeScreen() {
     })().catch(() => {});
   }, [searchParams.depositSuccess, searchParams.depositAmount, searchParams.depositTxRef, walletBalance, qc]);
 
-  useEffect(() => {
-    AsyncStorage.getItem(WATCHLIST_KEY)
-      .then((val) => {
-        if (val !== null) {
-          setWatchlistKeyExists(true);
-          setWatchlistTickers(new Set(JSON.parse(val)));
-        } else {
-          setWatchlistKeyExists(false); // fresh install — auto-fill is allowed
-        }
-      })
-      .catch(() => { setWatchlistKeyExists(false); });
-  }, []);
-
-  const saveWatchlist = useCallback((tickers: Set<string>) => {
-    AsyncStorage.setItem(WATCHLIST_KEY, JSON.stringify([...tickers])).catch(() => {});
-  }, []);
-
   useFocusEffect(useCallback(() => {
     if (!reconcilingRef.current) { refetchBalance(); }
   }, [refetchBalance]));
@@ -479,27 +476,6 @@ export default function HomeScreen() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (allStocks.length === 0 || watchlistKeyExists === null) return;
-    if (watchlistKeyExists === false) {
-      // Fresh install — seed with defaults and mark key as existing
-      const defaultTickers = new Set(allStocks.slice(0, MAX_WATCHLIST).map((s) => s.ticker));
-      setWatchlistTickers(defaultTickers);
-      setWatchlist(allStocks.slice(0, MAX_WATCHLIST));
-      saveWatchlist(defaultTickers);
-      setWatchlistKeyExists(true);
-    } else {
-      // Key exists — always respect what's stored, even if empty
-      setWatchlist(allStocks.filter((s) => watchlistTickers.has(s.ticker)));
-    }
-  }, [allStocks, watchlistTickers, watchlistKeyExists, saveWatchlist]);
-
-  const removeFromWatchlist = (ticker: string) => {
-    const next = new Set(watchlistTickers);
-    next.delete(ticker);
-    setWatchlistTickers(next);
-    saveWatchlist(next);
-  };
 
   return (
     <View style={{ flex: 1, backgroundColor: TEAL }}>
