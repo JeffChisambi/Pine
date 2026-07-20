@@ -66,10 +66,10 @@ function BuyIcon() {
 function SellIcon() {
   return (
     <Svg width={41} height={41} viewBox="0 0 41 41" fill="none">
-      <Circle cx={20.5} cy={20.5} r={20} fill="#F3F6F6" stroke="#D0DBDC" />
-      <Path d="M18.7667 20.7666L20.9001 18.6333L23.0334 20.7666" stroke="#164951" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M20.9 27.1667V18.6917" stroke="#164951" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M27.6667 20.3501C27.6667 16.6668 25.1667 13.6834 21 13.6834C16.8334 13.6834 14.3334 16.6668 14.3334 20.3501" stroke="#164951" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx={20.5} cy={20.5} r={20} fill="#164951" />
+      <Path d="M18.7667 20.7666L20.9001 18.6333L23.0334 20.7666" stroke="#FFFFFF" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M20.9 27.1667V18.6917" stroke="#FFFFFF" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M27.6667 20.3501C27.6667 16.6668 25.1667 13.6834 21 13.6834C16.8334 13.6834 14.3334 16.6668 14.3334 20.3501" stroke="#FFFFFF" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
