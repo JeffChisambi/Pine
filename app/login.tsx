@@ -151,7 +151,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               style={styles.backBtn}
               activeOpacity={0.7}
-              onPress={() => router.back()}
+              onPress={() => router.canGoBack() ? router.back() : router.replace("/")}
             >
               <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
                 <Path
@@ -189,13 +189,7 @@ export default function LoginScreen() {
                 <Text style={styles.flagText}>{selectedCountry.flag}</Text>
                 <Text style={styles.countryDialText}>{selectedCountry.dial}</Text>
                 <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-                  <Path
-                    d="M6 9l6 6 6-6"
-                    stroke={MUTED}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                  <Path d="M6 9l6 6 6-6" stroke={MUTED} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                 </Svg>
               </View>
             </TouchableOpacity>
@@ -326,19 +320,25 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   countryBox: {
-    backgroundColor: BG_INPUT,
+    backgroundColor: WHITE,
     borderRadius: 14,
     paddingHorizontal: 14,
-    paddingTop: 8,
-    paddingBottom: 10,
+    paddingVertical: 14,
     justifyContent: "center",
     height: 60,
+    borderWidth: 1,
+    borderColor: BORDER_LIGHT,
   },
   countryLabel: {
+    position: "absolute",
+    top: -9,
+    left: 12,
+    backgroundColor: WHITE,
+    paddingHorizontal: 4,
     fontSize: 10,
     fontFamily: "PlusJakartaSans_500Medium",
     color: MUTED,
-    marginBottom: 3,
+    zIndex: 1,
   },
   countryInner: {
     flexDirection: "row",

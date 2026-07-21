@@ -1,77 +1,74 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 const TEAL = "#164951";
 const WHITE = "#FFFFFF";
 const DARK = "#111827";
+const BORDER_LIGHT = "#EBEBEB";
 const MUTED = "#9CA3AF";
-const BG_INPUT = "#F9FAFB";
-const GREEN = "#45B369";
-const TEAL_DARK = "#2D5B62";
+const BG_INPUT = "#F4F4F4";
 
-function CloseIcon() {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M18 6L6 18M6 6l12 12" stroke={DARK} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function EmailIcon() {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Path d="M17.5 4.25H2.5A1.25 1.25 0 0 0 1.25 5.5v9a1.25 1.25 0 0 0 1.25 1.25h15a1.25 1.25 0 0 0 1.25-1.25v-9A1.25 1.25 0 0 0 17.5 4.25Z" stroke={MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M3.125 5.5 10 10.875 16.875 5.5" stroke={MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function LockIllustration() {
-  return (
-    <Svg width={130} height={130} viewBox="0 0 130 130">
-      <Circle cx={65} cy={65} r={65} fill={TEAL} />
-      <Circle cx={108.875} cy={101.292} r={45.5} stroke={TEAL_DARK} strokeWidth={1.08333} fill="none" />
-      <Circle cx={79.625} cy={17.875} r={53.0833} stroke={TEAL_DARK} strokeWidth={1.08333} fill="none" />
-      <Circle cx={25.459} cy={96.958} r={7.04167} fill={TEAL_DARK} />
-      <Rect x={26} y={35.271} width={78} height={108} rx={8} fill={GREEN} />
-      <Rect x={30.333} y={40.083} width={69.333} height={104} rx={6} fill="white" />
-      <Path d="M52 40.083H78V42.25C78 43.447 77.03 44.417 75.833 44.417H54.167C52.97 44.417 52 43.447 52 42.25V40.083Z" fill={GREEN} />
-      <Circle cx={65} cy={73.333} r={17} fill={GREEN} />
-      <Path d="M68.125 71.125V67.414C68.125 66.585 67.796 65.79 67.21 65.204C66.624 64.618 65.829 64.289 65 64.289C64.171 64.289 63.376 64.618 62.79 65.204C62.204 65.79 61.875 66.585 61.875 67.414V71.125" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M69.375 71.125H60.625C59.589 71.125 58.75 71.964 58.75 73V79.875C58.75 80.911 59.589 81.75 60.625 81.75H69.375C70.411 81.75 71.25 80.911 71.25 79.875V73C71.25 71.964 70.411 71.125 69.375 71.125Z" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Rect x={43.333} y={100.75} width={43.333} height={4.333} rx={2.167} fill="#EBECEF" />
-      <Rect x={49.833} y={110.5} width={30.333} height={4.333} rx={2.167} fill="#F3F4F6" />
-    </Svg>
-  );
-}
+// ── Country list ──────────────────────────────────────────────────
+type Country = { flag: string; name: string; dial: string };
+const COUNTRIES: Country[] = [
+  { flag: "🇲🇼", name: "Malawi",         dial: "+265" },
+  { flag: "🇿🇦", name: "South Africa",   dial: "+27"  },
+  { flag: "🇿🇲", name: "Zambia",         dial: "+260" },
+  { flag: "🇿🇼", name: "Zimbabwe",       dial: "+263" },
+  { flag: "🇲🇿", name: "Mozambique",     dial: "+258" },
+  { flag: "🇹🇿", name: "Tanzania",       dial: "+255" },
+  { flag: "🇰🇪", name: "Kenya",          dial: "+254" },
+  { flag: "🇺🇬", name: "Uganda",         dial: "+256" },
+  { flag: "🇧🇼", name: "Botswana",       dial: "+267" },
+  { flag: "🇳🇦", name: "Namibia",        dial: "+264" },
+  { flag: "🇬🇧", name: "United Kingdom", dial: "+44"  },
+  { flag: "🇺🇸", name: "United States",  dial: "+1"   },
+];
 
 export default function ForgotPasswordScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;
-  const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
+  const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16);
 
-  const [phone, setPhone] = useState("+265");
+  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [phoneFocused, setPhoneFocused] = useState(false);
+
+  const fullPhone = selectedCountry.dial + phoneNumber.trim();
+  const canSubmit = phoneNumber.trim().length > 0 && !loading;
+
+  const filteredCountries = COUNTRIES.filter((c) =>
+    c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+    c.dial.includes(countrySearch)
+  );
 
   const handleSubmit = async () => {
-    if (!phone || phone.length < 13) return;
+    if (!canSubmit) return;
     setLoading(true);
     setErrorMsg("");
     try {
       const { authApi } = require("../services/api");
-      await authApi.forgotPassword(phone.trim());
+      await authApi.forgotPassword(fullPhone);
       setSent(true);
     } catch (err: any) {
       setErrorMsg(err?.message || "Something went wrong. Try again.");
@@ -81,80 +78,193 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: topPad, paddingBottom: bottomPad }]}>
-
-      {/* ── Close button ── */}
-      <TouchableOpacity
-        style={[styles.closeBtn, { top: topPad + 12 }]}
-        activeOpacity={0.7}
-        onPress={() => router.back()}
-      >
-        <CloseIcon />
-      </TouchableOpacity>
-
-      {/* ── Centered content ── */}
-      <View style={styles.centeredContent}>
-        <View style={styles.illustrationWrap}>
-          <LockIllustration />
-        </View>
-
-        <View style={styles.headerSection}>
-          <Text style={styles.headline}>{sent ? "OTP Sent!" : "Forgot Password"}</Text>
-          <Text style={styles.subtitle}>
-            {sent
-              ? "We've sent an OTP to your phone number. Check your messages."
-              : "Enter your phone number and we'll send you an OTP to reset your password."}
-          </Text>
-        </View>
-
-        {!sent && (
-          <>
-            <View style={styles.fieldWrap}>
-              <View style={styles.inputRow}>
-                <View style={styles.iconWrap}><EmailIcon /></View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Phone (+265...)"
-                  placeholderTextColor={MUTED}
-                  keyboardType="phone-pad"
-                  value={phone}
-                  onChangeText={(t) => { setPhone(t); setErrorMsg(""); }}
-                />
-              </View>
-            </View>
-
-            {errorMsg ? (
-              <View style={{ paddingHorizontal: 24, marginBottom: 8 }}>
-                <Text style={{ color: "#EF4444", fontSize: 13 }}>{errorMsg}</Text>
-              </View>
-            ) : null}
-
-            <View style={styles.ctaWrap}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: WHITE }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={0}
+    >
+      {/* ── Country picker modal ── */}
+      <Modal visible={showCountryPicker} animationType="slide" transparent>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => { setShowCountryPicker(false); setCountrySearch(""); }}
+        />
+        <View style={[styles.modalSheet, { paddingBottom: Math.max(bottomPad, 24) }]}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.modalTitle}>Select country</Text>
+          <View style={styles.modalSearch}>
+            <TextInput
+              style={styles.modalSearchInput}
+              placeholder="Search country or code…"
+              placeholderTextColor={MUTED}
+              value={countrySearch}
+              onChangeText={setCountrySearch}
+              autoFocus
+            />
+          </View>
+          <FlatList
+            data={filteredCountries}
+            keyExtractor={(item) => item.dial + item.name}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
               <TouchableOpacity
-                style={[styles.continueBtn, (phone.length < 13 || loading) && styles.continueBtnDisabled]}
-                activeOpacity={0.85}
-                onPress={handleSubmit}
-                disabled={phone.length < 13 || loading}
+                activeOpacity={0.7}
+                style={[
+                  styles.countryRow,
+                  selectedCountry.dial === item.dial &&
+                    selectedCountry.name === item.name &&
+                    styles.countryRowActive,
+                ]}
+                onPress={() => {
+                  setSelectedCountry(item);
+                  setShowCountryPicker(false);
+                  setCountrySearch("");
+                }}
               >
-                <Text style={styles.continueBtnText}>{loading ? "Sending..." : "Continue"}</Text>
+                <Text style={styles.countryRowFlag}>{item.flag}</Text>
+                <Text style={styles.countryRowName}>{item.name}</Text>
+                <Text style={styles.countryRowDial}>{item.dial}</Text>
               </TouchableOpacity>
-            </View>
-          </>
-        )}
+            )}
+          />
+        </View>
+      </Modal>
 
-        {sent && (
-          <View style={styles.ctaWrap}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[styles.container, { paddingTop: topPad, paddingBottom: bottomPad }]}>
+
+          {/* ── Top nav bar ── */}
+          <View style={styles.topBar}>
             <TouchableOpacity
-              style={styles.continueBtn}
-              activeOpacity={0.85}
-              onPress={() => router.back()}
+              style={styles.backBtn}
+              activeOpacity={0.7}
+              onPress={() => router.canGoBack() ? router.back() : router.replace("/login")}
             >
-              <Text style={styles.continueBtnText}>Back to Login</Text>
+              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M19 12H5M5 12l7 7M5 12l7-7"
+                  stroke={DARK}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/signup")}>
+              <Text style={styles.signUpLink}>Sign Up</Text>
             </TouchableOpacity>
           </View>
-        )}
-      </View>
-    </View>
+
+          {/* ── Heading ── */}
+          <View style={styles.headingSection}>
+            <Text style={styles.headline}>
+              {sent ? "OTP Sent!" : "Password Forgotten"}
+            </Text>
+            <Text style={styles.subheadline}>
+              {sent
+                ? "We've sent an OTP to your phone number. Check your messages."
+                : "Please enter your phone number associated with your Pine account"}
+            </Text>
+          </View>
+
+          {!sent && (
+            <>
+              {/* ── Phone row ── */}
+              <View style={styles.phoneRow}>
+                {/* Country code selector */}
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  style={styles.countryBox}
+                  onPress={() => setShowCountryPicker(true)}
+                >
+                  <Text style={styles.countryLabel}>Country code</Text>
+                  <View style={styles.countryInner}>
+                    <Text style={styles.flagText}>{selectedCountry.flag}</Text>
+                    <Text style={styles.countryDialText}>{selectedCountry.dial}</Text>
+                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                      <Path
+                        d="M6 9l6 6 6-6"
+                        stroke={MUTED}
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </Svg>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Phone number input with floating label */}
+                <View style={[styles.phoneInputWrap, phoneFocused && styles.phoneInputWrapFocused]}>
+                  <Text style={[styles.phoneFloatingLabel, phoneFocused && styles.phoneFloatingLabelFocused]}>
+                    Phone Number
+                  </Text>
+                  <TextInput
+                    style={styles.phoneInput}
+                    placeholder="Phone Number"
+                    placeholderTextColor="transparent"
+                    keyboardType="phone-pad"
+                    autoCapitalize="none"
+                    value={phoneNumber}
+                    onChangeText={(t) => { setPhoneNumber(t); setErrorMsg(""); }}
+                    onFocus={() => setPhoneFocused(true)}
+                    onBlur={() => setPhoneFocused(false)}
+                  />
+                </View>
+              </View>
+
+              {/* ── Hint text ── */}
+              <View style={styles.hintWrap}>
+                <Text style={styles.hintText}>
+                  Please double-check the number as request will be sent to the number.
+                </Text>
+              </View>
+
+              {/* ── Error ── */}
+              {errorMsg ? (
+                <View style={{ paddingHorizontal: 24, marginBottom: 8 }}>
+                  <Text style={{ color: "#EF4444", fontSize: 13 }}>{errorMsg}</Text>
+                </View>
+              ) : null}
+
+              {/* ── Next button ── */}
+              <View style={styles.ctaWrap}>
+                <TouchableOpacity
+                  style={[styles.nextBtn, !canSubmit && { opacity: 0.5 }]}
+                  activeOpacity={0.85}
+                  onPress={handleSubmit}
+                  disabled={!canSubmit}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={WHITE} size="small" />
+                  ) : (
+                    <Text style={styles.nextBtnText}>Next</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          {sent && (
+            <View style={styles.ctaWrap}>
+              <TouchableOpacity
+                style={styles.nextBtn}
+                activeOpacity={0.85}
+                onPress={() => router.canGoBack() ? router.back() : router.replace("/login")}
+              >
+                <Text style={styles.nextBtnText}>Back to Login</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -163,76 +273,219 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: WHITE,
   },
-  closeBtn: {
-    position: "absolute",
-    left: 24,
-    zIndex: 10,
+
+  // ── Top bar ─────────────────────────────────────────────────────
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  backBtn: {
     width: 40,
     height: 40,
-    justifyContent: "center",
-  },
-  centeredContent: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  illustrationWrap: {
     alignItems: "center",
-    marginBottom: 32,
+    justifyContent: "center",
   },
-  headerSection: {
+  signUpLink: {
+    fontSize: 15,
+    fontFamily: "PlusJakartaSans_600SemiBold",
+    color: TEAL,
+  },
+
+  // ── Heading ─────────────────────────────────────────────────────
+  headingSection: {
     paddingHorizontal: 24,
-    marginBottom: 28,
+    paddingTop: 24,
+    paddingBottom: 32,
   },
   headline: {
-    fontSize: 28,
+    fontSize: 30,
     fontFamily: "PlusJakartaSans_700Bold",
     color: DARK,
-    lineHeight: 36,
+    lineHeight: 38,
     marginBottom: 10,
   },
-  subtitle: {
-    fontSize: 14,
+  subheadline: {
+    fontSize: 15,
     fontFamily: "PlusJakartaSans_400Regular",
     color: MUTED,
     lineHeight: 22,
   },
-  fieldWrap: {
+
+  // ── Phone row ───────────────────────────────────────────────────
+  phoneRow: {
+    flexDirection: "row",
+    gap: 10,
     paddingHorizontal: 24,
+    marginBottom: 16,
   },
-  inputRow: {
+  countryBox: {
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    justifyContent: "center",
+    height: 60,
+    borderWidth: 1,
+    borderColor: BORDER_LIGHT,
+  },
+  countryLabel: {
+    position: "absolute",
+    top: -9,
+    left: 12,
+    backgroundColor: WHITE,
+    paddingHorizontal: 4,
+    fontSize: 10,
+    fontFamily: "PlusJakartaSans_500Medium",
+    color: MUTED,
+    zIndex: 1,
+  },
+  countryInner: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: BG_INPUT,
-    borderRadius: 12,
-    height: 56,
-    paddingHorizontal: 14,
+    gap: 5,
   },
-  iconWrap: {
-    marginRight: 12,
+  flagText: {
+    fontSize: 18,
+    lineHeight: 22,
   },
-  input: {
+  countryDialText: {
+    fontSize: 15,
+    fontFamily: "PlusJakartaSans_600SemiBold",
+    color: DARK,
+  },
+
+  // ── Phone input with floating label ─────────────────────────────
+  phoneInputWrap: {
     flex: 1,
+    height: 60,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER_LIGHT,
+    backgroundColor: WHITE,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  phoneInputWrapFocused: {
+    borderColor: TEAL,
+  },
+  phoneFloatingLabel: {
+    position: "absolute",
+    top: -9,
+    left: 12,
+    backgroundColor: WHITE,
+    paddingHorizontal: 4,
+    fontSize: 10,
+    fontFamily: "PlusJakartaSans_500Medium",
+    color: MUTED,
+    zIndex: 1,
+  },
+  phoneFloatingLabelFocused: {
+    color: TEAL,
+  },
+  phoneInput: {
     fontSize: 15,
     fontFamily: "PlusJakartaSans_400Regular",
     color: DARK,
   },
+
+  // ── Hint ────────────────────────────────────────────────────────
+  hintWrap: {
+    paddingHorizontal: 24,
+    marginBottom: 40,
+  },
+  hintText: {
+    fontSize: 13,
+    fontFamily: "PlusJakartaSans_400Regular",
+    color: MUTED,
+    lineHeight: 20,
+  },
+
+  // ── CTA ─────────────────────────────────────────────────────────
   ctaWrap: {
     paddingHorizontal: 24,
-    marginTop: 28,
   },
-  continueBtn: {
-    height: 56,
+  nextBtn: {
+    height: 58,
     backgroundColor: TEAL,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
-  continueBtnDisabled: {
-    opacity: 0.5,
-  },
-  continueBtnText: {
+  nextBtnText: {
     fontSize: 17,
     fontFamily: "PlusJakartaSans_600SemiBold",
     color: WHITE,
+  },
+
+  // ── Country picker modal ─────────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  modalSheet: {
+    backgroundColor: WHITE,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    maxHeight: "70%",
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: BORDER_LIGHT,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontFamily: "PlusJakartaSans_700Bold",
+    color: DARK,
+    marginBottom: 14,
+  },
+  modalSearch: {
+    backgroundColor: BG_INPUT,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    height: 44,
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  modalSearchInput: {
+    fontSize: 14,
+    fontFamily: "PlusJakartaSans_400Regular",
+    color: DARK,
+  },
+  countryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER_LIGHT,
+    gap: 12,
+  },
+  countryRowActive: {
+    backgroundColor: TEAL + "10",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+  },
+  countryRowFlag: {
+    fontSize: 22,
+  },
+  countryRowName: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: "PlusJakartaSans_500Medium",
+    color: DARK,
+  },
+  countryRowDial: {
+    fontSize: 14,
+    fontFamily: "PlusJakartaSans_400Regular",
+    color: MUTED,
   },
 });
