@@ -26,14 +26,8 @@ const FRAME_SIZE = 300;
 
 function BackArrow({ color }: { color: string }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Path
-        d="M12.5 5.5L7.5 10l5 4.5"
-        stroke={color}
-        strokeWidth={1.6}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Path d="M15 19l-7-7 7-7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }

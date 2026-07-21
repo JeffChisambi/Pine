@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path, Polyline } from "react-native-svg";
+import Svg, { Path } from "react-native-svg";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";
@@ -127,7 +127,7 @@ function GoogleLogo() {
 function BackIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Polyline points="15 18 9 12 15 6" stroke={DARK} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M15 19l-7-7 7-7" stroke={DARK} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }

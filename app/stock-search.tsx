@@ -55,8 +55,7 @@ export default function StockSearchScreen() {
       <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 24, paddingBottom: 16, gap: 12 }}>
         <TouchableOpacity onPress={() => router.back()} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
           <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-            <Path d="M9.57 5.93L3.5 12L9.57 18.07" stroke={c.text} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
-            <Path d="M20.5 12H3.67" stroke={c.text} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
+            <Path d="M15 19l-7-7 7-7" stroke={c.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
         </TouchableOpacity>
         <View style={{ flex: 1, height: 52, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, flexDirection: "row", alignItems: "center", paddingHorizontal: 14, gap: 10 }}>
