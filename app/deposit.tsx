@@ -139,7 +139,7 @@ export default function DepositScreen() {
               placeholder="0.00"
               placeholderTextColor="rgba(255,255,255,0.4)"
               value={rawAmount}
-              onChangeText={setRawAmount}
+              onChangeText={(val) => setRawAmount(val.replace(/[^0-9,]/g, ""))}
               returnKeyType="done"
             />
           </View>
