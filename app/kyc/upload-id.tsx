@@ -224,7 +224,7 @@ export default function UploadIdScreen() {
   const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: c.background },
     header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
-    backBtn: { width: 40, height: 40, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" },
+    backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
     headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text },
     scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 40, gap: 20 },
     descBlock: { gap: 8, alignItems: "center" },

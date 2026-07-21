@@ -88,7 +88,7 @@ export default function UploadIdSelfieScreen() {
   const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: c.background },
     header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 4 },
-    backBtn: { width: 40, height: 40, backgroundColor: c.card, borderRadius: 20, alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+    backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
     headerTitle: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text },
     subtitle: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, textAlign: "center", lineHeight: 22, marginTop: 20, paddingHorizontal: 40 },
     illustrationWrapper: { flex: 1, alignItems: "center", justifyContent: "center" },
