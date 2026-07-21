@@ -62,11 +62,11 @@ function NotificationIcon() {
     <Svg width={44} height={44} viewBox="307 58 44 44">
       <Rect x={307} y={58} width={44} height={44} rx={22} stroke={TEAL_MED} strokeWidth={1} fill="none" />
       <Path d="M329.017 72.425C326.258 72.425 324.017 74.6667 324.017 77.425V79.8334C324.017 80.3417 323.8 81.1167 323.542 81.55L322.583 83.1417C321.992 84.125 322.4 85.2167 323.483 85.5834C327.075 86.7834 330.95 86.7834 334.542 85.5834C335.55 85.25 335.992 84.0584 335.442 83.1417L334.483 81.55C334.233 81.1167 334.017 80.3417 334.017 79.8334V77.425C334.017 74.675 331.767 72.425 329.017 72.425Z"
-        stroke={WHITE} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" fill="none" />
+        stroke={TEAL} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" fill="none" />
       <Path d="M330.558 72.6667C330.3 72.5917 330.033 72.5334 329.767 72.5084C328.967 72.4084 328.2 72.4667 327.483 72.6667C327.717 72.0667 328.317 71.6667 329.017 71.6667C329.717 71.6667 330.317 72.0667 330.558 72.6667Z"
-        stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
       <Path d="M331.517 85.8833C331.517 87.0583 330.592 88 329.392 88C328.8 88 328.25 87.75 327.858 87.3583C327.467 86.9667 327.217 86.4167 327.217 85.8833"
-        stroke={WHITE} strokeWidth={1.5} fill="none" />
+        stroke={TEAL} strokeWidth={1.5} fill="none" />
       <Circle cx={335} cy={75} r={4.75} fill={RED} stroke={TEAL} strokeWidth={1.5} />
     </Svg>
   );
@@ -346,16 +346,16 @@ export default function HomeScreen() {
 
 
   return (
-    <View style={{ flex: 1, backgroundColor: TEAL }}>
-      {/* Teal header */}
-      <View style={{ backgroundColor: TEAL, paddingHorizontal: 20, paddingBottom: 16, paddingTop: topPad }}>
+    <View style={{ flex: 1, backgroundColor: WHITE }}>
+      {/* White header */}
+      <View style={{ backgroundColor: WHITE, paddingHorizontal: 20, paddingBottom: 16, paddingTop: topPad }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 26 }}>
           <View>
-            <Text style={{ fontSize: 20, color: WHITE, lineHeight: 28 }}>
+            <Text style={{ fontSize: 20, color: TEAL, lineHeight: 28 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_400Regular" }}>Hi, </Text>
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold" }}>{userFirstName ?? "Welcome"}</Text>
             </Text>
-            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: WHITE, opacity: 0.7, lineHeight: 20, marginTop: 2 }}>{currentDate}</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED2, lineHeight: 20, marginTop: 2 }}>{currentDate}</Text>
           </View>
           <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/profile/notifications" as any)}>
             <NotificationIcon />
@@ -363,7 +363,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Balance card */}
-        <View style={{ borderRadius: 16, padding: 20, gap: 28 }}>
+        <View style={{ backgroundColor: GREEN, borderRadius: 16, padding: 20, gap: 28 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 16 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE, opacity: 0.8, letterSpacing: 1, marginBottom: 4 }}>TOTAL BALANCE</Text>
