@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -120,7 +121,7 @@ export default function DepositScreen() {
 
         {/* ── Teal header ── */}
         <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-          <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => router.back()}>
+          <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/(tabs)")}>
             <BackIcon />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Deposit</Text>

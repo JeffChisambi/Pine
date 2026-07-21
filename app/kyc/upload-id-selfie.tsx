@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import React from "react";
 import {
   View,
@@ -100,7 +101,7 @@ export default function UploadIdSelfieScreen() {
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => guardedBack("/(tabs)/profile")} activeOpacity={0.7}>
           <BackArrow color={c.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Verify with Selfie</Text>

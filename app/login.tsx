@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -331,7 +332,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               style={styles.backBtn}
               activeOpacity={0.7}
-              onPress={() => router.canGoBack() ? router.back() : router.replace("/")}
+              onPress={() => guardedBack("/")}
             >
               <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
                 <Path

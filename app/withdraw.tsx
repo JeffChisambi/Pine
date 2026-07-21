@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -116,7 +117,7 @@ export default function WithdrawScreen() {
 
         {/* ── Teal header ── */}
         <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-          <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => router.back()}>
+          <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/(tabs)")}>
             <BackIcon />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Withdraw</Text>
@@ -218,7 +219,7 @@ export default function WithdrawScreen() {
             style={[styles.ctaBtn, !canWithdraw && styles.ctaBtnDisabled]}
             activeOpacity={0.85}
             disabled={!canWithdraw}
-            onPress={() => router.back()}
+            onPress={() => guardedBack("/(tabs)")}
           >
             <Text style={styles.ctaBtnText}>
               {canWithdraw ? `Withdraw MK ${rawAmount}` : "Withdraw"}

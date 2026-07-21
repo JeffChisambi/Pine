@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import React, { useState } from "react";
 import {
   View,
@@ -112,7 +113,7 @@ export default function ProofOfResidencyScreen() {
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => guardedBack("/(tabs)/profile")}>
           <BackArrow color={c.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Choose Verification Method</Text>

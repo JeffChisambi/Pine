@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -107,7 +108,7 @@ export default function VerifyCodeScreen() {
         <TouchableOpacity
           style={[styles.backBtn, { top: topPad + 12 }]}
           activeOpacity={0.7}
-          onPress={() => router.back()}
+          onPress={() => guardedBack("/phone-number")}
         >
           <BackArrow />
         </TouchableOpacity>

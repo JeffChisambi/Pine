@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -160,7 +161,7 @@ export default function UploadIdScreen() {
       try {
         if (!user?.id) {
           Alert.alert("Error", "Please log in to start verification.");
-          router.back();
+          guardedBack("/(tabs)/profile");
           return;
         }
         const result = await kycApi.start();
@@ -172,7 +173,7 @@ export default function UploadIdScreen() {
         else if (typeof err?.message === 'string') msg = err.message;
         else if (err?.body?.error?.message) msg = String(err.body.error.message);
         Alert.alert("Error", msg);
-        router.back();
+        guardedBack("/(tabs)/profile");
       } finally {
         setStarting(false);
       }
@@ -242,7 +243,7 @@ export default function UploadIdScreen() {
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => guardedBack("/(tabs)/profile")}>
           <BackArrow color={c.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Upload Photo ID</Text>

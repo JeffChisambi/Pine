@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
@@ -331,7 +332,7 @@ export default function StockDetailScreen() {
         <View style={{ backgroundColor: c.background, paddingTop: topPad, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: c.border }}>
           {/* Nav */}
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 12 }}>
-            <TouchableOpacity onPress={() => router.back()} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
+            <TouchableOpacity onPress={() => guardedBack("/stock-search")} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
               <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
                 <Path d="M15 19l-7-7 7-7" stroke={c.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>

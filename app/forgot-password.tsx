@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -324,7 +325,7 @@ export default function ForgotPasswordScreen() {
             <TouchableOpacity
               style={styles.backBtn}
               activeOpacity={0.7}
-              onPress={() => router.canGoBack() ? router.back() : router.replace("/login")}
+              onPress={() => guardedBack("/login")}
             >
               <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
                 <Path
@@ -435,7 +436,7 @@ export default function ForgotPasswordScreen() {
               <TouchableOpacity
                 style={styles.nextBtn}
                 activeOpacity={0.85}
-                onPress={() => router.canGoBack() ? router.back() : router.replace("/login")}
+                onPress={() => guardedBack("/login")}
               >
                 <Text style={styles.nextBtnText}>Back to Login</Text>
               </TouchableOpacity>

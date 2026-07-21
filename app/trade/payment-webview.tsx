@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import React, { useState, useRef, useCallback } from "react";
 import {
   View,
@@ -115,12 +116,12 @@ export default function PaymentWebViewScreen() {
 
       if (status === "failed") {
         Alert.alert("Payment Failed", "Your payment could not be processed. Please try again.");
-        router.back();
+        guardedBack("/(tabs)");
         return;
       }
 
       // cancelled (or anything else) → just go back
-      router.back();
+      guardedBack("/(tabs)");
     },
     [params.purpose, params.amount, params.symbol, qc],
   );
@@ -173,7 +174,7 @@ export default function PaymentWebViewScreen() {
     return (
       <View style={[styles.root, { paddingTop: topPad }]}>
         <Text style={styles.errorText}>No checkout URL provided.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => guardedBack("/(tabs)")}>
           <Text style={styles.linkText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -191,7 +192,7 @@ export default function PaymentWebViewScreen() {
               "Are you sure you want to cancel this payment?",
               [
                 { text: "Stay", style: "cancel" },
-                { text: "Cancel", style: "destructive", onPress: () => router.back() },
+                { text: "Cancel", style: "destructive", onPress: () => guardedBack("/(tabs)") },
               ],
             );
           }}

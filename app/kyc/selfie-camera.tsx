@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -172,7 +173,7 @@ export default function SelfieCameraScreen() {
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7} disabled={busy}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => guardedBack("/(tabs)/profile")} activeOpacity={0.7} disabled={busy}>
           <BackArrow color={c.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Face recognition</Text>

@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -98,7 +99,7 @@ export default function CreatePinScreen() {
         <TouchableOpacity
           style={[styles.closeBtn, { top: topPad + 12 }]}
           activeOpacity={0.7}
-          onPress={() => router.back()}
+          onPress={() => guardedBack("/(tabs)")}
         >
           <CloseIcon />
         </TouchableOpacity>

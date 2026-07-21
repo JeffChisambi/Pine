@@ -1,3 +1,4 @@
+import { guardedBack } from "@/utils/navigation";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -415,7 +416,7 @@ export default function SignupScreen() {
         {/* ── Bottom row ── */}
         <View style={styles.bottomRow}>
           <Text style={styles.bottomText}>Already have an account? </Text>
-          <TouchableOpacity activeOpacity={0.7} onPress={() => router.back()}>
+          <TouchableOpacity activeOpacity={0.7} onPress={() => guardedBack("/login")}>
             <Text style={styles.bottomLink}>Sign In</Text>
           </TouchableOpacity>
         </View>

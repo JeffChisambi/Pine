@@ -600,7 +600,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={{ height: 24 }}
+          <View style={{ height: 24 }} />
         </ScrollView>
       </View>
     </View>
