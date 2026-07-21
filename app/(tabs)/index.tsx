@@ -41,6 +41,8 @@ import Svg, {
   Defs,
   ClipPath,
 } from "react-native-svg";
+import { SvgXml } from "react-native-svg";
+import { EDUCATION_ICON_SVG } from "@/constants/EducationIconSvg";
 import { useColors } from "@/hooks/useColors";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
@@ -556,10 +558,11 @@ export default function HomeScreen() {
                   </View>
                 </View>
                 {/* Right: illustration */}
-                <Image
-                  source={require("../../assets/images/educationicon.png")}
-                  style={{ width: 140, height: 103, marginLeft: 8 }}
-                  resizeMode="contain"
+                <SvgXml
+                  xml={EDUCATION_ICON_SVG}
+                  width={140}
+                  height={103}
+                  style={{ marginLeft: 8 }}
                 />
               </View>
             </TouchableOpacity>
