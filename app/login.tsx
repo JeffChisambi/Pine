@@ -203,7 +203,7 @@ export default function LoginScreen() {
                 keyboardType="phone-pad"
                 autoCapitalize="none"
                 value={phoneNumber}
-                onChangeText={(t) => { setPhoneNumber(t); setErrorMsg(""); }}
+                onChangeText={(t) => { setPhoneNumber(t.replace(/[^0-9]/g, "")); setErrorMsg(""); }}
               />
             </View>
           </View>

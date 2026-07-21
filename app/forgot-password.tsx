@@ -211,7 +211,7 @@ export default function ForgotPasswordScreen() {
                     keyboardType="phone-pad"
                     autoCapitalize="none"
                     value={phoneNumber}
-                    onChangeText={(t) => { setPhoneNumber(t); setErrorMsg(""); }}
+                    onChangeText={(t) => { setPhoneNumber(t.replace(/[^0-9]/g, "")); setErrorMsg(""); }}
                     onFocus={() => setPhoneFocused(true)}
                     onBlur={() => setPhoneFocused(false)}
                   />
