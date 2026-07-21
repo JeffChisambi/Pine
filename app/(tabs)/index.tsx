@@ -363,7 +363,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Balance card */}
-        <View style={{ backgroundColor: GREEN, borderRadius: 16, padding: 20, gap: 28 }}>
+        <View style={{ borderRadius: 16, padding: 20, gap: 28 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 16 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE, opacity: 0.8, letterSpacing: 1, marginBottom: 4 }}>TOTAL BALANCE</Text>
