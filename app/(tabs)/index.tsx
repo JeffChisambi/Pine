@@ -546,32 +546,107 @@ export default function HomeScreen() {
       <View style={{ flex: 1, backgroundColor: c.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: 12, overflow: "hidden" }}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
           <View style={{ backgroundColor: c.background, paddingHorizontal: 20, paddingTop: 24 }}>
-            {/* Watchlist */}
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Watchlist</Text>
-              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED2 }}>{watchlistData?.count ?? 0} stocks</Text>
-            </View>
+            {/* Invest section */}
+            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text, marginBottom: 4 }}>Invest</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED2, marginBottom: 16 }}>Choose what to invest</Text>
 
-            {watchlist.length === 0 ? (
-              <View style={{ paddingVertical: 24, alignItems: "center" }}>
-                <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13 }}>No stocks in watchlist.{"\n"}Add from a stock detail page.</Text>
+            {/* Equity Trading card */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => guardedPush(() => router.push("/stock-search" as any))}
+              style={{
+                borderRadius: 18,
+                backgroundColor: TEAL,
+                marginBottom: 12,
+                overflow: "hidden",
+              }}
+            >
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: 20,
+              }}>
+                <View style={{ flex: 1, gap: 6 }}>
+                  <View style={{
+                    backgroundColor: "rgba(255,255,255,0.15)",
+                    borderRadius: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    alignSelf: "flex-start",
+                  }}>
+                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: WHITE, letterSpacing: 0.5 }}>STOCKS</Text>
+                  </View>
+                  <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: WHITE }}>Equity Trading</Text>
+                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 18 }}>
+                    Buy &amp; sell shares of{"\n"}listed companies
+                  </Text>
+                </View>
+                <View style={{
+                  width: 72, height: 72, borderRadius: 36,
+                  backgroundColor: "rgba(255,255,255,0.12)",
+                  alignItems: "center", justifyContent: "center",
+                }}>
+                  <Svg width={36} height={36} viewBox="0 0 36 36" fill="none">
+                    <Path d="M4 28 L10 18 L16 22 L22 10 L28 14 L34 4" stroke={GREEN} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                    <Path d="M28 4 H34 V10" stroke={GREEN} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                </View>
               </View>
-            ) : (
-              watchlist.map((item) => (
-                <SwipeableWatchCard
-                  key={item.ticker}
-                  logoImg={item.logo}
-                  symbol={item.ticker}
-                  name={item.name}
-                  type="Stock"
-                  price={item.price}
-                  change={item.change}
-                  positive={item.positive}
-                  onDelete={() => removeFromWatchlist(item.ticker)}
-                  c={c}
-                />
-              ))
-            )}
+              {/* bottom accent bar */}
+              <View style={{ height: 4, backgroundColor: GREEN }} />
+            </TouchableOpacity>
+
+            {/* Treasury Bills card */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={{
+                borderRadius: 18,
+                backgroundColor: c.card,
+                borderWidth: 1,
+                borderColor: c.border,
+                marginBottom: 0,
+                overflow: "hidden",
+              }}
+            >
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: 20,
+              }}>
+                <View style={{ flex: 1, gap: 6 }}>
+                  <View style={{
+                    backgroundColor: `${GREEN}22`,
+                    borderRadius: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    alignSelf: "flex-start",
+                  }}>
+                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: GREEN, letterSpacing: 0.5 }}>FIXED INCOME</Text>
+                  </View>
+                  <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Treasury Bills</Text>
+                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED2, lineHeight: 18 }}>
+                    Low-risk government-backed{"\n"}short-term investments
+                  </Text>
+                </View>
+                <View style={{
+                  width: 72, height: 72, borderRadius: 36,
+                  backgroundColor: `${GREEN}18`,
+                  alignItems: "center", justifyContent: "center",
+                }}>
+                  <Svg width={36} height={36} viewBox="0 0 36 36" fill="none">
+                    <Rect x={5} y={8} width={26} height={20} rx={3} stroke={GREEN} strokeWidth={2.2} />
+                    <Path d="M5 14 H31" stroke={GREEN} strokeWidth={2.2} />
+                    <Path d="M12 20 H18" stroke={GREEN} strokeWidth={2} strokeLinecap="round" />
+                    <Path d="M12 24 H16" stroke={GREEN} strokeWidth={2} strokeLinecap="round" />
+                    <Circle cx={26} cy={22} r={4} fill={GREEN} opacity={0.25} />
+                  </Svg>
+                </View>
+              </View>
+              {/* bottom accent bar */}
+              <View style={{ height: 4, backgroundColor: `${GREEN}55` }} />
+            </TouchableOpacity>
 
             {/* Trending */}
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16, marginTop: 28 }}>
