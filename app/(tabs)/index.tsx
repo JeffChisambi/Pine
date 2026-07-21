@@ -6,14 +6,8 @@ import {
   Text,
   TouchableOpacity,
   Platform,
-  StyleSheet,
   Image,
   ImageSourcePropType,
-  ActivityIndicator,
-  useWindowDimensions,
-  Alert,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
 } from "react-native";
 import ReAnimated, {
   useSharedValue,
@@ -28,10 +22,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
-import { StockData } from "../data/stocks";
 import { useAuth } from "../../services/auth-context";
-import { stocksApi, type ApiStock } from "../../services/api";
-import { useWatchlist, useToggleWatchlist } from "../../hooks/useWatchlist";
 import {
   useWalletBalance,
   useWalletQueryClient,
@@ -42,16 +33,10 @@ import {
   savePendingDeposit,
   WALLET_BALANCE_QUERY_KEY,
 } from "../../services/wallet-queries";
-import { getStockLogo } from "../../utils/stock-logos";
 import Svg, {
   Path,
   Circle,
   Rect,
-  Line,
-  Defs,
-  ClipPath,
-  LinearGradient,
-  Stop,
 } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 
@@ -140,34 +125,6 @@ function TrashIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
       <Path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke={WHITE} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-// ─── Sparklines ────────────────────────────────────────────────────────────────
-const SPARKLINES_UP = [
-  "M0.5 25 L5 17 L7 20 L10 13 L15 8 L17 37 L19 31 H30 L33 21 L35 23 L37 15 L40 18 L44 19 L47 28 L51 0 L52 9 L55 12 L56 21 L58 16 H63 L64 33 L66 36 L68 52 L70 44 L72 42 L73 36 L76 34 L77 28 L80 27 L82 19 L84 22 H88",
-  "M0 30 L8 25 L15 28 L20 20 L28 15 L35 18 L40 10 L47 15 L54 8 L58 5 L65 12 L70 8 L76 18 L82 12 L88 8",
-];
-const SPARKLINES_DOWN = [
-  "M0 10 L8 15 L15 12 L20 22 L28 28 L35 25 L40 35 L47 30 L54 40 L58 45 L65 38 L70 44 L76 36 L82 42 L88 48",
-  "M0 5 L8 12 L15 10 L20 18 L28 25 L35 22 L40 30 L44 24 L50 35 L58 42 L65 38 L70 45 L76 40 L82 46 L88 52",
-];
-
-function TrendSparkline({ positive, idx }: { positive: boolean; idx: number }) {
-  const paths = positive ? SPARKLINES_UP : SPARKLINES_DOWN;
-  const path = paths[idx % paths.length];
-  const topId = `tc-top-${idx}`;
-  const botId = `tc-bot-${idx}`;
-  return (
-    <Svg width={88} height={52} viewBox="0 0 88 52" fill="none">
-      <Defs>
-        <ClipPath id={topId}><Rect x="0" y="0" width="88" height="26" /></ClipPath>
-        <ClipPath id={botId}><Rect x="0" y="26" width="88" height="26" /></ClipPath>
-      </Defs>
-      <Line x1="0" y1="26" x2="88" y2="26" stroke="#D1D5DB" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" />
-      <Path d={path} stroke={GREEN} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" clipPath={`url(#${topId})`} />
-      <Path d={path} stroke={RED} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" clipPath={`url(#${botId})`} />
     </Svg>
   );
 }
@@ -308,66 +265,10 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
   );
 }
 
-interface TrendCardProps {
-  logoImg: ImageSourcePropType;
-  symbol: string;
-  name: string;
-  price: string;
-  changePctNum?: number;
-  change: string;
-  positive: boolean;
-  idx: number;
-  c: Colors;
-}
-
-function TrendCard({ logoImg, symbol, name, price, changePctNum, change, positive, idx, c }: TrendCardProps) {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      onPress={() => guardedPush(() => router.push(`/stock/${symbol}`))}
-      style={{
-        width: 240, height: 134,
-        backgroundColor: c.card,
-        borderRadius: 12, borderWidth: 1, borderColor: c.border,
-        paddingHorizontal: 16, paddingVertical: 14, justifyContent: "space-between",
-      }}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: c.background, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-          {logoImg ? (
-            <Image source={logoImg} style={{ width: 32, height: 32, borderRadius: 16 }} resizeMode="contain" />
-          ) : (
-            <View style={{ width: 32, height: 32, backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderRadius: 16 }}>
-              <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>{symbol.slice(0, 2)}</Text>
-            </View>
-          )}
-        </View>
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text }} numberOfLines={1}>{symbol}</Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginTop: 1 }} numberOfLines={1}>{name}</Text>
-        </View>
-      </View>
-      <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: c.text, marginBottom: 5 }} numberOfLines={1}>{price}</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-            {positive ? <ArrowCircleUp color={GREEN} size={14} /> : <ArrowCircleDown size={14} />}
-            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: positive ? GREEN : RED }}>
-              {changePctNum !== undefined ? `${changePctNum > 0 ? "+" : ""}${changePctNum.toFixed(2)}%` : change}
-            </Text>
-          </View>
-        </View>
-        <TrendSparkline positive={positive} idx={idx} />
-      </View>
-    </TouchableOpacity>
-  );
-}
-
 // ─── Main screen ───────────────────────────────────────────────────────────────
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
-  const { width: screenWidth } = useWindowDimensions();
   const [balanceVisible, setBalanceVisible] = useState(true);
   const c = useColors();
 
@@ -388,31 +289,6 @@ export default function HomeScreen() {
   const totalBalance = walletBalance
     ? `K ${Number(walletBalance.availableBalance || walletBalance.balance || 0).toLocaleString()}`
     : null;
-
-  const [allStocks, setAllStocks] = useState<StockData[]>([]);
-  const [trending, setTrending] = useState<StockData[]>([]);
-  const [losers, setLosers] = useState<StockData[]>([]);
-  const [bannerPage, setBannerPage] = useState(0);
-  const bannerScrollRef = useRef<ScrollView>(null);
-
-  // ── Watchlist (API-backed via React Query) ──────────────────────────────
-  const { data: watchlistData, isLoading: watchlistLoading } = useWatchlist();
-  const toggleMutation = useToggleWatchlist();
-
-  const watchlist: StockData[] = (watchlistData?.stocks ?? []).map((s: any) => ({
-    id: s.id,
-    ticker: s.symbol,
-    name: s.name,
-    logo: getStockLogo(s.symbol),
-    price: s.price,
-    change: s.change,
-    positive: s.positive,
-    changePctNum: s.changePct,
-  }));
-
-  const removeFromWatchlist = (ticker: string) => {
-    toggleMutation.mutate({ symbol: ticker, currentlyWatched: true });
-  };
 
   const reconcileRef = useRef(false);
   const reconcilingRef = useRef(false);
@@ -462,20 +338,6 @@ export default function HomeScreen() {
     if (!reconcilingRef.current) { refetchBalance(); }
   }, [refetchBalance]));
 
-  useEffect(() => {
-    stocksApi.list()
-      .then((stocks) => {
-        const mapped: StockData[] = stocks.map((s: ApiStock) => ({
-          id: s.id, ticker: s.symbol, name: s.name, logo: getStockLogo(s.symbol),
-          price: s.price, change: s.change, positive: s.positive, changePctNum: s.changePct,
-        }));
-        setAllStocks(mapped);
-        const sorted = [...mapped].sort((a, b) => (b.changePctNum ?? 0) - (a.changePctNum ?? 0));
-        setTrending(sorted.slice(0, 6));
-        setLosers([...sorted].reverse().slice(0, 6));
-      })
-      .catch(() => {});
-  }, []);
 
 
   return (
@@ -648,171 +510,97 @@ export default function HomeScreen() {
               <View style={{ height: 4, backgroundColor: `${GREEN}55` }} />
             </TouchableOpacity>
 
-            {/* Trending */}
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16, marginTop: 28 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Gainers</Text>
-              <TouchableOpacity><Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED2 }}>See all</Text></TouchableOpacity>
-            </View>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingLeft: 24, paddingRight: 8 }}>
-            {trending.length === 0 ? (
-              <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
-                <Text style={{ color: MUTED }}>Loading trending stocks...</Text>
-              </View>
-            ) : (
-              trending.map((item, idx) => (
-                <TrendCard
-                  key={item.ticker}
-                  logoImg={item.logo}
-                  symbol={item.ticker}
-                  name={item.name}
-                  price={item.price}
-                  change={item.change}
-                  changePctNum={item.changePctNum}
-                  positive={item.positive}
-                  idx={idx}
-                  c={c}
-                />
-              ))
-            )}
-          </ScrollView>
-
-          {/* Losers */}
-          <View style={{ paddingHorizontal: 20 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16, marginTop: 28 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Losers</Text>
-              <TouchableOpacity><Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED2 }}>See all</Text></TouchableOpacity>
-            </View>
-          </View>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingLeft: 24, paddingRight: 8 }}>
-            {losers.length === 0 ? (
-              <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
-                <Text style={{ color: MUTED }}>Loading losers...</Text>
-              </View>
-            ) : (
-              losers.map((item, idx) => (
-                <TrendCard
-                  key={item.ticker}
-                  logoImg={item.logo}
-                  symbol={item.ticker}
-                  name={item.name}
-                  price={item.price}
-                  change={item.change}
-                  changePctNum={item.changePctNum}
-                  positive={item.positive}
-                  idx={idx}
-                  c={c}
-                />
-              ))
-            )}
-          </ScrollView>
-
-          {/* News banner carousel — one card visible at a time */}
-          {(() => {
-            const BANNER_ITEMS = [
-              {
-                id: "1",
-                title: "FDH Bank Doubles Profit to MWK 148 Billion in FY2025",
-                summary: "Net interest income surged 82% and total assets crossed MWK 1.6 trillion as FDH Bank reports its strongest annual performance on record.",
-                image: require("../../attached_assets/fdh_1784363470714.png"),
-              },
-              {
-                id: "2",
-                title: "NITL Posts MWK 202 Billion Profit as MSE Returns 247%",
-                summary: "National Investment Trust recorded a 579% jump in net profit driven by record fair value gains as the Malawi Stock Exchange delivered its best year ever.",
-                image: require("../../attached_assets/NTL_1784364351667.png"),
-              },
-              {
-                id: "3",
-                title: "NICO Holdings Profit Surges 141% to MWK 323.5 Billion",
-                summary: "Gross revenue climbed 74% to MWK 919.3 billion as NBS Bank and NICO Life drove record results across the Group's diversified portfolio.",
-                image: { uri: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=80" },
-              },
-            ];
-            const cardWidth = screenWidth - 40;
-            return (
-              <View style={{ marginTop: 28, marginHorizontal: 20 }}>
-                {/* ScrollView sized exactly to one card — pagingEnabled pages by this width */}
-                <ScrollView
-                  ref={bannerScrollRef}
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-                    setBannerPage(Math.round(e.nativeEvent.contentOffset.x / cardWidth));
-                  }}
-                >
-                  {BANNER_ITEMS.map((item) => (
-                    <View
-                      key={item.id}
-                      style={{
-                        width: cardWidth,
-                        height: 200,
-                        backgroundColor: TEAL,
-                        borderRadius: 16,
-                        overflow: "hidden",
-                        flexDirection: "row",
-                      }}
-                    >
-                      {/* Left: text */}
-                      <View style={{ flex: 1, padding: 18, justifyContent: "space-between" }}>
-                        <View>
-                          <Text
-                            style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: WHITE, lineHeight: 22, marginBottom: 8 }}
-                            numberOfLines={3}
-                          >
-                            {item.title}
-                          </Text>
-                          <Text
-                            style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 18 }}
-                            numberOfLines={3}
-                          >
-                            {item.summary}
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          activeOpacity={0.85}
-                          onPress={() => router.push("/(tabs)/news" as any)}
-                          style={{
-                            backgroundColor: GREEN,
-                            borderRadius: 10,
-                            paddingVertical: 10,
-                            alignItems: "center",
-                            marginTop: 12,
-                          }}
-                        >
-                          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE }}>Read more</Text>
-                        </TouchableOpacity>
-                      </View>
-                      {/* Right: image */}
-                      <View style={{ width: 130, margin: 10, borderRadius: 12, overflow: "hidden" }}>
-                        <Image source={item.image} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-                      </View>
-                    </View>
-                  ))}
-                </ScrollView>
-
-                {/* Pagination dots */}
-                <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 10 }}>
-                  {BANNER_ITEMS.map((_, i) => (
-                    <View
-                      key={i}
-                      style={{
-                        width: i === bannerPage ? 20 : 6,
-                        height: 6,
-                        borderRadius: 3,
-                        backgroundColor: i === bannerPage ? GREEN : "rgba(100,120,130,0.35)",
-                      }}
-                    />
-                  ))}
+          {/* Learn Trading card */}
+          <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.push("/(tabs)/news" as any)}
+              style={{
+                borderRadius: 18,
+                overflow: "hidden",
+                backgroundColor: TEAL,
+              }}
+            >
+              {/* Top gradient strip */}
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: 22,
+                paddingBottom: 18,
+              }}>
+                <View style={{ flex: 1, gap: 8 }}>
+                  <View style={{
+                    backgroundColor: "rgba(255,255,255,0.15)",
+                    borderRadius: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    alignSelf: "flex-start",
+                  }}>
+                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: WHITE, letterSpacing: 0.6 }}>EDUCATION</Text>
+                  </View>
+                  <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: WHITE, lineHeight: 27 }}>Learn Trading</Text>
+                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 20 }}>
+                    Master the basics of equity markets, reading charts, and building a portfolio.
+                  </Text>
+                </View>
+                {/* Icon circle */}
+                <View style={{
+                  width: 80, height: 80, borderRadius: 40,
+                  backgroundColor: "rgba(255,255,255,0.12)",
+                  alignItems: "center", justifyContent: "center",
+                  marginLeft: 16,
+                }}>
+                  <Svg width={40} height={40} viewBox="0 0 40 40" fill="none">
+                    {/* Open book */}
+                    <Path d="M20 10 C20 10 13 8 7 10 L7 32 C13 30 20 32 20 32 C20 32 27 30 33 32 L33 10 C27 8 20 10 20 10Z" stroke={WHITE} strokeWidth={2} strokeLinejoin="round" fill="none" />
+                    <Path d="M20 10 L20 32" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" />
+                    {/* Graduation cap */}
+                    <Path d="M20 6 L28 10 L20 14 L12 10 Z" fill={GREEN} />
+                    <Path d="M28 10 L28 16" stroke={GREEN} strokeWidth={2} strokeLinecap="round" />
+                  </Svg>
                 </View>
               </View>
-            );
-          })()}
 
-          <View style={{ height: 24 }} />
+              {/* Topics row */}
+              <View style={{
+                flexDirection: "row",
+                gap: 8,
+                paddingHorizontal: 22,
+                paddingBottom: 18,
+              }}>
+                {["Basics", "Charts", "Risk", "Portfolio"].map((topic) => (
+                  <View key={topic} style={{
+                    backgroundColor: "rgba(255,255,255,0.12)",
+                    borderRadius: 20,
+                    paddingHorizontal: 12,
+                    paddingVertical: 5,
+                  }}>
+                    <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: WHITE }}>{topic}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* CTA bar */}
+              <View style={{
+                backgroundColor: GREEN,
+                paddingVertical: 14,
+                alignItems: "center",
+                flexDirection: "row",
+                justifyContent: "center",
+                gap: 8,
+              }}>
+                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: WHITE }}>Start Learning</Text>
+                <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+                  <Path d="M3 8 H13 M9 4 L13 8 L9 12" stroke={WHITE} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ height: 24 }}
         </ScrollView>
       </View>
     </View>
