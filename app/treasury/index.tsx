@@ -100,11 +100,11 @@ function BillCard({ bill, c }: { bill: TBillOption; c: ReturnType<typeof useColo
 
       {/* Stats row */}
       <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
-        <View style={{ flex: 1, backgroundColor: c.background, borderRadius: 10, padding: 12 }}>
+        <View style={{ flex: 1, borderRadius: 10, padding: 12 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginBottom: 4 }}>Annual Yield</Text>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: GREEN }}>{bill.yieldPct}%</Text>
         </View>
-        <View style={{ flex: 1, backgroundColor: c.background, borderRadius: 10, padding: 12 }}>
+        <View style={{ flex: 1, borderRadius: 10, padding: 12 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginBottom: 4 }}>Min Investment</Text>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: c.text }}>MWK {bill.minInvestment.toLocaleString()}</Text>
         </View>
