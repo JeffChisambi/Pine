@@ -523,7 +523,7 @@ export default function HomeScreen() {
                 {/* Left: text content */}
                 <View style={{ flex: 1, gap: 8, marginTop: -6 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 22, color: WHITE, lineHeight: 30 }}>Learn Trading</Text>
+                    <Text numberOfLines={1} style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 20, color: WHITE, lineHeight: 27, flexShrink: 1 }}>Learn Trading</Text>
                     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
                       <Path d="M5 12h14M12 5l7 7-7 7" stroke={WHITE} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
