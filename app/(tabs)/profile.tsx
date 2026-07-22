@@ -246,10 +246,6 @@ export default function ProfileScreen() {
     editBtn: {
       width: 40,
       height: 40,
-      backgroundColor: c.card,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: c.border,
       alignItems: "center",
       justifyContent: "center",
     },
