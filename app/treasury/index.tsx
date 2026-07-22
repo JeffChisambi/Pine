@@ -154,7 +154,7 @@ export default function TreasuryLanding() {
         {/* Hero section */}
         <View style={{ paddingHorizontal: 8, paddingBottom: 32 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 26, color: c.text, lineHeight: 34, marginBottom: 8 }}>
-            Grow your money{"\n"}with government bonds
+            Grow your money{"\n"}with government securities
           </Text>
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, lineHeight: 21 }}>
             Treasury bills are short-term, low-risk investments backed by the Government of Malawi. Earn guaranteed returns on your savings.
