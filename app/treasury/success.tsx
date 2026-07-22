@@ -58,7 +58,7 @@ export default function TreasurySuccess() {
       {/* Header */}
       <View style={{ paddingTop: topPad + 8, paddingHorizontal: 16 }}>
         <TouchableOpacity
-          onPress={() => guardedBack("/treasury")}
+          onPress={() => router.replace("/(tabs)" as any)}
           activeOpacity={0.7}
           style={{ width: 40, height: 40, justifyContent: "center" }}
         >
