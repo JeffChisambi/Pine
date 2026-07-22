@@ -72,7 +72,7 @@ function BillCard({ bill, c }: { bill: TBillOption; c: ReturnType<typeof useColo
   return (
     <TouchableOpacity
       activeOpacity={0.85}
-      onPress={() => guardedPush(() => router.push({ pathname: "/treasury/details" as any, params: { id: bill.id } }))}
+      onPress={() => router.push({ pathname: "/treasury/details" as any, params: { id: bill.id } })}
       style={{
         backgroundColor: c.card,
         borderRadius: 16,
