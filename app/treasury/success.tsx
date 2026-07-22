@@ -119,16 +119,6 @@ export default function TreasurySuccess() {
         </View>
       </ScrollView>
 
-      {/* CTAs */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: Math.max(bottomPad, 24), backgroundColor: c.background, borderTopWidth: 1, borderTopColor: c.border, gap: 10 }}>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={() => guardedPush(() => router.push("/treasury/my-investments" as any))}
-          style={{ height: 56, backgroundColor: TEAL, borderRadius: 14, alignItems: "center", justifyContent: "center" }}
-        >
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: WHITE }}>View My Investments</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }

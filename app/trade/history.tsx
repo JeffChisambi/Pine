@@ -1,4 +1,4 @@
-import { guardedBack } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
 import React, { useState } from "react";
 import {
   View,
@@ -13,10 +13,12 @@ import { router } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
+import { MOCK_INVESTMENTS, type TBillInvestment } from "../treasury/data";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";
 const RED = "#EF4770";
+const AMBER = "#F59E0B";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
@@ -55,6 +57,74 @@ function StatusBadge({ status }: { status: Order["status"] }) {
   return (
     <View style={{ borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: cfg.bg }}>
       <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: cfg.text }}>{status}</Text>
+    </View>
+  );
+}
+
+function TBillStatusPill({ status }: { status: TBillInvestment["status"] }) {
+  const configs = {
+    active:  { bg: GREEN + "22", text: GREEN,   label: "Active" },
+    pending: { bg: AMBER + "22", text: AMBER,   label: "Pending" },
+    matured: { bg: "#6366F122",  text: "#6366F1", label: "Matured" },
+    closed:  { bg: MUTED + "22", text: MUTED,   label: "Closed" },
+  };
+  const cfg = configs[status];
+  return (
+    <View style={{ borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: cfg.bg }}>
+      <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: cfg.text }}>{cfg.label}</Text>
+    </View>
+  );
+}
+
+function TBillsSection({ c, filter }: { c: ReturnType<typeof useColors>; filter: FilterType }) {
+  const investments = MOCK_INVESTMENTS.filter((inv) => {
+    if (filter === "Pending") return inv.status === "pending";
+    if (filter === "Complete") return inv.status === "matured";
+    return true;
+  });
+
+  if (investments.length === 0) return null;
+
+  return (
+    <View style={{ marginTop: 8 }}>
+      <View style={{ paddingVertical: 8, marginBottom: 4 }}>
+        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase" }}>Treasury Bills</Text>
+      </View>
+      {investments.map((inv, i) => (
+        <TouchableOpacity
+          key={inv.id}
+          activeOpacity={0.75}
+          onPress={() => guardedPush(() => router.push({ pathname: "/treasury/investment-detail" as any, params: { id: inv.id } }))}
+          style={[
+            { flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 12 },
+            i < investments.length - 1 && { borderBottomWidth: 1, borderBottomColor: c.border },
+          ]}
+        >
+          {/* T-Bill icon */}
+          <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: TEAL + "18", alignItems: "center", justifyContent: "center" }}>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+              <Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke={TEAL} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M9 22V12h6v10" stroke={TEAL} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text, marginBottom: 3 }}>
+              {inv.duration}-Day T-Bill
+            </Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>
+              {inv.referenceNumber} · {inv.investmentDate}
+            </Text>
+          </View>
+
+          <View style={{ alignItems: "flex-end", gap: 5 }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text }}>
+              MWK {inv.amountInvested.toLocaleString()}
+            </Text>
+            <TBillStatusPill status={inv.status} />
+          </View>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 }
@@ -123,7 +193,7 @@ export default function HistoryScreen() {
       {/* Orders list */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20 }} showsVerticalScrollIndicator={false}>
         {grouped.length === 0 ? (
-          <View style={{ paddingVertical: 60, alignItems: "center" }}>
+          <View style={{ paddingVertical: 40, alignItems: "center" }}>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: MUTED }}>No {activeFilter.toLowerCase()} orders</Text>
           </View>
         ) : (
@@ -161,6 +231,10 @@ export default function HistoryScreen() {
             </View>
           ))
         )}
+
+        {/* Treasury Bills section */}
+        <TBillsSection c={c} filter={activeFilter} />
+
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>

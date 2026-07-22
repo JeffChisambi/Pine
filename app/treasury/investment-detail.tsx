@@ -58,7 +58,7 @@ export default function InvestmentDetail() {
       {/* Header */}
       <View style={{ backgroundColor: c.background, paddingTop: topPad + 8, paddingBottom: 24, paddingHorizontal: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
-          <TouchableOpacity onPress={() => guardedBack("/treasury/my-investments")} activeOpacity={0.7} style={{ width: 40, height: 40, justifyContent: "center" }}>
+          <TouchableOpacity onPress={() => guardedBack("/trade/history")} activeOpacity={0.7} style={{ width: 40, height: 40, justifyContent: "center" }}>
             <BackIcon color={c.text} />
           </TouchableOpacity>
           <Text style={{ flex: 1, textAlign: "center", fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>
