@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Platform } from "react-native
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
-import { guardedPush } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
 import { TBILL_OPTIONS, calculateReturns } from "./data";
 
@@ -11,6 +11,14 @@ const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
+
+function BackIcon({ color }: { color: string }) {
+  return (
+    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+      <Path d="M15 19l-7-7 7-7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
 
 function SuccessIllustration() {
   return (
@@ -47,9 +55,20 @@ export default function TreasurySuccess() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
+      {/* Header */}
+      <View style={{ paddingTop: topPad + 8, paddingHorizontal: 16 }}>
+        <TouchableOpacity
+          onPress={() => guardedBack("/treasury")}
+          activeOpacity={0.7}
+          style={{ width: 40, height: 40, justifyContent: "center" }}
+        >
+          <BackIcon color={c.text} />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: topPad + 24, paddingHorizontal: 20, paddingBottom: bottomPad + 100 }}
+        contentContainerStyle={{ paddingTop: 16, paddingHorizontal: 20, paddingBottom: bottomPad + 100 }}
       >
         {/* Success illustration */}
         <View style={{ alignItems: "center", marginBottom: 24 }}>
@@ -108,13 +127,6 @@ export default function TreasurySuccess() {
           style={{ height: 56, backgroundColor: TEAL, borderRadius: 14, alignItems: "center", justifyContent: "center" }}
         >
           <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: WHITE }}>View My Investments</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={() => router.replace("/(tabs)" as any)}
-          style={{ height: 48, borderRadius: 14, alignItems: "center", justifyContent: "center" }}
-        >
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: MUTED }}>Return Home</Text>
         </TouchableOpacity>
       </View>
     </View>
