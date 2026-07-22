@@ -518,21 +518,21 @@ export default function HomeScreen() {
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: 22,
+                padding: 28,
               }}>
                 {/* Left: text content */}
-                <View style={{ flex: 1, gap: 6, marginTop: -6 }}>
+                <View style={{ flex: 1, gap: 8, marginTop: -6 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 20, color: WHITE, lineHeight: 27 }}>Learn Trading</Text>
+                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 22, color: WHITE, lineHeight: 30 }}>Learn Trading</Text>
                     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
                       <Path d="M5 12h14M12 5l7 7-7 7" stroke={WHITE} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
                   </View>
-                  <View style={{ gap: 3, marginTop: 2 }}>
+                  <View style={{ gap: 6, marginTop: 4 }}>
                     {["Basics", "Portfolio", "Charts", "Risk"].map((topic) => (
                       <View key={topic} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                         <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: "rgba(255,255,255,0.55)" }} />
-                        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.68)" }}>{topic}</Text>
+                        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: "rgba(255,255,255,0.68)" }}>{topic}</Text>
                       </View>
                     ))}
                   </View>
@@ -540,8 +540,8 @@ export default function HomeScreen() {
                 {/* Right: illustration */}
                 <SvgXml
                   xml={EDUCATION_ICON_SVG}
-                  width={140}
-                  height={103}
+                  width={160}
+                  height={124}
                   style={{ marginLeft: 8 }}
                 />
               </View>
