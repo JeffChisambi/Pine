@@ -173,9 +173,9 @@ export default function TreasuryLanding() {
           gap: 12,
         }}>
           {[
-            { icon: <ShieldIcon color={TEAL} />, label: "Gov't Backed" },
-            { icon: <TrendIcon color={TEAL} />, label: "Fixed Returns" },
-            { icon: <CalendarIcon color={TEAL} />, label: "Short-Term" },
+            { icon: <ShieldIcon color={c.text} />, label: "Gov't Backed" },
+            { icon: <TrendIcon color={c.text} />, label: "Fixed Returns" },
+            { icon: <CalendarIcon color={c.text} />, label: "Short-Term" },
           ].map((item) => (
             <View key={item.label} style={{ flex: 1, alignItems: "center", gap: 6 }}>
               {item.icon}
