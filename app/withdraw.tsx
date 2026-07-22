@@ -1,6 +1,7 @@
 import { guardedBack } from "@/utils/navigation";
 import { router } from "expo-router";
 import React, { useState } from "react";
+import { useColors } from "@/hooks/useColors";
 import {
   Keyboard,
   Platform,
@@ -40,10 +41,10 @@ const METHODS = [
   },
 ];
 
-function BackIcon() {
+function BackIcon({ color }: { color: string }) {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M15 19l-7-7 7-7" stroke={WHITE} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M15 19l-7-7 7-7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -94,6 +95,7 @@ export default function WithdrawScreen() {
   const insets = useSafeAreaInsets();
   const topPad    = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
+  const c = useColors();
 
   const [rawAmount, setRawAmount] = useState("");
   const selectedMethod = "bank";
@@ -113,45 +115,45 @@ export default function WithdrawScreen() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={[styles.root, { paddingBottom: bottomPad }]}>
+      <View style={[styles.root, { paddingBottom: bottomPad, backgroundColor: c.background }]}>
 
         {/* ── Teal header ── */}
-        <View style={[styles.header, { paddingTop: topPad + 8 }]}>
+        <View style={[styles.header, { paddingTop: topPad + 8, backgroundColor: c.background }]}>
           <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/(tabs)")}>
-            <BackIcon />
+            <BackIcon color={c.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Withdraw</Text>
+          <Text style={[styles.headerTitle, { color: c.text }]}>Withdraw</Text>
           <View style={styles.backBtn} />
         </View>
 
         {/* ── Amount band ── */}
-        <View style={styles.amountBand}>
-          <Text style={styles.balanceLabel}>Available Balance</Text>
-          <Text style={styles.balanceValue}>MK {walletBalanceDisplay}</Text>
+        <View style={[styles.amountBand, { backgroundColor: c.background }]}>
+          <Text style={[styles.balanceLabel, { color: MUTED }]}>Available Balance</Text>
+          <Text style={[styles.balanceValue, { color: c.text }]}>MK {walletBalanceDisplay}</Text>
 
-          <Text style={styles.amountLabel}>Enter Amount</Text>
+          <Text style={[styles.amountLabel, { color: MUTED }]}>Enter Amount</Text>
           <View style={styles.amountRow}>
-            <Text style={styles.currencySymbol}>MK</Text>
+            <Text style={[styles.currencySymbol, { color: c.text }]}>MK</Text>
             <TextInput
-              style={[styles.amountInput, exceeds && { color: "#FF6B6B" }]}
+              style={[styles.amountInput, { color: c.text }, exceeds && { color: "#FF6B6B" }]}
               keyboardType="numeric"
               placeholder="0.00"
-              placeholderTextColor="rgba(255,255,255,0.4)"
+              placeholderTextColor={MUTED}
               value={rawAmount}
               onChangeText={setRawAmount}
               returnKeyType="done"
             />
           </View>
-          <View style={styles.amountDivider} />
+          <View style={[styles.amountDivider, { backgroundColor: c.border }]} />
           {exceeds ? (
             <Text style={styles.amountError}>Amount exceeds available balance</Text>
           ) : (
-            <Text style={styles.amountHint}>Minimum withdrawal: MK 10,000</Text>
+            <Text style={[styles.amountHint, { color: MUTED }]}>Minimum withdrawal: MK 10,000</Text>
           )}
         </View>
 
         {/* ── White body ── */}
-        <View style={styles.body}>
+        <View style={[styles.body, { backgroundColor: c.background }]}>
 
           {/* Quick amounts */}
           <View style={styles.quickRow}>
@@ -323,10 +325,7 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     backgroundColor: WHITE,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    marginTop: -20,
-    paddingTop: 24,
+    paddingTop: 0,
     paddingHorizontal: 24,
   },
 

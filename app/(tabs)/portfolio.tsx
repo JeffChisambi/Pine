@@ -35,21 +35,20 @@ interface Holding extends StockData {
   changePct: string;
 }
 
-function EyeIcon({ hidden }: { hidden: boolean }) {
+function EyeIcon({ hidden, color = "rgba(0,0,0,0.5)" }: { hidden: boolean; color?: string }) {
+  if (!hidden) {
+    return (
+      <Svg width={22} height={18} viewBox="-1 -1 22 17">
+        <Path d="M10 0.5C5.5 0.5 1.73 3.61 0.5 7.5C1.73 11.39 5.5 14.5 10 14.5C14.5 14.5 18.27 11.39 19.5 7.5C18.27 3.61 14.5 0.5 10 0.5Z" stroke={color} strokeWidth={1.5} strokeLinecap="round" fill="none" />
+        <Path d="M10 10.5C11.6569 10.5 13 9.15685 13 7.5C13 5.84315 11.6569 4.5 10 4.5C8.34315 4.5 7 5.84315 7 7.5C7 9.15685 8.34315 10.5 10 10.5Z" stroke={color} strokeWidth={1.5} fill="none" />
+      </Svg>
+    );
+  }
   return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      {hidden ? (
-        <>
-          <Path d="M2 2L20 20" stroke="rgba(255,255,255,0.7)" strokeWidth={1.8} strokeLinecap="round" />
-          <Path d="M8.5 5.1C9.3 4.9 10.1 4.8 11 4.8c5 0 9 6.2 9 6.2s-.8 1.2-2.1 2.5M13 16.6c-.6.2-1.3.4-2 .4-5 0-9-6.2-9-6.2s.7-1.1 1.9-2.3" stroke="rgba(255,255,255,0.7)" strokeWidth={1.8} strokeLinecap="round" />
-          <Circle cx={11} cy={11} r={3} stroke="rgba(255,255,255,0.7)" strokeWidth={1.8} />
-        </>
-      ) : (
-        <>
-          <Path d="M2 11s3.6-6.2 9-6.2S20 11 20 11s-3.6 6.2-9 6.2S2 11 2 11z" stroke="rgba(255,255,255,0.7)" strokeWidth={1.8} strokeLinecap="round" />
-          <Circle cx={11} cy={11} r={3} stroke="rgba(255,255,255,0.7)" strokeWidth={1.8} />
-        </>
-      )}
+    <Svg width={22} height={20} viewBox="-1 -1 24 20">
+      <Path d="M1 1L21 17" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+      <Path d="M8.5 3.5C9.3 3.19 10.1 3 11 3C15.5 3 19.27 6.11 20.5 10C20.1 11.27 19.44 12.43 18.57 13.4M5.43 5.43C3.28 6.88 1.77 9.27 1.5 10C2.73 13.89 6.5 17 11 17C13.22 17 15.27 16.2 16.9 14.83"
+        stroke={color} strokeWidth={1.5} strokeLinecap="round" fill="none" />
     </Svg>
   );
 }
@@ -85,12 +84,12 @@ function PiggyIllustration() {
   );
 }
 
-function ReceiptIcon() {
+function ReceiptIcon({ color = "rgba(0,0,0,0.6)" }: { color?: string }) {
   return (
     <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-      <Path d="M7.5 15.75V2.25L9 3L10.5 2.25L11.9972 3L13.5145 2.25L15 3L16.4902 2.25L17.9869 3L19.5 2.25L21.0005 3L22.5 2.25V12.75" stroke="rgba(255,255,255,0.85)" strokeWidth={1.5} strokeLinejoin="round" />
-      <Path d="M22.5 12.75V18C22.5 18.9946 22.1049 19.9484 21.4017 20.6517C20.6984 21.3549 19.7446 21.75 18.75 21.75C17.7555 21.75 16.8016 21.3549 16.0984 20.6517C15.3951 19.9484 15 18.9946 15 18V15.75H2.25003C2.15129 15.7491 2.05337 15.7679 1.96198 15.8053C1.87059 15.8427 1.78757 15.8979 1.71775 15.9677C1.64793 16.0375 1.59272 16.1206 1.55534 16.212C1.51796 16.3033 1.49915 16.4013 1.50003 16.5C1.50003 19.5 1.81597 21.75 5.25003 21.75H18.75" stroke="rgba(255,255,255,0.85)" strokeWidth={1.5} strokeLinejoin="round" />
-      <Path d="M10.5 6.75H19.5M13.5 10.5H19.5" stroke="rgba(255,255,255,0.85)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M7.5 15.75V2.25L9 3L10.5 2.25L11.9972 3L13.5145 2.25L15 3L16.4902 2.25L17.9869 3L19.5 2.25L21.0005 3L22.5 2.25V12.75" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
+      <Path d="M22.5 12.75V18C22.5 18.9946 22.1049 19.9484 21.4017 20.6517C20.6984 21.3549 19.7446 21.75 18.75 21.75C17.7555 21.75 16.8016 21.3549 16.0984 20.6517C15.3951 19.9484 15 18.9946 15 18V15.75H2.25003C2.15129 15.7491 2.05337 15.7679 1.96198 15.8053C1.87059 15.8427 1.78757 15.8979 1.71775 15.9677C1.64793 16.0375 1.59272 16.1206 1.55534 16.212C1.51796 16.3033 1.49915 16.4013 1.50003 16.5C1.50003 19.5 1.81597 21.75 5.25003 21.75H18.75" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
+      <Path d="M10.5 6.75H19.5M13.5 10.5H19.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -184,21 +183,21 @@ export default function PortfolioScreen() {
   );
 
   const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: TEAL },
-    header: { backgroundColor: TEAL, paddingHorizontal: 24, paddingBottom: 48, minHeight: 200, position: "relative" },
+    root: { flex: 1, backgroundColor: c.background },
+    header: { backgroundColor: c.background, paddingHorizontal: 24, paddingBottom: 48, minHeight: 200, position: "relative" },
     whiteSheet: { flex: 1, backgroundColor: c.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -24, overflow: "hidden" },
     topRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", marginBottom: 20, marginTop: 12 },
     receiptBtn: { padding: 4 },
     titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
-    titleLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: "rgba(255,255,255,0.8)", letterSpacing: 0.3 },
+    titleLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.mutedForeground, letterSpacing: 0.3 },
     eyeBtn: { padding: 4 },
     balanceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
     balanceBlock: { flex: 1 },
-    balanceAmount: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 38, color: WHITE, letterSpacing: -1, marginBottom: 8 },
-    balanceHidden: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 38, color: "rgba(255,255,255,0.5)", marginBottom: 8 },
-    monthPill: { backgroundColor: CARD_TEAL, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, flexDirection: "row", alignItems: "center", gap: 4 },
-    monthText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: WHITE },
-    changeChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, alignSelf: "flex-start" },
+    balanceAmount: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 38, color: c.text, letterSpacing: -1, marginBottom: 8 },
+    balanceHidden: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 38, color: c.mutedForeground, marginBottom: 8 },
+    monthPill: { backgroundColor: c.card, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 7, flexDirection: "row", alignItems: "center", gap: 4, borderWidth: 1, borderColor: c.border },
+    monthText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: c.text },
+    changeChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: c.card, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, alignSelf: "flex-start", borderWidth: 1, borderColor: c.border },
     changeText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: GREEN },
     actionCard: {
       marginHorizontal: 20,
@@ -259,7 +258,7 @@ export default function PortfolioScreen() {
         {/* Receipt icon top-right */}
         <View style={styles.topRow}>
           <TouchableOpacity style={styles.receiptBtn} onPress={() => router.push("/trade/history" as any)}>
-            <ReceiptIcon />
+            <ReceiptIcon color={c.mutedForeground} />
           </TouchableOpacity>
         </View>
 
@@ -267,7 +266,7 @@ export default function PortfolioScreen() {
         <View style={styles.titleRow}>
           <Text style={styles.titleLabel}>Portfolio Balance</Text>
           <TouchableOpacity onPress={() => setBalanceHidden((v) => !v)} style={styles.eyeBtn}>
-            <EyeIcon hidden={balanceHidden} />
+            <EyeIcon hidden={balanceHidden} color={c.mutedForeground} />
           </TouchableOpacity>
         </View>
 
@@ -290,23 +289,13 @@ export default function PortfolioScreen() {
           </View>
           <TouchableOpacity style={styles.monthPill}>
             <Text style={styles.monthText}>{month}</Text>
-            <Text style={styles.monthText}>▾</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Content sheet */}
       <View style={styles.whiteSheet}>
-        <View style={styles.actionCard}>
-          <TouchableOpacity
-            style={[styles.actionItem, holdings.length === 0 && { opacity: 0.35 }]}
-            onPress={() => holdings.length > 0 && router.push("/trade/sell" as any)}
-            activeOpacity={holdings.length > 0 ? 0.7 : 1}
-          >
-            <SellIcon />
-            <Text style={[styles.actionLabel, { color: "#9CA3AF" }]}>Sell</Text>
-          </TouchableOpacity>
-        </View>
+
 
         <ScrollView style={styles.listArea} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
           <View style={styles.sectionRow}>
@@ -326,7 +315,6 @@ export default function PortfolioScreen() {
 
           {filtered.length === 0 && (
             <View style={styles.emptyState}>
-              <PiggyIllustration />
               <Text style={[styles.emptyText, { marginTop: 20 }]}>No holdings yet</Text>
               <Text style={styles.emptySubText}>Buy your first stock to get started</Text>
             </View>

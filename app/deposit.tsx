@@ -1,6 +1,7 @@
 import { guardedBack } from "@/utils/navigation";
 import { router } from "expo-router";
 import React, { useState } from "react";
+import { useColors } from "@/hooks/useColors";
 import {
   ActivityIndicator,
   Alert,
@@ -31,10 +32,10 @@ const GREEN     = "#45B369";
 
 const QUICK_AMOUNTS = ["10,000", "25,000", "50,000", "100,000"];
 
-function BackIcon() {
+function BackIcon({ color }: { color: string }) {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M15 19l-7-7 7-7" stroke={WHITE} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M15 19l-7-7 7-7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -68,6 +69,7 @@ export default function DepositScreen() {
   const insets = useSafeAreaInsets();
   const topPad    = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
+  const c = useColors();
 
   const [rawAmount, setRawAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("paychangu");
@@ -117,38 +119,38 @@ export default function DepositScreen() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={[styles.root, { paddingBottom: bottomPad }]}>
+      <View style={[styles.root, { paddingBottom: bottomPad, backgroundColor: c.background }]}>
 
         {/* ── Teal header ── */}
-        <View style={[styles.header, { paddingTop: topPad + 8 }]}>
+        <View style={[styles.header, { paddingTop: topPad + 8, backgroundColor: c.background }]}>
           <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/(tabs)")}>
-            <BackIcon />
+            <BackIcon color={c.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Deposit</Text>
+          <Text style={[styles.headerTitle, { color: c.text }]}>Deposit</Text>
           <View style={styles.backBtn} />
         </View>
 
         {/* ── Amount card (still on teal band) ── */}
-        <View style={styles.amountBand}>
-          <Text style={styles.amountLabel}>Enter Amount</Text>
+        <View style={[styles.amountBand, { backgroundColor: c.background }]}>
+          <Text style={[styles.amountLabel, { color: MUTED }]}>Enter Amount</Text>
           <View style={styles.amountRow}>
-            <Text style={styles.currencySymbol}>MK</Text>
+            <Text style={[styles.currencySymbol, { color: c.text }]}>MK</Text>
             <TextInput
-              style={styles.amountInput}
+              style={[styles.amountInput, { color: c.text }]}
               keyboardType="numeric"
               placeholder="0.00"
-              placeholderTextColor="rgba(255,255,255,0.4)"
+              placeholderTextColor={MUTED}
               value={rawAmount}
               onChangeText={(val) => setRawAmount(val.replace(/[^0-9,]/g, ""))}
               returnKeyType="done"
             />
           </View>
-          <View style={styles.amountDivider} />
-          <Text style={styles.amountHint}>Minimum deposit: MK 10,000</Text>
+          <View style={[styles.amountDivider, { backgroundColor: c.border }]} />
+          <Text style={[styles.amountHint, { color: MUTED }]}>Minimum deposit: MK 10,000</Text>
         </View>
 
         {/* ── White body ── */}
-        <View style={styles.body}>
+        <View style={[styles.body, { backgroundColor: c.background }]}>
 
           {/* Quick amounts */}
           <View style={styles.quickRow}>
@@ -346,10 +348,7 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     backgroundColor: WHITE,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    marginTop: -20,
-    paddingTop: 24,
+    paddingTop: 0,
     paddingHorizontal: 24,
   },
 

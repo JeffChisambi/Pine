@@ -193,7 +193,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   const changePct   = activePt.changePct ?? 0;
   const changeColor = changePct >= 0 ? SVG_GREEN : SVG_RED;
   const priceTxt    = `MWK ${activePt.close.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const changeTxt   = `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`;
+  const dateTxt     = new Date(activePt.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: period === "1Y" || period === "5Y" ? "numeric" : undefined });
 
   return (
     <GestureDetector gesture={gesture}>
@@ -228,7 +228,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
       </Svg>
       <Animated.View style={[{ position: "absolute", width: TT_SIZE, backgroundColor: SVG_TEAL, borderRadius: TT_RX, alignItems: "center", justifyContent: "center", paddingHorizontal: 6, paddingVertical: 8 }, tooltipAnimStyle]}>
         <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: WHITE, fontSize: 12, fontFamily: "PlusJakartaSans_700Bold", textAlign: "center" }}>{priceTxt}</Text>
-        <Text style={{ color: changeColor, fontSize: 11, fontFamily: "PlusJakartaSans_500Medium", marginTop: 4 }}>{changeTxt}</Text>
+        <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 10, fontFamily: "PlusJakartaSans_500Medium", marginTop: 4 }}>{dateTxt}</Text>
       </Animated.View>
     </View>
     </GestureDetector>

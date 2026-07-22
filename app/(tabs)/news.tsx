@@ -218,31 +218,31 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
   const RED_ERR = "#EF4770";
 
   return (
-    <Modal animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
       <View style={[{ flex: 1, backgroundColor: c.background }, { paddingTop: Platform.OS === "ios" ? insets.top : 0 }]}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", paddingTop: 12, paddingHorizontal: 20, paddingBottom: 8, position: "relative" }}>
-          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: c.border }} />
-          <TouchableOpacity onPress={onClose} style={{ position: "absolute", right: 20, top: 10, width: 36, height: 36, borderRadius: 18, backgroundColor: c.card, alignItems: "center", justifyContent: "center" }} activeOpacity={0.7}>
+        <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 12, paddingHorizontal: 20, paddingBottom: 8 }}>
+          <TouchableOpacity onPress={onClose} style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" }} activeOpacity={0.7}>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Line x1="18" y1="6" x2="6" y2="18" stroke={c.text} strokeWidth={2} strokeLinecap="round"/>
-              <Line x1="6" y1="6" x2="18" y2="18" stroke={c.text} strokeWidth={2} strokeLinecap="round"/>
+              <Path d="M15 18l-6-6 6-6" stroke={c.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
             </Svg>
           </TouchableOpacity>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          <Image source={imgSrc(item.image)} style={{ width: "100%", height: 240, backgroundColor: c.card }} resizeMode="cover" />
+          <View style={{ paddingHorizontal: 20 }}>
+            <Image source={imgSrc(item.image)} style={{ width: "100%", height: 240, backgroundColor: c.card, borderRadius: 4 }} resizeMode="cover" />
+          </View>
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, marginTop: 18 }}>
-            <View style={[{ paddingHorizontal: 10, paddingVertical: 3, borderRadius: 6 }, { backgroundColor: TEAL + "18" }]}>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: TEAL }}>{item.category}</Text>
+            <View style={[{ paddingHorizontal: 10, paddingVertical: 3, borderRadius: 6 }, { backgroundColor: GREEN + "22" }]}>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: GREEN }}>{item.category}</Text>
             </View>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{item.time}</Text>
             <Text style={{ color: MUTED, fontSize: 12 }}>·</Text>
             <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: c.text }}>{item.source}</Text>
           </View>
 
-          <Text style={{ fontFamily: "Lora_600SemiBold", fontSize: 20, color: c.text, lineHeight: 30, paddingHorizontal: 20, marginTop: 12 }}>{item.title}</Text>
+          <Text style={{ fontFamily: "PlusJakartaSans_300Light", fontSize: 20, color: c.text, lineHeight: 30, paddingHorizontal: 20, marginTop: 12 }}>{item.title}</Text>
           <View style={{ height: 1, backgroundColor: c.border, marginHorizontal: 20, marginVertical: 20 }} />
 
           {item.metrics && item.metrics.length > 0 && (
@@ -276,15 +276,14 @@ function HeroCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c
     <TouchableOpacity activeOpacity={0.88} style={{ paddingHorizontal: 20 }} onPress={onPress}>
       <Image source={imgSrc(item.image)} style={{ width: "100%", height: 220, borderRadius: 4, backgroundColor: c.card }} resizeMode="cover" />
       <View style={{ marginTop: 14, gap: 6 }}>
-        <Text style={{ fontFamily: "Lora_600SemiBold", fontSize: 20, color: c.text, lineHeight: 29 }} numberOfLines={3}>{item.title}</Text>
-        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, lineHeight: 19 }} numberOfLines={2}>{item.summary}</Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_300Light", fontSize: 20, color: c.text, lineHeight: 29 }} numberOfLines={3}>{item.title}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{item.time}</Text>
           <View style={{ width: 1, height: 11, backgroundColor: c.border }} />
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: TEAL }}>{item.category}</Text>
+          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: GREEN }}>{item.category}</Text>
           <View style={{ flex: 1 }} />
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: TEAL }}>Read more</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: GREEN }}>Read more</Text>
             <ArrowIcon />
           </View>
         </View>
@@ -298,12 +297,11 @@ function ThumbCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; 
     <TouchableOpacity activeOpacity={0.82} style={{ flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 20, gap: 14 }} onPress={onPress}>
       <Image source={imgSrc(item.image)} style={{ width: 90, height: 90, borderRadius: 4, backgroundColor: c.card, flexShrink: 0 }} resizeMode="cover" />
       <View style={{ flex: 1, gap: 4 }}>
-        <Text style={{ fontFamily: "Lora_600SemiBold", fontSize: 14, color: c.text, lineHeight: 21 }} numberOfLines={2}>{item.title}</Text>
-        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, lineHeight: 18 }} numberOfLines={2}>{item.summary}</Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_300Light", fontSize: 14, color: c.text, lineHeight: 21 }} numberOfLines={2}>{item.title}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{item.time}</Text>
           <View style={{ width: 1, height: 11, backgroundColor: c.border }} />
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: TEAL }}>{item.category}</Text>
+          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: GREEN }}>{item.category}</Text>
         </View>
       </View>
     </TouchableOpacity>

@@ -390,7 +390,14 @@ export default function MarketScreen() {
 
   const { data: stocks = [], isLoading, error, refetch, isRefetching } = useStocks();
 
-  const stockFeatures = stocks.slice(0, 6);
+  const topGainers = useMemo(() => {
+    return [...stocks].sort((a, b) => b.changePct - a.changePct).slice(0, 6);
+  }, [stocks]);
+
+  const topLosers = useMemo(() => {
+    return [...stocks].sort((a, b) => a.changePct - b.changePct).slice(0, 6);
+  }, [stocks]);
+
   const allStocks = stocks;
 
   const sectorStats = useMemo(() => {
@@ -418,21 +425,14 @@ export default function MarketScreen() {
       {/* Header */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 12, paddingBottom: 16 }}>
         <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 24, color: c.text }}>Market</Text>
+        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/stock-search")} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.card, alignItems: "center", justifyContent: "center" }}>
+          <SearchIcon color={c.text} />
+        </TouchableOpacity>
       </View>
-
-      {/* Search bar */}
-      <TouchableOpacity
-        style={{ marginHorizontal: 24, height: 56, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, gap: 10 }}
-        activeOpacity={0.8}
-        onPress={() => router.push("/stock-search")}
-      >
-        <SearchIcon color={MUTED} />
-        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: MUTED }}>Search stocks, ETFs…</Text>
-      </TouchableOpacity>
 
       {/* Stock Features */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, marginTop: 24, marginBottom: 14 }}>
-        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Stock Features</Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Top Gainers</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingLeft: 24, paddingRight: 8, gap: 12 }}>
@@ -444,12 +444,12 @@ export default function MarketScreen() {
           <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
             <Text style={{ color: RED, fontFamily: "PlusJakartaSans_400Regular" }}>Could not load prices</Text>
           </View>
-        ) : stockFeatures.length === 0 ? (
+        ) : topGainers.length === 0 ? (
           <View style={{ width: 300, paddingVertical: 24, alignItems: "center", justifyContent: "center" }}>
             <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13 }}>No stocks available</Text>
           </View>
         ) : (
-          stockFeatures.map((s, idx) => (
+          topGainers.map((s, idx) => (
             <TouchableOpacity
               key={s.id}
               style={{ width: 240, height: 134, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 14, justifyContent: "space-between" }}
@@ -474,6 +474,56 @@ export default function MarketScreen() {
                   </View>
                 </View>
                 <MiniSparkline positive={s.positive} idx={idx} />
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
+      </ScrollView>
+
+      {/* Top Losers */}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, marginTop: 24, marginBottom: 14 }}>
+        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Top Losers</Text>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingLeft: 24, paddingRight: 8, gap: 12 }}>
+        {isLoading ? (
+          <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
+            <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular" }}>Loading market data…</Text>
+          </View>
+        ) : error ? (
+          <View style={{ width: 300, paddingVertical: 24, alignItems: "center" }}>
+            <Text style={{ color: RED, fontFamily: "PlusJakartaSans_400Regular" }}>Could not load prices</Text>
+          </View>
+        ) : topLosers.length === 0 ? (
+          <View style={{ width: 300, paddingVertical: 24, alignItems: "center", justifyContent: "center" }}>
+            <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13 }}>No stocks available</Text>
+          </View>
+        ) : (
+          topLosers.map((s, idx) => (
+            <TouchableOpacity
+              key={s.id}
+              style={{ width: 240, height: 134, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 14, justifyContent: "space-between" }}
+              onPress={() => guardedPush(() => router.push(`/stock/${s.symbol}` as any))}
+              activeOpacity={0.85}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <StockLogoSmall symbol={s.symbol} c={c} />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text }}>{s.symbol}</Text>
+                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginTop: 1 }} numberOfLines={1}>{s.name}</Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: c.text, marginBottom: 5 }}>{s.price}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                    <ArrowCircle positive={s.positive} />
+                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: s.positive ? GREEN : RED }}>
+                      {s.changePct > 0 ? "+" : ""}{s.changePct.toFixed(2)}%
+                    </Text>
+                  </View>
+                </View>
+                <MiniSparkline positive={s.positive} idx={idx + 6} />
               </View>
             </TouchableOpacity>
           ))

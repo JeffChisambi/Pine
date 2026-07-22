@@ -65,11 +65,10 @@ export default function StockSearchScreen() {
           </Svg>
           <TextInput
             style={{ flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: c.text, height: "100%" }}
-            placeholder="Search stocks, ETFs…"
+            placeholder="Search stocks…"
             placeholderTextColor={MUTED}
             value={query}
             onChangeText={setQuery}
-            autoFocus
             returnKeyType="search"
           />
           {query.length > 0 && (
@@ -112,7 +111,7 @@ export default function StockSearchScreen() {
             onPress={() => guardedPush(() => router.push(`/stock/${s.symbol}` as any))}
             activeOpacity={0.8}
           >
-            <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: c.card, overflow: "hidden", borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: c.card, overflow: "hidden", borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}>
               {getStockLogo(s.symbol) ? (
                 <Image source={getStockLogo(s.symbol)!} style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode="contain" />
               ) : (
@@ -127,7 +126,7 @@ export default function StockSearchScreen() {
             </View>
             <View style={{ alignItems: "flex-end", gap: 4 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text }}>{s.price}</Text>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <View style={{ width: 70, flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: 4 }}>
                 <ArrowCircle positive={s.positive} />
                 <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: s.positive ? GREEN : RED }}>{s.change}</Text>
               </View>

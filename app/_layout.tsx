@@ -1,4 +1,5 @@
 import {
+  PlusJakartaSans_300Light,
   PlusJakartaSans_400Regular,
   PlusJakartaSans_500Medium,
   PlusJakartaSans_600SemiBold,
@@ -168,6 +169,16 @@ function RootLayoutNav() {
         <Stack.Screen name="profile/notifications" options={{ headerShown: false, animationDuration: 260 }} />
         <Stack.Screen name="profile/personal-data" options={{ headerShown: false, animationDuration: 260 }} />
         <Stack.Screen name="profile/push-notifications" options={{ headerShown: false, animationDuration: 260 }} />
+
+        {/* Treasury Bill flow */}
+        <Stack.Screen name="treasury/index" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="treasury/details" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="treasury/calculator" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="treasury/review" options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 320 }} />
+        <Stack.Screen name="treasury/processing" options={{ headerShown: false, animation: "fade", animationDuration: 300, gestureEnabled: false }} />
+        <Stack.Screen name="treasury/success" options={{ headerShown: false, animation: "fade", animationDuration: 300, gestureEnabled: false }} />
+        <Stack.Screen name="treasury/my-investments" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="treasury/investment-detail" options={{ headerShown: false, animationDuration: 260 }} />
       </Stack>
     </AuthGate>
   );
@@ -175,6 +186,7 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
+    PlusJakartaSans_300Light,
     PlusJakartaSans_400Regular,
     PlusJakartaSans_500Medium,
     PlusJakartaSans_600SemiBold,
