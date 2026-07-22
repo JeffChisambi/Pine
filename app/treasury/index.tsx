@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import Svg, { Path, Circle, Rect, G } from "react-native-svg";
+import Svg, { Path } from "react-native-svg";
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
 import { TBILL_OPTIONS, type TBillOption } from "./data";
@@ -53,13 +53,6 @@ function CalendarIcon({ color }: { color: string }) {
   );
 }
 
-function ChevronRight({ color }: { color: string }) {
-  return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d="M9 6l6 6-6 6" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
 function StatusBadge({ status }: { status: TBillOption["status"] }) {
   const configs = {
@@ -110,22 +103,6 @@ function BillCard({ bill, c }: { bill: TBillOption; c: ReturnType<typeof useColo
         </View>
       </View>
 
-      {/* Bottom row */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-            <Rect x={3} y={4} width={18} height={18} rx={2} stroke={MUTED} strokeWidth={1.8} />
-            <Path d="M16 2v4M8 2v4M3 10h18" stroke={MUTED} strokeWidth={1.8} strokeLinecap="round" />
-          </Svg>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>
-            Next Auction: {bill.nextAuction}
-          </Text>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: TEAL }}>View Details</Text>
-          <ChevronRight color={TEAL} />
-        </View>
-      </View>
     </TouchableOpacity>
   );
 }
