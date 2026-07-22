@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Path, Rect } from "react-native-svg";
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
 import { TBILL_OPTIONS, type TBillOption } from "./data";
