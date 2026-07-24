@@ -23,10 +23,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SystemUI from "expo-system-ui";
 import Constants from "expo-constants";
 
+import { LogBox } from "react-native";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "../services/auth-context";
 import { ThemeProvider, useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
+
+// Suppress non-actionable native warnings that appear in Expo Go on iOS.
+LogBox.ignoreLogs([
+  "If you want to change the appearance of status bar",
+  "UIViewControllerBasedStatusBarAppearance",
+]);
 
 // Expo Go manages its own splash screen natively — calling these APIs inside
 // Expo Go always rejects. Only call them in standalone / custom builds.
@@ -123,17 +130,15 @@ function RootLayoutNav() {
       <Stack
         screenOptions={{
           headerShown: false,
-          // Keep the native scene underneath each route in sync with the
-          // screen palette. Without this, the default white scene can flash
-          // through during a back/pop transition in dark mode.
+          // Force card presentation globally — prevents react-native-screens
+          // from ever creating RNSModalScreen shadow nodes on iOS New Arch,
+          // which crash in the Expo Go build of react-native-screens 4.x.
+          presentation: "card",
           contentStyle: { backgroundColor: c.background },
           navigationBarColor: c.background,
           statusBarStyle: isDark ? "light" : "dark",
           navigationBarTranslucent: isDark ? false : undefined,
           statusBarTranslucent: isDark ? false : true,
-          // Dark-mode transitions expose the native window surface on some
-          // devices, so use an instantaneous transition there. Keep the
-          // existing light-mode motion unchanged.
           animation: isDark ? "none" : "slide_from_right",
           animationDuration: 280,
         }}
@@ -166,30 +171,30 @@ function RootLayoutNav() {
         <Stack.Screen name="stock-search" options={{ headerShown: false, animationDuration: 260 }} />
         <Stack.Screen name="stock/[ticker]" options={{ headerShown: false, animationDuration: 260 }} />
 
-        {/* Trade flow — bottom sheet style for a transactional feel */}
+        {/* Trade flow */}
         <Stack.Screen
           name="trade/buy"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 340 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 340 }}
         />
         <Stack.Screen
           name="trade/sell"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 340 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 340 }}
         />
         <Stack.Screen
           name="trade/exchange"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 340 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 340 }}
         />
         <Stack.Screen
           name="trade/payment"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 320 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 320 }}
         />
         <Stack.Screen
           name="trade/confirm"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 320 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 320 }}
         />
         <Stack.Screen
           name="trade/payment-webview"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 320 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 320 }}
         />
         <Stack.Screen
           name="trade/success"
@@ -206,7 +211,7 @@ function RootLayoutNav() {
         <Stack.Screen name="treasury/index" options={{ headerShown: false, animationDuration: 260 }} />
         <Stack.Screen name="treasury/details" options={{ headerShown: false, animationDuration: 260 }} />
         <Stack.Screen name="treasury/calculator" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="treasury/review" options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 320 }} />
+        <Stack.Screen name="treasury/review" options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 320 }} />
         <Stack.Screen name="treasury/processing" options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300, gestureEnabled: false }} />
         <Stack.Screen name="treasury/success" options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300, gestureEnabled: false }} />
         <Stack.Screen name="treasury/my-investments" options={{ headerShown: false, animationDuration: 260 }} />
