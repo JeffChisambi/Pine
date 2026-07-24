@@ -19,6 +19,7 @@ All screens **except** `app/index.tsx`, `app/login.tsx`, `app/signup.tsx`, `app/
 - `constants/colors.ts` — `light` and `dark` palettes; dark background is `#1F2937`, card `#374151`, border `#4B5563`, text `#F9FAFB`
 - `hooks/useColors.ts` — reads `isDark` from `useTheme()`, returns the right palette
 - `app/_layout.tsx` — `ThemeProvider` is outermost provider, wraps `AuthProvider`
+- Native stack scene and navigation-bar backgrounds must also use the active palette so pop transitions do not reveal a white surface in dark mode.
 - `app/(tabs)/profile.tsx` — the toggle itself; uses `isDark`/`toggleTheme` from `useTheme()`
 
 ## Completed screens
