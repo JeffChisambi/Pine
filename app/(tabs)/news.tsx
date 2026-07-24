@@ -339,8 +339,8 @@ export default function NewsScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 8, alignItems: "center" }}
-        style={{ marginBottom: 10 }}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 8, paddingVertical: 2 }}
+        style={{ flexGrow: 0, flexShrink: 0, marginBottom: 10 }}
       >
         {CATEGORIES.map((cat) => {
           const active = cat === activeCategory;
