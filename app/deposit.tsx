@@ -16,19 +16,15 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path, Circle, Rect } from "react-native-svg";
+import Svg, { Path, Circle } from "react-native-svg";
 import { paymentsApi } from "../services/api";
 
 const BANK_CARD_LOGO = require("../assets/images/bankcard.png");
 
-const TEAL      = "#164951";
-const TEAL_MED  = "#2D5B62";
-const WHITE     = "#FFFFFF";
-const DARK      = "#111827";
-const MUTED     = "#9CA3AF";
-const BG        = "#F9FAFB";
-const DIVIDER   = "#EBECEF";
-const GREEN     = "#45B369";
+const TEAL  = "#164951";
+const WHITE = "#FFFFFF";
+const MUTED = "#9CA3AF";
+const GREEN = "#45B369";
 
 const QUICK_AMOUNTS = ["10,000", "25,000", "50,000", "100,000"];
 
@@ -87,20 +83,14 @@ export default function DepositScreen() {
   const handleDeposit = async () => {
     if (!canDeposit) return;
 
-    // ── Bank Card — navigate to native card-entry screen ─────────────────────
     if (selectedMethod === "bankcard") {
       router.push({
         pathname: "/payment-card" as any,
-        params: {
-          amount: String(numericValue),
-          currency: "MWK",
-          purpose: "wallet_deposit",
-        },
+        params: { amount: String(numericValue), currency: "MWK", purpose: "wallet_deposit" },
       });
       return;
     }
 
-    // ── PayChangu — existing webview checkout flow ────────────────────────────
     setLoading(true);
     setErrorMsg("");
     try {
@@ -132,26 +122,267 @@ export default function DepositScreen() {
     }
   };
 
+  const styles = StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+
+    /* Header */
+    header: {
+      backgroundColor: c.background,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingBottom: 0,
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      justifyContent: "center",
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: "center",
+      fontFamily: "PlusJakartaSans_700Bold",
+      fontSize: 18,
+      color: c.text,
+    },
+
+    /* Amount band */
+    amountBand: {
+      backgroundColor: c.background,
+      paddingHorizontal: 24,
+      paddingTop: 24,
+      paddingBottom: 32,
+      alignItems: "center",
+    },
+    amountLabel: {
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 13,
+      color: c.mutedForeground,
+      marginBottom: 12,
+      letterSpacing: 0.4,
+    },
+    amountRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: 8,
+    },
+    currencySymbol: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 22,
+      color: c.mutedForeground,
+    },
+    amountInput: {
+      fontFamily: "PlusJakartaSans_700Bold",
+      fontSize: 48,
+      color: c.text,
+      minWidth: 120,
+      textAlign: "center",
+      padding: 0,
+    },
+    amountDivider: {
+      width: 200,
+      height: 1.5,
+      backgroundColor: c.border,
+      marginTop: 12,
+      marginBottom: 10,
+    },
+    amountHint: {
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 12,
+      color: c.mutedForeground,
+    },
+
+    /* Body */
+    body: {
+      flex: 1,
+      backgroundColor: c.background,
+      paddingTop: 0,
+      paddingHorizontal: 24,
+    },
+
+    /* Quick amounts */
+    quickRow: {
+      flexDirection: "row",
+      gap: 10,
+      marginBottom: 28,
+    },
+    quickBtn: {
+      flex: 1,
+      height: 40,
+      borderRadius: 10,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    quickBtnActive: {
+      backgroundColor: TEAL,
+      borderColor: TEAL,
+    },
+    quickBtnText: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 13,
+      color: c.text,
+    },
+    quickBtnTextActive: {
+      color: WHITE,
+    },
+
+    /* Section label */
+    sectionLabel: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 14,
+      color: c.text,
+      marginBottom: 12,
+    },
+
+    /* Payment method card */
+    methodCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: c.card,
+      borderRadius: 14,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      padding: 14,
+      gap: 14,
+      marginBottom: 14,
+    },
+    methodCardActive: {
+      borderColor: TEAL,
+    },
+    uncheckCircle: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 1.5,
+      borderColor: c.mutedForeground,
+    },
+    methodLogoWrap: {
+      width: 44,
+      height: 44,
+      borderRadius: 10,
+      overflow: "hidden",
+      backgroundColor: c.background,
+      borderWidth: 1,
+      borderColor: c.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    methodLogo: {
+      width: 44,
+      height: 44,
+    },
+    methodInfo: {
+      flex: 1,
+    },
+    methodName: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 15,
+      color: c.text,
+    },
+    methodSub: {
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 12,
+      color: c.mutedForeground,
+      marginTop: 2,
+    },
+
+    /* Info note */
+    noteRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 8,
+      marginBottom: 20,
+    },
+    noteText: {
+      flex: 1,
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 12,
+      color: c.mutedForeground,
+      lineHeight: 18,
+    },
+
+    /* Summary */
+    summaryCard: {
+      backgroundColor: c.card,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: c.border,
+      padding: 16,
+    },
+    summaryRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 12,
+    },
+    summaryLabel: {
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 13,
+      color: c.mutedForeground,
+      flex: 1,
+    },
+    summaryValue: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 13,
+      color: c.text,
+      flexShrink: 0,
+    },
+    summaryDivider: {
+      height: 1,
+      backgroundColor: c.border,
+      marginVertical: 12,
+    },
+
+    /* CTA */
+    ctaWrap: {
+      paddingHorizontal: 24,
+      paddingTop: 12,
+      paddingBottom: 24,
+      backgroundColor: c.background,
+    },
+    ctaBtn: {
+      height: 56,
+      backgroundColor: TEAL,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    ctaBtnDisabled: {
+      opacity: 0.45,
+    },
+    ctaBtnText: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 17,
+      color: WHITE,
+    },
+  });
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={[styles.root, { paddingBottom: bottomPad, backgroundColor: c.background }]}>
+      <View style={[styles.root, { paddingBottom: bottomPad }]}>
 
-        {/* ── Teal header ── */}
-        <View style={[styles.header, { paddingTop: topPad + 8, backgroundColor: c.background }]}>
+        {/* ── Header ── */}
+        <View style={[styles.header, { paddingTop: topPad + 8 }]}>
           <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/(tabs)")}>
             <BackIcon color={c.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: c.text }]}>Deposit</Text>
+          <Text style={styles.headerTitle}>Deposit</Text>
           <View style={styles.backBtn} />
         </View>
 
-        {/* ── Amount card (still on teal band) ── */}
-        <View style={[styles.amountBand, { backgroundColor: c.background }]}>
-          <Text style={[styles.amountLabel, { color: MUTED }]}>Enter Amount</Text>
+        {/* ── Amount entry ── */}
+        <View style={styles.amountBand}>
+          <Text style={styles.amountLabel}>Enter Amount</Text>
           <View style={styles.amountRow}>
-            <Text style={[styles.currencySymbol, { color: c.text }]}>MK</Text>
+            <Text style={styles.currencySymbol}>MK</Text>
             <TextInput
-              style={[styles.amountInput, { color: c.text }]}
+              style={styles.amountInput}
               keyboardType="numeric"
               placeholder="0.00"
               placeholderTextColor={MUTED}
@@ -160,12 +391,12 @@ export default function DepositScreen() {
               returnKeyType="done"
             />
           </View>
-          <View style={[styles.amountDivider, { backgroundColor: c.border }]} />
-          <Text style={[styles.amountHint, { color: MUTED }]}>Minimum deposit: MK 10,000</Text>
+          <View style={styles.amountDivider} />
+          <Text style={styles.amountHint}>Minimum deposit: MK 10,000</Text>
         </View>
 
-        {/* ── White body ── */}
-        <View style={[styles.body, { backgroundColor: c.background }]}>
+        {/* ── Body ── */}
+        <View style={styles.body}>
 
           {/* Quick amounts */}
           <View style={styles.quickRow}>
@@ -215,7 +446,7 @@ export default function DepositScreen() {
             activeOpacity={0.7}
             onPress={() => setSelectedMethod("bankcard")}
           >
-            <View style={[styles.methodLogoWrap, { backgroundColor: "#EFF6F8" }]}>
+            <View style={styles.methodLogoWrap}>
               <BankCardIcon />
             </View>
             <View style={styles.methodInfo}>
@@ -229,7 +460,7 @@ export default function DepositScreen() {
           <View style={styles.noteRow}>
             <InfoIcon />
             <Text style={styles.noteText}>
-              {selectedMethod === "paychangu" 
+              {selectedMethod === "paychangu"
                 ? "You'll be redirected to PayChangu to complete your payment securely."
                 : "You'll be able to securely enter your card details to process the deposit."}
             </Text>
@@ -240,7 +471,7 @@ export default function DepositScreen() {
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Deposit amount</Text>
-                <Text style={styles.summaryValue}>MK {rawAmount}</Text>
+                <Text style={styles.summaryValue} numberOfLines={1}>MK {rawAmount}</Text>
               </View>
               <View style={[styles.summaryRow, { marginTop: 8 }]}>
                 <Text style={styles.summaryLabel}>Processing fee</Text>
@@ -248,8 +479,12 @@ export default function DepositScreen() {
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: DARK, fontFamily: "PlusJakartaSans_600SemiBold" }]}>You receive</Text>
-                <Text style={[styles.summaryValue, { color: TEAL, fontFamily: "PlusJakartaSans_700Bold" }]}>MK {rawAmount}</Text>
+                <Text style={[styles.summaryLabel, { color: c.text, fontFamily: "PlusJakartaSans_600SemiBold" }]}>
+                  You receive
+                </Text>
+                <Text style={[styles.summaryValue, { color: TEAL, fontFamily: "PlusJakartaSans_700Bold" }]} numberOfLines={1}>
+                  MK {rawAmount}
+                </Text>
               </View>
             </View>
           )}
@@ -285,239 +520,3 @@ export default function DepositScreen() {
     </TouchableWithoutFeedback>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: BG,
-  },
-
-  /* Header */
-  header: {
-    backgroundColor: TEAL,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 0,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontFamily: "PlusJakartaSans_700Bold",
-    fontSize: 18,
-    color: WHITE,
-  },
-
-  /* Amount band */
-  amountBand: {
-    backgroundColor: TEAL,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 32,
-    alignItems: "center",
-  },
-  amountLabel: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 13,
-    color: "rgba(255,255,255,0.65)",
-    marginBottom: 12,
-    letterSpacing: 0.4,
-  },
-  amountRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: 8,
-  },
-  currencySymbol: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 22,
-    color: "rgba(255,255,255,0.7)",
-  },
-  amountInput: {
-    fontFamily: "PlusJakartaSans_700Bold",
-    fontSize: 48,
-    color: WHITE,
-    minWidth: 120,
-    textAlign: "center",
-    padding: 0,
-  },
-  amountDivider: {
-    width: 200,
-    height: 1.5,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    marginTop: 12,
-    marginBottom: 10,
-  },
-  amountHint: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 12,
-    color: "rgba(255,255,255,0.5)",
-  },
-
-  /* Body */
-  body: {
-    flex: 1,
-    backgroundColor: WHITE,
-    paddingTop: 0,
-    paddingHorizontal: 24,
-  },
-
-  /* Quick amounts */
-  quickRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 28,
-  },
-  quickBtn: {
-    flex: 1,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: BG,
-    borderWidth: 1,
-    borderColor: DIVIDER,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quickBtnActive: {
-    backgroundColor: TEAL,
-    borderColor: TEAL,
-  },
-  quickBtnText: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 13,
-    color: DARK,
-  },
-  quickBtnTextActive: {
-    color: WHITE,
-  },
-
-  /* Section label */
-  sectionLabel: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 14,
-    color: DARK,
-    marginBottom: 12,
-  },
-
-  /* Payment method card */
-  methodCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: BG,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: DIVIDER,
-    padding: 14,
-    gap: 14,
-    marginBottom: 14,
-  },
-  methodCardActive: {
-    borderColor: TEAL,
-  },
-  uncheckCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: MUTED,
-  },
-  methodLogoWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    overflow: "hidden",
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  methodLogo: {
-    width: 44,
-    height: 44,
-  },
-  methodInfo: {
-    flex: 1,
-  },
-  methodName: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 15,
-    color: DARK,
-  },
-  methodSub: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 12,
-    color: MUTED,
-    marginTop: 2,
-  },
-
-  /* Info note */
-  noteRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    marginBottom: 20,
-  },
-  noteText: {
-    flex: 1,
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 12,
-    color: MUTED,
-    lineHeight: 18,
-  },
-
-  /* Summary */
-  summaryCard: {
-    backgroundColor: BG,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: DIVIDER,
-    padding: 16,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  summaryLabel: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 13,
-    color: MUTED,
-  },
-  summaryValue: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 13,
-    color: DARK,
-  },
-  summaryDivider: {
-    height: 1,
-    backgroundColor: DIVIDER,
-    marginVertical: 12,
-  },
-
-  /* CTA */
-  ctaWrap: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 24,
-    backgroundColor: WHITE,
-  },
-  ctaBtn: {
-    height: 56,
-    backgroundColor: TEAL,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ctaBtnDisabled: {
-    opacity: 0.45,
-  },
-  ctaBtnText: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 17,
-    color: WHITE,
-  },
-});

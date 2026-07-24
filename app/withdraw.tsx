@@ -14,32 +14,16 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path, Circle, Rect } from "react-native-svg";
+import Svg, { Path, Circle } from "react-native-svg";
 
 const BANK_CARD_LOGO = require("../assets/images/bankcard.png");
 
-const TEAL      = "#164951";
-const WHITE     = "#FFFFFF";
-const DARK      = "#111827";
-const MUTED     = "#9CA3AF";
-const BG        = "#F9FAFB";
-const DIVIDER   = "#EBECEF";
-const GREEN     = "#45B369";
-const RED       = "#EF4770";
+const TEAL  = "#164951";
+const WHITE = "#FFFFFF";
+const MUTED = "#9CA3AF";
+const GREEN = "#45B369";
 
 const QUICK_AMOUNTS = ["10,000", "25,000", "50,000", "100,000"];
-
-const METHODS = [
-  {
-    id: "bank",
-    name: "Bank Transfer",
-    sub: "Direct bank account transfer",
-    fee: "Free",
-    time: "1–2 business days",
-    color: TEAL,
-    letter: "B",
-  },
-];
 
 function BackIcon({ color }: { color: string }) {
   return (
@@ -77,20 +61,6 @@ function ClockIcon() {
   );
 }
 
-function BankCardIcon() {
-  return (
-    <Image source={BANK_CARD_LOGO} style={{ width: 42, height: 42, borderRadius: 8 }} resizeMode="contain" />
-  );
-}
-
-function MethodLogo({ color, letter }: { color: string; letter: string }) {
-  return (
-    <View style={[styles.methodLogoWrap, { backgroundColor: "#EFF6F8" }]}>
-      <BankCardIcon />
-    </View>
-  );
-}
-
 export default function WithdrawScreen() {
   const insets = useSafeAreaInsets();
   const topPad    = Platform.OS === "web" ? 44 : insets.top;
@@ -98,44 +68,239 @@ export default function WithdrawScreen() {
   const c = useColors();
 
   const [rawAmount, setRawAmount] = useState("");
-  const selectedMethod = "bank";
-  const activeMethod = METHODS[0];
-
-  // API state — from GET /wallet/balance
-  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [walletBalance] = useState<number>(0);
   const walletBalanceDisplay = walletBalance.toLocaleString("en-MW", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const numericValue = parseFloat(rawAmount.replace(/,/g, "")) || 0;
   const exceeds      = numericValue > walletBalance;
   const canWithdraw  = numericValue >= 10000 && !exceeds;
+  const youReceive   = numericValue; // no fee
 
+  const styles = StyleSheet.create({
+    root: { flex: 1, backgroundColor: c.background },
 
-  const fee = activeMethod.fee === "Free" ? 0 : 200;
-  const youReceive = numericValue > fee ? numericValue - fee : 0;
+    header: {
+      backgroundColor: c.background,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingBottom: 0,
+    },
+    backBtn: { width: 40, height: 40, justifyContent: "center" },
+    headerTitle: {
+      flex: 1,
+      textAlign: "center",
+      fontFamily: "PlusJakartaSans_700Bold",
+      fontSize: 18,
+      color: c.text,
+    },
+
+    amountBand: {
+      backgroundColor: c.background,
+      paddingHorizontal: 24,
+      paddingTop: 16,
+      paddingBottom: 32,
+      alignItems: "center",
+    },
+    balanceLabel: {
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 12,
+      color: c.mutedForeground,
+      marginBottom: 2,
+    },
+    balanceValue: {
+      fontFamily: "PlusJakartaSans_700Bold",
+      fontSize: 15,
+      color: c.text,
+      marginBottom: 18,
+    },
+    amountLabel: {
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 13,
+      color: c.mutedForeground,
+      marginBottom: 12,
+      letterSpacing: 0.4,
+    },
+    amountRow: { flexDirection: "row", alignItems: "baseline", gap: 8 },
+    currencySymbol: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 22,
+      color: c.mutedForeground,
+    },
+    amountInput: {
+      fontFamily: "PlusJakartaSans_700Bold",
+      fontSize: 48,
+      color: c.text,
+      minWidth: 120,
+      textAlign: "center",
+      padding: 0,
+    },
+    amountDivider: {
+      width: 200,
+      height: 1.5,
+      backgroundColor: c.border,
+      marginTop: 12,
+      marginBottom: 10,
+    },
+    amountHint: {
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 12,
+      color: c.mutedForeground,
+    },
+    amountError: {
+      fontFamily: "PlusJakartaSans_500Medium",
+      fontSize: 12,
+      color: "#FF6B6B",
+    },
+
+    body: {
+      flex: 1,
+      backgroundColor: c.background,
+      paddingTop: 0,
+      paddingHorizontal: 24,
+    },
+
+    quickRow: { flexDirection: "row", gap: 10, marginBottom: 28 },
+    quickBtn: {
+      flex: 1,
+      height: 40,
+      borderRadius: 10,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    quickBtnActive: { backgroundColor: TEAL, borderColor: TEAL },
+    quickBtnText: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 13,
+      color: c.text,
+    },
+    quickBtnTextActive: { color: WHITE },
+
+    sectionLabel: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 14,
+      color: c.text,
+      marginBottom: 12,
+    },
+
+    methodCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: c.card,
+      borderRadius: 14,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      padding: 14,
+      gap: 14,
+    },
+    methodCardActive: { borderColor: TEAL },
+    methodLogoWrap: {
+      width: 44,
+      height: 44,
+      borderRadius: 10,
+      overflow: "hidden",
+      backgroundColor: c.background,
+      borderWidth: 1,
+      borderColor: c.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    methodInfo: { flex: 1 },
+    methodName: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 15,
+      color: c.text,
+    },
+    methodMeta: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3 },
+    methodMetaText: {
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 12,
+      color: c.mutedForeground,
+    },
+
+    noteRow: { flexDirection: "row", alignItems: "flex-start", gap: 8, marginBottom: 20 },
+    noteText: {
+      flex: 1,
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 12,
+      color: c.mutedForeground,
+      lineHeight: 18,
+    },
+
+    summaryCard: {
+      backgroundColor: c.card,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: c.border,
+      padding: 16,
+    },
+    summaryRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 12,
+    },
+    summaryLabel: {
+      fontFamily: "PlusJakartaSans_400Regular",
+      fontSize: 13,
+      color: c.mutedForeground,
+      flex: 1,
+    },
+    summaryValue: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 13,
+      color: c.text,
+      flexShrink: 0,
+    },
+    summaryDivider: { height: 1, backgroundColor: c.border, marginVertical: 12 },
+
+    ctaWrap: {
+      paddingHorizontal: 24,
+      paddingTop: 12,
+      paddingBottom: 24,
+      backgroundColor: c.background,
+    },
+    ctaBtn: {
+      height: 56,
+      backgroundColor: TEAL,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    ctaBtnDisabled: { opacity: 0.45 },
+    ctaBtnText: {
+      fontFamily: "PlusJakartaSans_600SemiBold",
+      fontSize: 17,
+      color: WHITE,
+    },
+  });
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={[styles.root, { paddingBottom: bottomPad, backgroundColor: c.background }]}>
+      <View style={[styles.root, { paddingBottom: bottomPad }]}>
 
-        {/* ── Teal header ── */}
-        <View style={[styles.header, { paddingTop: topPad + 8, backgroundColor: c.background }]}>
+        {/* ── Header ── */}
+        <View style={[styles.header, { paddingTop: topPad + 8 }]}>
           <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/(tabs)")}>
             <BackIcon color={c.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: c.text }]}>Withdraw</Text>
+          <Text style={styles.headerTitle}>Withdraw</Text>
           <View style={styles.backBtn} />
         </View>
 
         {/* ── Amount band ── */}
-        <View style={[styles.amountBand, { backgroundColor: c.background }]}>
-          <Text style={[styles.balanceLabel, { color: MUTED }]}>Available Balance</Text>
-          <Text style={[styles.balanceValue, { color: c.text }]}>MK {walletBalanceDisplay}</Text>
+        <View style={styles.amountBand}>
+          <Text style={styles.balanceLabel}>Available Balance</Text>
+          <Text style={styles.balanceValue}>MK {walletBalanceDisplay}</Text>
 
-          <Text style={[styles.amountLabel, { color: MUTED }]}>Enter Amount</Text>
+          <Text style={styles.amountLabel}>Enter Amount</Text>
           <View style={styles.amountRow}>
-            <Text style={[styles.currencySymbol, { color: c.text }]}>MK</Text>
+            <Text style={styles.currencySymbol}>MK</Text>
             <TextInput
-              style={[styles.amountInput, { color: c.text }, exceeds && { color: "#FF6B6B" }]}
+              style={[styles.amountInput, exceeds && { color: "#FF6B6B" }]}
               keyboardType="numeric"
               placeholder="0.00"
               placeholderTextColor={MUTED}
@@ -144,16 +309,16 @@ export default function WithdrawScreen() {
               returnKeyType="done"
             />
           </View>
-          <View style={[styles.amountDivider, { backgroundColor: c.border }]} />
+          <View style={styles.amountDivider} />
           {exceeds ? (
             <Text style={styles.amountError}>Amount exceeds available balance</Text>
           ) : (
-            <Text style={[styles.amountHint, { color: MUTED }]}>Minimum withdrawal: MK 10,000</Text>
+            <Text style={styles.amountHint}>Minimum withdrawal: MK 10,000</Text>
           )}
         </View>
 
-        {/* ── White body ── */}
-        <View style={[styles.body, { backgroundColor: c.background }]}>
+        {/* ── Body ── */}
+        <View style={styles.body}>
 
           {/* Quick amounts */}
           <View style={styles.quickRow}>
@@ -177,7 +342,9 @@ export default function WithdrawScreen() {
           {/* Withdrawal method */}
           <Text style={styles.sectionLabel}>Withdrawal Method</Text>
           <View style={[styles.methodCard, styles.methodCardActive]}>
-            <MethodLogo color={TEAL} letter="B" />
+            <View style={styles.methodLogoWrap}>
+              <Image source={BANK_CARD_LOGO} style={{ width: 42, height: 42, borderRadius: 8 }} resizeMode="contain" />
+            </View>
             <View style={styles.methodInfo}>
               <Text style={styles.methodName}>Bank Transfer</Text>
               <View style={styles.methodMeta}>
@@ -201,12 +368,14 @@ export default function WithdrawScreen() {
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Withdraw amount</Text>
-                <Text style={styles.summaryValue}>MK {rawAmount}</Text>
+                <Text style={styles.summaryValue} numberOfLines={1}>MK {rawAmount}</Text>
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: DARK, fontFamily: "PlusJakartaSans_600SemiBold" }]}>You receive</Text>
-                <Text style={[styles.summaryValue, { color: TEAL, fontFamily: "PlusJakartaSans_700Bold" }]}>
+                <Text style={[styles.summaryLabel, { color: c.text, fontFamily: "PlusJakartaSans_600SemiBold" }]}>
+                  You receive
+                </Text>
+                <Text style={[styles.summaryValue, { color: TEAL, fontFamily: "PlusJakartaSans_700Bold" }]} numberOfLines={1}>
                   MK {numericValue.toLocaleString()}
                 </Text>
               </View>
@@ -233,257 +402,3 @@ export default function WithdrawScreen() {
     </TouchableWithoutFeedback>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: BG,
-  },
-
-  header: {
-    backgroundColor: TEAL,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 0,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontFamily: "PlusJakartaSans_700Bold",
-    fontSize: 18,
-    color: WHITE,
-  },
-
-  amountBand: {
-    backgroundColor: TEAL,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 32,
-    alignItems: "center",
-  },
-  balanceLabel: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 12,
-    color: "rgba(255,255,255,0.55)",
-    marginBottom: 2,
-  },
-  balanceValue: {
-    fontFamily: "PlusJakartaSans_700Bold",
-    fontSize: 15,
-    color: "rgba(255,255,255,0.85)",
-    marginBottom: 18,
-  },
-  amountLabel: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 13,
-    color: "rgba(255,255,255,0.65)",
-    marginBottom: 12,
-    letterSpacing: 0.4,
-  },
-  amountRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: 8,
-  },
-  currencySymbol: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 22,
-    color: "rgba(255,255,255,0.7)",
-  },
-  amountInput: {
-    fontFamily: "PlusJakartaSans_700Bold",
-    fontSize: 48,
-    color: WHITE,
-    minWidth: 120,
-    textAlign: "center",
-    padding: 0,
-  },
-  amountDivider: {
-    width: 200,
-    height: 1.5,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    marginTop: 12,
-    marginBottom: 10,
-  },
-  amountHint: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 12,
-    color: "rgba(255,255,255,0.5)",
-  },
-  amountError: {
-    fontFamily: "PlusJakartaSans_500Medium",
-    fontSize: 12,
-    color: "#FF6B6B",
-  },
-
-  body: {
-    flex: 1,
-    backgroundColor: WHITE,
-    paddingTop: 0,
-    paddingHorizontal: 24,
-  },
-
-  quickRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 28,
-  },
-  quickBtn: {
-    flex: 1,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: BG,
-    borderWidth: 1,
-    borderColor: DIVIDER,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quickBtnActive: {
-    backgroundColor: TEAL,
-    borderColor: TEAL,
-  },
-  quickBtnText: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 13,
-    color: DARK,
-  },
-  quickBtnTextActive: {
-    color: WHITE,
-  },
-
-  sectionLabel: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 14,
-    color: DARK,
-    marginBottom: 12,
-  },
-
-  methodList: {
-    gap: 10,
-    marginBottom: 16,
-  },
-  methodCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: BG,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: DIVIDER,
-    padding: 14,
-    gap: 14,
-  },
-  methodCardActive: {
-    borderColor: TEAL,
-  },
-  methodLogoWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  methodLogoLetter: {
-    fontFamily: "PlusJakartaSans_700Bold",
-    fontSize: 18,
-    color: WHITE,
-  },
-  methodInfo: {
-    flex: 1,
-  },
-  methodName: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 15,
-    color: DARK,
-  },
-  methodMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 3,
-  },
-  methodMetaText: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 12,
-    color: MUTED,
-  },
-  methodFee: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 12,
-    color: RED,
-  },
-  methodFeeFree: {
-    fontFamily: "PlusJakartaSans_500Medium",
-    fontSize: 12,
-    color: GREEN,
-  },
-
-  noteRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    marginBottom: 20,
-  },
-  noteText: {
-    flex: 1,
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 12,
-    color: MUTED,
-    lineHeight: 18,
-  },
-
-  summaryCard: {
-    backgroundColor: BG,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: DIVIDER,
-    padding: 16,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  summaryLabel: {
-    fontFamily: "PlusJakartaSans_400Regular",
-    fontSize: 13,
-    color: MUTED,
-  },
-  summaryValue: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 13,
-    color: DARK,
-  },
-  summaryDivider: {
-    height: 1,
-    backgroundColor: DIVIDER,
-    marginVertical: 12,
-  },
-
-  ctaWrap: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 24,
-    backgroundColor: WHITE,
-  },
-  ctaBtn: {
-    height: 56,
-    backgroundColor: TEAL,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ctaBtnDisabled: {
-    opacity: 0.45,
-  },
-  ctaBtnText: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 17,
-    color: WHITE,
-  },
-});

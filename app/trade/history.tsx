@@ -52,7 +52,11 @@ function groupByDate(orders: Order[]): { date: string; orders: Order[] }[] {
 }
 
 function StatusBadge({ status }: { status: Order["status"] }) {
-  const configs = { Pending: { bg: "#FEF9C3", text: "#92400E" }, Complete: { bg: "#D1FADF", text: "#166534" }, Cancelled: { bg: "#FEE2E2", text: "#991B1B" } };
+  const configs = {
+    Pending:   { bg: AMBER + "28", text: AMBER },
+    Complete:  { bg: GREEN + "28", text: GREEN },
+    Cancelled: { bg: RED   + "28", text: RED   },
+  };
   const cfg = configs[status];
   return (
     <View style={{ borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: cfg.bg }}>
@@ -214,7 +218,7 @@ export default function HistoryScreen() {
                         </View>
                       )}
                     </View>
-                    <View style={{ position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: order.type === "buy" ? "#D1FADF" : "#FEE2E2", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: c.background }}>
+                    <View style={{ position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: order.type === "buy" ? GREEN + "28" : RED + "28", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: c.background }}>
                       <ArrowIcon type={order.type} />
                     </View>
                   </View>
