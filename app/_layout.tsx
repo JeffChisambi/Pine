@@ -27,7 +27,9 @@ import { AuthProvider, useAuth } from "../services/auth-context";
 import { ThemeProvider, useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Expo Go on iOS sometimes rejects this if the splash is already dismissed.
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
