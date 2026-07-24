@@ -152,6 +152,7 @@ export default function ProfileScreen() {
 
   // Auth state
   const { user, logout } = useAuth();
+  const [fingerprintEnabled, setFingerprintEnabled] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userPhone, setUserPhone] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState<boolean>(false);
@@ -186,8 +187,8 @@ export default function ProfileScreen() {
   ];
 
   const SETTINGS_GROUP_2 = [
-    { icon: <FingerprintIcon color={iconColor} />, label: "Fingerprint", sub: "Biometric authentication", route: null, toggle: true },
-    { icon: <MoonIcon color={iconColor} />, label: "Dark Mode", sub: "Switch app appearance", route: null, toggle: true },
+    { icon: <FingerprintIcon color={iconColor} />, label: "Fingerprint", sub: "Biometric authentication", route: null, toggle: true, toggleValue: fingerprintEnabled, onToggle: () => setFingerprintEnabled(v => !v) },
+    { icon: <MoonIcon color={iconColor} />, label: "Dark Mode", sub: "Switch app appearance", route: null, toggle: true, toggleValue: isDark, onToggle: toggleTheme },
   ];
 
   const styles = StyleSheet.create({
@@ -383,7 +384,7 @@ export default function ProfileScreen() {
               <TouchableOpacity
                 style={styles.settingsRow}
                 onPress={() => {
-                  if (item.toggle) toggleTheme();
+                  if (item.toggle) item.onToggle?.();
                   else if (item.route) router.push(item.route as any);
                 }}
                 activeOpacity={0.7}
@@ -394,7 +395,7 @@ export default function ProfileScreen() {
                   <Text style={styles.rowSub}>{item.sub}</Text>
                 </View>
                 {item.toggle
-                  ? <DarkModeToggle value={isDark} onChange={toggleTheme} />
+                  ? <DarkModeToggle value={item.toggleValue ?? false} onChange={item.onToggle ?? (() => {})} />
                   : <ChevronRight color={c.mutedForeground} />}
               </TouchableOpacity>
               {i < SETTINGS_GROUP_2.length - 1 && <View style={styles.rowDivider} />}
