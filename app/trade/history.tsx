@@ -13,7 +13,7 @@ import { router } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
-import { MOCK_INVESTMENTS, type TBillInvestment } from "../treasury/data";
+import { MOCK_INVESTMENTS, type TBillInvestment } from "@/data/treasury";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";

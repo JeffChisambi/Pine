@@ -11,7 +11,7 @@ import { router } from "expo-router";
 import Svg, { Path, Rect } from "react-native-svg";
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
-import { TBILL_OPTIONS, type TBillOption } from "./data";
+import { TBILL_OPTIONS, type TBillOption } from "@/data/treasury";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";

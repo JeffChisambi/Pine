@@ -18,7 +18,7 @@ import { portfolioApi } from "../../services/api";
 import { useWalletBalance } from "../../services/wallet-queries";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
-import { StockData } from "../data/stocks";
+import { StockData } from "@/data/stocks";
 
 // ─── Static brand tokens ───────────────────────────────────────────────────────
 const TEAL = "#164951";

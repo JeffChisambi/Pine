@@ -16,7 +16,3 @@ export interface StockData {
 
 // Empty — filled by the API
 export const STOCKS: StockData[] = [];
-
-export default function Dummy() {
-  return null;
-}

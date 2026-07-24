@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
-import { TBILL_OPTIONS, calculateReturns } from "./data";
+import { TBILL_OPTIONS, calculateReturns } from "@/data/treasury";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";
