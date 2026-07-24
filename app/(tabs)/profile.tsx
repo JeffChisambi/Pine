@@ -67,13 +67,6 @@ function LockIcon({ color }: { color: string }) {
   );
 }
 
-function LinkIcon({ color }: { color: string }) {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      <Path d="M8.9375 15.125H6.1875C5.09348 15.125 4.04427 14.6904 3.27068 13.9168C2.4971 13.1432 2.0625 12.094 2.0625 11C2.0625 9.90598 2.4971 8.85677 3.27068 8.08318C4.04427 7.3096 5.09348 6.875 6.1875 6.875H8.9375M13.0625 6.875H15.8125C16.9065 6.875 17.9557 7.3096 18.7293 8.08318C19.5029 8.85677 19.9375 9.90598 19.9375 11C19.9375 12.094 19.5029 13.1432 18.7293 13.9168C17.9557 14.6904 16.9065 15.125 15.8125 15.125H13.0625M7.01637 11H15.0696" stroke={color} strokeWidth={1.6875} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
 function FingerprintIcon({ color }: { color: string }) {
   return (
@@ -92,15 +85,6 @@ function SealCheckIcon({ color }: { color: string }) {
   );
 }
 
-function GiftIcon({ color }: { color: string }) {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      <Path d="M11 4.46875V6.875H13.4063C13.8822 6.875 14.3474 6.73388 14.7431 6.46947C15.1388 6.20507 15.4472 5.82927 15.6293 5.38958C15.8115 4.9499 15.8591 4.46608 15.7663 3.99932C15.6734 3.53255 15.4442 3.1038 15.1077 2.76728C14.7712 2.43076 14.3425 2.20158 13.8757 2.10874C13.4089 2.01589 12.9251 2.06354 12.4854 2.24567C12.0457 2.42779 11.6699 2.7362 11.4055 3.13191C11.1411 3.52762 11 3.99284 11 4.46875ZM11 4.46875V6.875H8.59375C8.11784 6.875 7.65262 6.73388 7.25691 6.46947C6.8612 6.20507 6.55279 5.82927 6.37067 5.38958C6.18854 4.9499 6.14089 4.46608 6.23374 3.99932C6.32658 3.53255 6.55576 3.1038 6.89228 2.76728C7.2288 2.43076 7.65755 2.20158 8.12431 2.10874C8.59108 2.01589 9.0749 2.06354 9.51458 2.24567C9.95427 2.42779 10.3301 2.7362 10.5945 3.13191C10.8589 3.52762 11 3.99284 11 4.46875Z" stroke={color} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" />
-      <Path d="M17.875 6.875H4.125C3.36561 6.875 2.75 7.49061 2.75 8.25V10.3125C2.75 11.0719 3.36561 11.6875 4.125 11.6875H17.875C18.6344 11.6875 19.25 11.0719 19.25 10.3125V8.25C19.25 7.49061 18.6344 6.875 17.875 6.875Z" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M17.875 11.6875V17.875C17.875 18.422 17.6577 18.9466 17.2709 19.3334C16.8841 19.7202 16.3595 19.9375 15.8125 19.9375H6.1875C5.64049 19.9375 5.11589 19.7202 4.72909 19.3334C4.3423 18.9466 4.125 18.422 4.125 17.875V11.6875M11 6.875V19.9375" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
 function MoonIcon({ color }: { color: string }) {
   return (
@@ -110,22 +94,6 @@ function MoonIcon({ color }: { color: string }) {
   );
 }
 
-function TicketIcon({ color }: { color: string }) {
-  return (
-    <Svg width={22} height={18} viewBox="0 0 18 15" fill="none">
-      <Path d="M11.75 0.75V2.58333M11.75 6.25V8.08333M11.75 11.75V13.5833M2.58333 0.75H15.4167C15.9029 0.75 16.3692 0.943154 16.713 1.28697C17.0568 1.63079 17.25 2.0971 17.25 2.58333V5.33333C16.7638 5.33333 16.2975 5.52649 15.9536 5.8703C15.6098 6.21412 15.4167 6.68044 15.4167 7.16667C15.4167 7.6529 15.6098 8.11921 15.9536 8.46303C16.2975 8.80685 16.7638 9 17.25 9V11.75C17.25 12.2362 17.0568 12.7025 16.713 13.0464C16.3692 13.3902 15.9029 13.5833 15.4167 13.5833H2.58333C2.0971 13.5833 1.63079 13.3902 1.28697 13.0464C0.943154 12.7025 0.75 12.2362 0.75 11.75V9C1.23623 9 1.70255 8.80685 2.04636 8.46303C2.39018 8.11921 2.58333 7.6529 2.58333 7.16667C2.58333 6.68044 2.39018 6.21412 2.04636 5.8703C1.70255 5.52649 1.23623 5.33333 0.75 5.33333V2.58333C0.75 2.0971 0.943154 1.63079 1.28697 1.28697C1.63079 0.943154 2.0971 0.75 2.58333 0.75" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function BellMenuIcon({ color }: { color: string }) {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      <Path d="M11 4a4 4 0 0 0-4 4v3l-2 2.5h12L15 11V8a4 4 0 0 0-4-4z" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
-      <Path d="M9 13.5a2 2 0 0 0 4 0" stroke={color} strokeWidth={1.5} />
-    </Svg>
-  );
-}
 
 function LogoutMenuIcon() {
   return (
@@ -215,18 +183,11 @@ export default function ProfileScreen() {
     { icon: <CalendarIcon color={iconColor} />, label: "Personal Data", sub: "Name, address, email", route: "/profile/personal-data" },
     { icon: <SealCheckIcon color={iconColor} />, label: "Identity Verification", sub: "KYC — verify your identity", route: "/kyc/upload-id" },
     { icon: <LockIcon color={iconColor} />, label: "Security", sub: "Password & PIN", route: null },
-    { icon: <LinkIcon color={iconColor} />, label: "Link Account", sub: "Connect your accounts", route: null },
   ];
 
   const SETTINGS_GROUP_2 = [
     { icon: <FingerprintIcon color={iconColor} />, label: "Fingerprint", sub: "Biometric authentication", route: null, toggle: false },
     { icon: <MoonIcon color={iconColor} />, label: "Dark Mode", sub: "Switch app appearance", route: null, toggle: true },
-    { icon: <BellMenuIcon color={iconColor} />, label: "Notifications", sub: "Manage alerts & sounds", route: "/profile/push-notifications", toggle: false },
-  ];
-
-  const SETTINGS_GROUP_3 = [
-    { icon: <GiftIcon color={iconColor} />, label: "Referral & Rewards", sub: "Invite friends, earn bonuses", route: null },
-    { icon: <TicketIcon color={iconColor} />, label: "Vouchers", sub: "Promo codes & offers", route: null },
   ];
 
   const styles = StyleSheet.create({
@@ -440,43 +401,6 @@ export default function ProfileScreen() {
             </View>
           ))}
         </View>
-
-        {/* Settings Group 3 */}
-        <View style={styles.settingsGroup}>
-          {SETTINGS_GROUP_3.map((item, i) => (
-            <View key={item.label}>
-              <TouchableOpacity
-                style={styles.settingsRow}
-                onPress={() => item.route && router.push(item.route as any)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.rowIconWrap}>{item.icon}</View>
-                <View style={styles.rowTextBlock}>
-                  <Text style={styles.rowLabel}>{item.label}</Text>
-                  <Text style={styles.rowSub}>{item.sub}</Text>
-                </View>
-                <ChevronRight color={c.mutedForeground} />
-              </TouchableOpacity>
-              {i < SETTINGS_GROUP_3.length - 1 && <View style={styles.rowDivider} />}
-            </View>
-          ))}
-        </View>
-
-        {/* Notification Center */}
-        <TouchableOpacity
-          style={styles.settingsGroup}
-          onPress={() => router.push("/profile/notifications" as any)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.settingsRow}>
-            <View style={styles.rowIconWrap}><BellMenuIcon color={iconColor} /></View>
-            <View style={styles.rowTextBlock}>
-              <Text style={styles.rowLabel}>Notification Center</Text>
-              <Text style={styles.rowSub}>Recent activity & alerts</Text>
-            </View>
-            <ChevronRight color={c.mutedForeground} />
-          </View>
-        </TouchableOpacity>
 
         {/* Log out */}
         <TouchableOpacity
