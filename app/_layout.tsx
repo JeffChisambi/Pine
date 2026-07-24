@@ -13,15 +13,18 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, router, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SystemUI from "expo-system-ui";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "../services/auth-context";
-import { ThemeProvider } from "@/contexts/theme-context";
+import { ThemeProvider, useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
 
 SplashScreen.preventAutoHideAsync();
@@ -96,9 +99,21 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
 function RootLayoutNav() {
   const c = useColors();
+  const { isDark } = useTheme();
+
+  useEffect(() => {
+    // The native window can be visible for a frame while a stack screen is
+    // being popped. Keep its fallback surface synchronized with the app theme.
+    SystemUI.setBackgroundColorAsync(c.background).catch(() => {});
+  }, [c.background]);
 
   return (
     <AuthGate>
+      <StatusBar
+        style={isDark ? "light" : "dark"}
+        backgroundColor={c.background}
+        translucent={false}
+      />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -107,24 +122,28 @@ function RootLayoutNav() {
           // through during a back/pop transition in dark mode.
           contentStyle: { backgroundColor: c.background },
           navigationBarColor: c.background,
-          statusBarTranslucent: true,
-          // Default: smooth right-slide for all push navigations
-          animation: "slide_from_right",
+          statusBarStyle: isDark ? "light" : "dark",
+          navigationBarTranslucent: isDark ? false : undefined,
+          statusBarTranslucent: isDark ? false : true,
+          // Dark-mode transitions expose the native window surface on some
+          // devices, so use an instantaneous transition there. Keep the
+          // existing light-mode motion unchanged.
+          animation: isDark ? "none" : "slide_from_right",
           animationDuration: 280,
         }}
       >
         {/* Auth / onboarding screens — fade so replacements feel seamless */}
         <Stack.Screen
           name="index"
-          options={{ headerShown: false, gestureEnabled: false, animation: "fade", animationDuration: 260 }}
+          options={{ headerShown: false, gestureEnabled: false, animation: isDark ? "none" : "fade", animationDuration: 260 }}
         />
         <Stack.Screen
           name="login"
-          options={{ headerShown: false, gestureEnabled: false, animation: "fade", animationDuration: 240 }}
+          options={{ headerShown: false, gestureEnabled: false, animation: isDark ? "none" : "fade", animationDuration: 240 }}
         />
         <Stack.Screen
           name="signup"
-          options={{ headerShown: false, gestureEnabled: false, animation: "fade", animationDuration: 240 }}
+          options={{ headerShown: false, gestureEnabled: false, animation: isDark ? "none" : "fade", animationDuration: 240 }}
         />
         <Stack.Screen name="phone-number" options={{ headerShown: false, animationDuration: 260 }} />
         <Stack.Screen name="verify-code" options={{ headerShown: false, animationDuration: 260 }} />
@@ -134,7 +153,7 @@ function RootLayoutNav() {
         {/* Tabs — fade so the jump from auth feels instant, not jarring */}
         <Stack.Screen
           name="(tabs)"
-          options={{ headerShown: false, gestureEnabled: false, animation: "fade", animationDuration: 300 }}
+          options={{ headerShown: false, gestureEnabled: false, animation: isDark ? "none" : "fade", animationDuration: 300 }}
         />
 
         {/* Discovery screens — slide in from right */}
@@ -144,31 +163,31 @@ function RootLayoutNav() {
         {/* Trade flow — bottom sheet style for a transactional feel */}
         <Stack.Screen
           name="trade/buy"
-          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 340 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 340 }}
         />
         <Stack.Screen
           name="trade/sell"
-          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 340 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 340 }}
         />
         <Stack.Screen
           name="trade/exchange"
-          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 340 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 340 }}
         />
         <Stack.Screen
           name="trade/payment"
-          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 320 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 320 }}
         />
         <Stack.Screen
           name="trade/confirm"
-          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 320 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 320 }}
         />
         <Stack.Screen
           name="trade/payment-webview"
-          options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 320 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 320 }}
         />
         <Stack.Screen
           name="trade/success"
-          options={{ headerShown: false, animation: "fade", animationDuration: 300 }}
+          options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300 }}
         />
         <Stack.Screen name="trade/history" options={{ headerShown: false, animationDuration: 260 }} />
 
@@ -181,14 +200,20 @@ function RootLayoutNav() {
         <Stack.Screen name="treasury/index" options={{ headerShown: false, animationDuration: 260 }} />
         <Stack.Screen name="treasury/details" options={{ headerShown: false, animationDuration: 260 }} />
         <Stack.Screen name="treasury/calculator" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="treasury/review" options={{ headerShown: false, animation: "slide_from_bottom", animationDuration: 320 }} />
-        <Stack.Screen name="treasury/processing" options={{ headerShown: false, animation: "fade", animationDuration: 300, gestureEnabled: false }} />
-        <Stack.Screen name="treasury/success" options={{ headerShown: false, animation: "fade", animationDuration: 300, gestureEnabled: false }} />
+        <Stack.Screen name="treasury/review" options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 320 }} />
+        <Stack.Screen name="treasury/processing" options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300, gestureEnabled: false }} />
+        <Stack.Screen name="treasury/success" options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300, gestureEnabled: false }} />
         <Stack.Screen name="treasury/my-investments" options={{ headerShown: false, animationDuration: 260 }} />
         <Stack.Screen name="treasury/investment-detail" options={{ headerShown: false, animationDuration: 260 }} />
       </Stack>
     </AuthGate>
   );
+}
+
+function ThemedAppRoot({ children }: { children: React.ReactNode }) {
+  const c = useColors();
+
+  return <View style={{ flex: 1, backgroundColor: c.background }}>{children}</View>;
 }
 
 export default function RootLayout() {
@@ -229,17 +254,19 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <SafeAreaProvider>
-        <ErrorBoundary>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <GestureHandlerRootView>
-                <KeyboardProvider>
-                  <RootLayoutNav />
-                </KeyboardProvider>
-              </GestureHandlerRootView>
-            </AuthProvider>
-          </QueryClientProvider>
-        </ErrorBoundary>
+        <ThemedAppRoot>
+          <ErrorBoundary>
+            <QueryClientProvider client={queryClient}>
+              <AuthProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </AuthProvider>
+            </QueryClientProvider>
+          </ErrorBoundary>
+        </ThemedAppRoot>
       </SafeAreaProvider>
     </ThemeProvider>
   );

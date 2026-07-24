@@ -15,11 +15,15 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(THEME_KEY).then((val) => {
-      if (val === "true") setIsDark(true);
-    });
+    AsyncStorage.getItem(THEME_KEY)
+      .then((val) => {
+        if (val === "true") setIsDark(true);
+      })
+      .catch(() => {})
+      .finally(() => setIsHydrated(true));
   }, []);
 
   const toggleTheme = () => {
@@ -29,6 +33,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
   };
+
+  // Do not mount navigation with the light palette before a saved dark-mode
+  // preference has been read. That first light render can become visible
+  // during native navigation and look like a white flash.
+  if (!isHydrated) return null;
 
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme }}>

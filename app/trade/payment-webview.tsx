@@ -13,6 +13,7 @@ import { WebView, WebViewNavigation } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path } from "react-native-svg";
+import { useColors } from "@/hooks/useColors";
 import {
   readCachedAvailable,
   savePendingDeposit,
@@ -56,6 +57,7 @@ function getQueryParam(url: string, key: string): string {
 export default function PaymentWebViewScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const c = useColors();
 
   const params = useLocalSearchParams<{
     checkoutUrl?: string;
@@ -172,19 +174,19 @@ export default function PaymentWebViewScreen() {
 
   if (!checkoutUrl) {
     return (
-      <View style={[styles.root, { paddingTop: topPad }]}>
-        <Text style={styles.errorText}>No checkout URL provided.</Text>
+      <View style={[styles.root, { backgroundColor: c.background, paddingTop: topPad }]}>
+        <Text style={[styles.errorText, { color: c.text }]}>No checkout URL provided.</Text>
         <TouchableOpacity onPress={() => guardedBack("/(tabs)")}>
-          <Text style={styles.linkText}>Go Back</Text>
+          <Text style={[styles.linkText, { color: TEAL }]}>Go Back</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View style={[styles.root, { paddingTop: topPad }]}>
+    <View style={[styles.root, { backgroundColor: c.background, paddingTop: topPad }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: c.border }]}>
         <TouchableOpacity
           onPress={() => {
             Alert.alert(
@@ -196,17 +198,17 @@ export default function PaymentWebViewScreen() {
               ],
             );
           }}
-          style={styles.backBtn}
+          style={[styles.backBtn, { backgroundColor: c.card }]}
         >
           <BackIcon />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Complete Payment</Text>
+        <Text style={[styles.headerTitle, { color: c.text }]}>Complete Payment</Text>
         <View style={{ width: 40 }} />
       </View>
 
       {/* Loading overlay */}
       {loading && (
-        <View style={styles.loadingOverlay}>
+        <View style={[styles.loadingOverlay, { backgroundColor: c.background + "E6" }]}>
           <ActivityIndicator size="large" color={TEAL} />
           <Text style={styles.loadingText}>
             {"Loading payment page..."}

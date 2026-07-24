@@ -285,10 +285,15 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 }
 
 export default function TabLayout() {
+  const c = useColors();
+
   return (
     <Tabs
       tabBar={(props) => <AnimatedTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
+      screenOptions={{
+        headerShown: false,
+        sceneStyle: { backgroundColor: c.background },
+      }}
     >
       <Tabs.Screen name="index" options={{ title: "Home" }} />
       <Tabs.Screen name="market" options={{ title: "Market" }} />
