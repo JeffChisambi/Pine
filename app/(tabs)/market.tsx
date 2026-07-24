@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Platform,
   Image,
-  Modal,
   Animated,
   Dimensions,
 } from "react-native";
@@ -325,7 +324,7 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
   const iconColor = isDark ? WHITE : ICON_COLOR_LIGHT;
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={onClose}>
+    <View style={[StyleSheet.absoluteFillObject, { zIndex: 999 }]}>
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
         <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.35)", opacity: fadeOvl }]} pointerEvents={visible ? "auto" : "none"}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
@@ -359,7 +358,7 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
           <View style={{ height: 32 }} />
         </Animated.View>
       </View>
-    </Modal>
+    </View>
   );
 }
 

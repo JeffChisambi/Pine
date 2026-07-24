@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -247,8 +246,9 @@ export default function ForgotPasswordScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={0}
     >
-      {/* ── Country picker modal ── */}
-      <Modal visible={showCountryPicker} animationType="slide" statusBarTranslucent>
+      {/* ── Country picker overlay ── */}
+      {showCountryPicker && (
+        <View style={[StyleSheet.absoluteFillObject, { zIndex: 999, backgroundColor: WHITE }]}>
         <View style={[styles.pickerScreen, { paddingTop: topPad }]}>
           {/* Header */}
           <View style={styles.pickerHeader}>
@@ -310,7 +310,8 @@ export default function ForgotPasswordScreen() {
             )}
           />
         </View>
-      </Modal>
+        </View>
+      )}
 
       <ScrollView
         style={{ flex: 1 }}

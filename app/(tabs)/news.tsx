@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Platform,
   Image,
-  Modal,
   StatusBar,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -218,8 +217,7 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
   const RED_ERR = "#EF4770";
 
   return (
-    <Modal animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-      <View style={[{ flex: 1, backgroundColor: c.background }, { paddingTop: Platform.OS === "ios" ? insets.top : 0 }]}>
+    <View style={[StyleSheet.absoluteFillObject, { zIndex: 999, backgroundColor: c.background, paddingTop: Platform.OS === "ios" ? insets.top : 0 }]}>
         <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 12, paddingHorizontal: 20, paddingBottom: 8 }}>
           <TouchableOpacity onPress={onClose} style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" }} activeOpacity={0.7}>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
@@ -266,8 +264,7 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
           </View>
           <View style={{ height: 40 }} />
         </ScrollView>
-      </View>
-    </Modal>
+    </View>
   );
 }
 
