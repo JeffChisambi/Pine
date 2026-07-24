@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "../services/auth-context";
 import { ThemeProvider } from "@/contexts/theme-context";
+import { useColors } from "@/hooks/useColors";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -94,12 +95,18 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 function RootLayoutNav() {
+  const c = useColors();
+
   return (
     <AuthGate>
       <Stack
         screenOptions={{
           headerShown: false,
-          navigationBarColor: "transparent",
+          // Keep the native scene underneath each route in sync with the
+          // screen palette. Without this, the default white scene can flash
+          // through during a back/pop transition in dark mode.
+          contentStyle: { backgroundColor: c.background },
+          navigationBarColor: c.background,
           statusBarTranslucent: true,
           // Default: smooth right-slide for all push navigations
           animation: "slide_from_right",
