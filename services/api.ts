@@ -602,6 +602,57 @@ export const paymentsApi = {
     request<PaymentVerification>(`/payments/verify/${txRef}`),
 };
 
+// ─── Bank Card Payments API ───────────────────────────────────────────────────
+
+export interface CardPaymentSession {
+  txRef: string;
+  transactionId: string;
+  status: string;
+  amount: number;
+  currency: string;
+  message: string;
+  processorReference?: string;
+  last4?: string;
+  cardBrand?: string;
+}
+
+export interface CardPaymentVerification {
+  txRef: string;
+  status: string;
+  amount: number;
+  currency: string;
+  processorReference?: string;
+  updatedAt: string;
+  failureReason?: string;
+}
+
+export const cardPaymentsApi = {
+  /**
+   * Initiate a direct bank card payment.
+   * Returns txRef + status from the card processor (skeleton — 501 until wired up).
+   */
+  initiateCardPayment: (data: {
+    amount: number;
+    currency: 'MWK' | 'USD';
+    cardholderName: string;
+    cardNumber: string;
+    expiryMonth: string;
+    expiryYear: string;
+    cvv: string;
+    purpose?: string;
+    stockSymbol?: string;
+    quantity?: number;
+  }): Promise<CardPaymentSession> =>
+    request<CardPaymentSession>('/payments/card/initiate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Poll for the current status of a bank card payment */
+  verifyCardPayment: (txRef: string): Promise<CardPaymentVerification> =>
+    request<CardPaymentVerification>(`/payments/card/verify/${txRef}`),
+};
+
 // ─── Watchlist API ────────────────────────────────────────────────────────────
 
 export const watchlistApi = {

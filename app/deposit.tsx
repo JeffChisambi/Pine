@@ -86,6 +86,21 @@ export default function DepositScreen() {
 
   const handleDeposit = async () => {
     if (!canDeposit) return;
+
+    // ── Bank Card — navigate to native card-entry screen ─────────────────────
+    if (selectedMethod === "bankcard") {
+      router.push({
+        pathname: "/payment-card" as any,
+        params: {
+          amount: String(numericValue),
+          currency: "MWK",
+          purpose: "wallet_deposit",
+        },
+      });
+      return;
+    }
+
+    // ── PayChangu — existing webview checkout flow ────────────────────────────
     setLoading(true);
     setErrorMsg("");
     try {
