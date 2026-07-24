@@ -8,6 +8,7 @@ import {
   Image,
   Keyboard,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -199,8 +200,10 @@ export default function DepositScreen() {
     body: {
       flex: 1,
       backgroundColor: c.background,
-      paddingTop: 0,
+    },
+    bodyContent: {
       paddingHorizontal: 24,
+      paddingBottom: 24,
     },
 
     /* Quick amounts */
@@ -396,7 +399,12 @@ export default function DepositScreen() {
         </View>
 
         {/* ── Body ── */}
-        <View style={styles.body}>
+        <ScrollView
+          style={styles.body}
+          contentContainerStyle={styles.bodyContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
 
           {/* Quick amounts */}
           <View style={styles.quickRow}>
@@ -489,7 +497,7 @@ export default function DepositScreen() {
             </View>
           )}
 
-        </View>
+        </ScrollView>
 
         {/* ── Error ── */}
         {errorMsg ? (
