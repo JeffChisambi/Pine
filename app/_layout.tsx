@@ -21,15 +21,19 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SystemUI from "expo-system-ui";
+import Constants from "expo-constants";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "../services/auth-context";
 import { ThemeProvider, useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
 
-SplashScreen.preventAutoHideAsync().catch(() => {
-  // Expo Go on iOS sometimes rejects this if the splash is already dismissed.
-});
+// Expo Go manages its own splash screen natively — calling these APIs inside
+// Expo Go always rejects. Only call them in standalone / custom builds.
+const isExpoGo = Constants.appOwnership === "expo";
+if (!isExpoGo) {
+  SplashScreen.preventAutoHideAsync().catch(() => {});
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -246,11 +250,8 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (minSplashElapsed && (fontsLoaded || fontError || fontTimeout)) {
-      SplashScreen.hideAsync().catch(() => {
-        // On iOS with Expo Go the splash screen is sometimes already dismissed
-        // by the time this fires — swallow the "not registered" error.
-      });
+    if (!isExpoGo && minSplashElapsed && (fontsLoaded || fontError || fontTimeout)) {
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError, fontTimeout, minSplashElapsed]);
 
