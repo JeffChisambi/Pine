@@ -186,7 +186,7 @@ export default function ProfileScreen() {
   ];
 
   const SETTINGS_GROUP_2 = [
-    { icon: <FingerprintIcon color={iconColor} />, label: "Fingerprint", sub: "Biometric authentication", route: null, toggle: false },
+    { icon: <FingerprintIcon color={iconColor} />, label: "Fingerprint", sub: "Biometric authentication", route: null, toggle: true },
     { icon: <MoonIcon color={iconColor} />, label: "Dark Mode", sub: "Switch app appearance", route: null, toggle: true },
   ];
 
