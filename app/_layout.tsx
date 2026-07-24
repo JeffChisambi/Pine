@@ -245,7 +245,10 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (minSplashElapsed && (fontsLoaded || fontError || fontTimeout)) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {
+        // On iOS with Expo Go the splash screen is sometimes already dismissed
+        // by the time this fires — swallow the "not registered" error.
+      });
     }
   }, [fontsLoaded, fontError, fontTimeout, minSplashElapsed]);
 
