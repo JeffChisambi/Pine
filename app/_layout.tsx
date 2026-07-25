@@ -16,7 +16,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -130,7 +130,9 @@ function RootLayoutNav() {
           navigationBarColor: c.background,
           statusBarStyle: isDark ? "light" : "dark",
           navigationBarTranslucent: isDark ? false : undefined,
-          statusBarTranslucent: isDark ? false : true,
+          // statusBarTranslucent is Android-only. Passing it on iOS with
+          // the new architecture (Fabric) crashes RNSModalScreenShadowNode.
+          ...(Platform.OS === "android" ? { statusBarTranslucent: !isDark } : {}),
           // Dark-mode transitions expose the native window surface on some
           // devices, so use an instantaneous transition there. Keep the
           // existing light-mode motion unchanged.
@@ -196,6 +198,12 @@ function RootLayoutNav() {
           options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300 }}
         />
         <Stack.Screen name="trade/history" options={{ headerShown: false, animationDuration: 260 }} />
+
+        {/* Payment screens */}
+        <Stack.Screen
+          name="payment-card"
+          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 340 }}
+        />
 
         {/* Profile sub-screens */}
         <Stack.Screen name="profile/notifications" options={{ headerShown: false, animationDuration: 260 }} />

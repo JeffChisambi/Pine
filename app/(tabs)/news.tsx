@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Platform,
   Image,
-  StatusBar,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Line } from "react-native-svg";

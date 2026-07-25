@@ -26,10 +26,16 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import Svg, { Circle, Path, Rect, G, Defs, LinearGradient, Stop } from "react-native-svg";
 import { guardedBack } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
 import { cardPaymentsApi } from "../services/api";
+import {
+  invalidateWalletBalance,
+  reconcileDepositCredit,
+  readCachedAvailable,
+} from "../services/wallet-queries";
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 const TEAL    = "#164951";
@@ -236,6 +242,7 @@ export default function PaymentCardScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ amount: string; currency: string; purpose: string }>();
   const c      = useColors();
+  const qc     = useQueryClient();
 
   const amount   = parseFloat(params.amount ?? "0");
   const currency = (params.currency ?? "MWK") as "MWK" | "USD";
@@ -300,9 +307,13 @@ export default function PaymentCardScreen() {
   const handlePay = async () => {
     if (!validate() || loading) return;
     setLoading(true);
+
+    // Snapshot balance before charge so reconciliation knows the baseline
+    const prevAvailable = readCachedAvailable(qc);
+
     try {
       const [mm, yy] = expiry.split("/");
-      await cardPaymentsApi.initiateCardPayment({
+      const result = await cardPaymentsApi.initiateCardPayment({
         amount,
         currency,
         cardholderName: cardHolder.trim(),
@@ -312,14 +323,35 @@ export default function PaymentCardScreen() {
         cvv,
         purpose,
       });
-      // Navigate to success screen (same as PayChangu success path)
+
+      // Invalidate wallet balance immediately so the home screen
+      // picks up the credited deposit on next focus.
+      invalidateWalletBalance(qc).catch(() => {});
+
+      // Navigate to the card-specific deposit success screen
       router.replace({
-        pathname: "/trade/success" as any,
-        params: { amount: String(amount), purpose },
+        pathname: "/trade/card-success" as any,
+        params: {
+          amount: String(amount),
+          currency,
+          last4: result.last4 ?? "••••",
+          cardBrand: result.cardBrand ?? "Card",
+          txRef: result.txRef,
+        },
       });
+
+      // Reconcile in the background so the balance is confirmed by the time
+      // the user navigates to the home tab.
+      reconcileDepositCredit(qc, {
+        expectedIncrement: amount,
+        prevAvailable,
+      }).catch(() => {});
     } catch (err: any) {
-      const msg = err?.message ?? "Payment failed. Please try again.";
-      Alert.alert("Payment Error", msg);
+      // Surface the backend / gateway error message where available
+      const msg =
+        err?.message ??
+        "Your card could not be charged. Please check your details and try again.";
+      Alert.alert("Payment Failed", msg);
     } finally {
       setLoading(false);
     }
