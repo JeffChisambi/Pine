@@ -1,0 +1,22 @@
+If you want to change the appearance of status bar, you have to change     UIViewControllerBasedStatusBarAppearance key in the Info.plist to YES
+
+facebook::react::RNSModalScreenShadowNode::getContentOriginOffset(bool) const
+    RNSScreenWindowTraits.mm:18
+facebook::react::RNSModalScreenShadowNode::getContentOriginOffset(bool) const
+std::__1::unique_ptr<facebook::react::ComponentDescriptor const, std::__1::default_delete<facebook::react::ComponentDescriptor const>> facebook::react::concreteComponentDescriptorConstructor<facebook::react::ModalHostViewComponentDescriptor>(facebook::react::ComponentDescriptorParameters const&)
+facebook::react::TelemetryController::pullTransaction(std::__1::function<void (facebook::react::MountingTransaction const&, facebook::react::SurfaceTelemetry const&)> const&, std::__1::function<void (facebook::react::MountingTransaction const&, facebook::react::SurfaceTelemetry const&)> const&, std::__1::function<void (facebook::react::MountingTransaction const&, facebook::react::SurfaceTelemetry const&)> const&) const
+std::__1::unique_ptr<facebook::react::ComponentDescriptor const, std::__1::default_delete<facebook::react::ComponentDescriptor const>> facebook::react::concreteComponentDescriptorConstructor<facebook::react::ModalHostViewComponentDescriptor>(facebook::react::ComponentDescriptorParameters const&)
+std::__1::unique_ptr<facebook::react::ComponentDescriptor const, std::__1::default_delete<facebook::react::ComponentDescriptor const>> facebook::react::concreteComponentDescriptorConstructor<facebook::react::ModalHostViewComponentDescriptor>(facebook::react::ComponentDescriptorParameters const&)
+E1A24FA0-2160-3366-AE7E-420F0FA3C5BC
+E1A24FA0-2160-3366-AE7E-420F0FA3C5BC
+E1A24FA0-2160-3366-AE7E-420F0FA3C5BC
+E1A24FA0-2160-3366-AE7E-420F0FA3C5BC
+_dispatch_main_queue_callback_4CF
+FE9658B2-9DE6-3FA5-907B-0B3A3BCBB0B7
+FE9658B2-9DE6-3FA5-907B-0B3A3BCBB0B7
+FE9658B2-9DE6-3FA5-907B-0B3A3BCBB0B7
+GSEventRunModal
+9EE8C19A-A370-3599-823B-34B84131AAD7
+UIApplicationMain
+main
+41DE795B-9283-37FD-917E-D674BB73F541
