@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import Svg, { Path, Rect } from "react-native-svg";
+import Svg, { Path } from "react-native-svg";
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
 import { TBILL_OPTIONS, type TBillOption } from "@/data/treasury";
@@ -25,34 +25,6 @@ function BackIcon({ color }: { color: string }) {
     </Svg>
   );
 }
-
-function ShieldIcon({ color }: { color: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Path d="M9 12l2 2 4-4" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function TrendIcon({ color }: { color: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M22 7l-8.5 8.5-5-5L2 17" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M15 7h7v7" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function CalendarIcon({ color }: { color: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Rect x={3} y={4} width={18} height={18} rx={2} stroke={color} strokeWidth={1.8} />
-      <Path d="M16 2v4M8 2v4M3 10h18" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
 
 function StatusBadge({ status }: { status: TBillOption["status"] }) {
   const configs = {
@@ -138,28 +110,6 @@ export default function TreasuryLanding() {
           </Text>
         </View>
 
-        {/* Benefits strip */}
-        <View style={{
-          flexDirection: "row",
-          backgroundColor: c.card,
-          borderWidth: 1,
-          borderColor: c.border,
-          borderRadius: 14,
-          padding: 16,
-          marginBottom: 16,
-          gap: 12,
-        }}>
-          {[
-            { icon: <ShieldIcon color={c.text} />, label: "Gov't Backed" },
-            { icon: <TrendIcon color={c.text} />, label: "Fixed Returns" },
-            { icon: <CalendarIcon color={c.text} />, label: "Short-Term" },
-          ].map((item) => (
-            <View key={item.label} style={{ flex: 1, alignItems: "center", gap: 6 }}>
-              {item.icon}
-              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: c.text, textAlign: "center" }}>{item.label}</Text>
-            </View>
-          ))}
-        </View>
       </View>
 
       {/* Body */}
