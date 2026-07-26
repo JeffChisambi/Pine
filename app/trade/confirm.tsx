@@ -92,7 +92,7 @@ export default function ConfirmScreen() {
         if (!session.checkoutUrl) throw new Error("Payment gateway did not return a checkout URL.");
         router.push({
           pathname: "/trade/payment-webview" as any,
-          params: { checkoutUrl: session.checkoutUrl, txRef: session.txRef, symbol, amount: String(Math.ceil(total)) },
+          params: { checkoutUrl: session.checkoutUrl, txRef: session.txRef, symbol, amount: String(Math.ceil(total)), purpose: "BUY_SHARES" },
         });
       } else {
         await tradingApi.sell({ stockId: params.stockId, quantity, orderType: "MARKET", pinToken: "skip" });
