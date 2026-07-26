@@ -220,9 +220,11 @@ export default function PaymentWebViewScreen() {
       <WebView
         ref={webviewRef}
         source={{ uri: checkoutUrl }}
-        // Allow any scheme to reach our nav handlers instead of being dropped
-        // by Android WebView (belt-and-suspenders for legacy pine:// redirects)
-        originWhitelist={["*"]}
+        // Restrict to the schemes the payment flow actually needs.
+        // https:// → PayChangu checkout and backend return URL
+        // http://  → local dev / HTTP-only payment processors
+        // pine://  → legacy deep-link fallback for payment outcomes
+        originWhitelist={["https://*", "http://*", "pine://*"]}
         style={{ flex: 1, opacity: loading ? 0 : 1 }}
         onLoadEnd={() => setLoading(false)}
         onNavigationStateChange={handleNavigationStateChange}
