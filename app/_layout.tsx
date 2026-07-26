@@ -14,7 +14,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, router, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Platform, View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -56,19 +56,21 @@ const queryClient = new QueryClient({
  * Route guard — redirects to login if not authenticated,
  * and to home if already authenticated and on auth screens.
  *
- * Flow on fresh install:  index (onboarding) → login/signup → (tabs)
- * Flow on returning user: index → login  (onboarding skipped)
- * Flow on logged-in user: any auth screen → (tabs)
+ * Flow on fresh install:  "" (onboarding) → login/signup → (tabs)
+ * Flow on returning user: "" → /login  (onboarding skipped)
+ * Flow on logged-in user: any auth/onboarding screen → (tabs)
+ * Flow on logout:         (tabs) → /login  (never back to onboarding)
+ *
+ * NOTE: app/index.tsx maps to route "/" whose segment is "" (empty string),
+ * not "index". The guard must NOT early-return on "" — that is the onboarding
+ * screen and needs to be handled like any other route.
  */
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { isLoading, isLoggedIn } = useAuth();
   const segments = useSegments();
   const [hasOnboarded, setHasOnboarded] = React.useState<boolean | null>(null);
-  // Prevent the guard from running on the very first render before the
-  // router has settled (segments[0] can be "" for a brief instant).
-  const hasNavigated = useRef(false);
 
-  // Check if user has completed onboarding before
+  // Read the persistent onboarding flag once on mount.
   useEffect(() => {
     AsyncStorage.getItem("@pine_has_onboarded").then((val) => {
       setHasOnboarded(val === "true");
@@ -76,35 +78,46 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Wait for auth loading and onboarding flag to resolve
+    // Wait for auth loading and onboarding flag to resolve.
     if (isLoading || hasOnboarded === null) return;
-    // Wait until the router has settled on an actual segment
-    if (segments.length === 0 || segments[0] === "") return;
+    // Wait until the router has initialised and given us at least one segment.
+    // Do NOT skip when segments[0] === "" — that is the onboarding index route.
+    if (segments.length === 0) return;
 
     const seg = segments[0];
 
+    // Screens that belong to the unauthenticated / onboarding funnel.
+    // "" is the segment for app/index.tsx (route "/").
     const isOnAuthOrOnboardingScreen =
+      seg === "" ||
+      seg === "onboarding-2" ||
+      seg === "onboarding-3" ||
       seg === "login" ||
       seg === "signup" ||
       seg === "phone-number" ||
       seg === "verify-code" ||
-      seg === "forgot-password" ||
-      seg === "index";
+      seg === "forgot-password";
 
     const isOnProtectedScreen = !isOnAuthOrOnboardingScreen;
 
     if (isLoggedIn && isOnAuthOrOnboardingScreen) {
-      // Already logged in — skip straight to home
+      // Already logged in — go straight to home.
       router.replace("/(tabs)");
     } else if (!isLoggedIn && isOnProtectedScreen) {
-      // Tried to access a protected route without being logged in → login
+      // Unauthenticated user tried to access a protected route → login.
       router.replace("/login");
-    } else if (!isLoggedIn && seg === "index" && hasOnboarded) {
-      // User has completed onboarding before — skip onboarding, go to login
+    } else if (
+      !isLoggedIn &&
+      hasOnboarded &&
+      (seg === "" || seg === "onboarding-2" || seg === "onboarding-3")
+    ) {
+      // Already completed onboarding in a previous session — skip straight to
+      // login. Logout lands here too: hasOnboarded stays true and the user
+      // ends up on login, never back on the onboarding carousel.
       router.replace("/login");
     }
-    // Fresh install (!isLoggedIn && seg === "index" && !hasOnboarded):
-    // → stay on the onboarding screen; no redirect needed.
+    // Fresh install (!isLoggedIn && seg === "" && !hasOnboarded):
+    // → stay on the onboarding carousel; no redirect needed.
   }, [isLoading, isLoggedIn, segments, hasOnboarded]);
 
   return <>{children}</>;

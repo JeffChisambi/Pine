@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React from "react";
 import {
   Platform,
@@ -137,6 +138,16 @@ export default function OnboardingScreen3() {
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
 
+  /**
+   * Mark onboarding as done and navigate to the given route.
+   * Using router.replace so the onboarding stack is cleared — the user
+   * cannot swipe/press back into the onboarding flow.
+   */
+  const markOnboardedAndNavigate = async (route: "/login" | "/signup") => {
+    await AsyncStorage.setItem("@pine_has_onboarded", "true");
+    router.replace(route);
+  };
+
   return (
     <View style={[styles.container, { paddingTop: topPad, paddingBottom: bottomPad }]}>
       {/* ── Top bar ── */}
@@ -144,7 +155,7 @@ export default function OnboardingScreen3() {
         <TouchableOpacity
           style={styles.backBtn}
           activeOpacity={0.7}
-          onPress={() => router.push("/" as any)}
+          onPress={() => router.back()}
         >
           <BackIcon />
         </TouchableOpacity>
@@ -169,7 +180,7 @@ export default function OnboardingScreen3() {
         <TouchableOpacity
           style={styles.darkBtn}
           activeOpacity={0.85}
-          onPress={() => router.push("/login")}
+          onPress={() => markOnboardedAndNavigate("/login")}
         >
           <Text style={styles.darkBtnText}>Sign in with Email</Text>
         </TouchableOpacity>
@@ -178,7 +189,7 @@ export default function OnboardingScreen3() {
         <TouchableOpacity
           style={styles.outlineBtn}
           activeOpacity={0.7}
-          onPress={() => router.push("/login")}
+          onPress={() => markOnboardedAndNavigate("/login")}
         >
           <AppleLogo />
           <Text style={styles.outlineBtnText}>Apple</Text>
@@ -188,7 +199,7 @@ export default function OnboardingScreen3() {
         <TouchableOpacity
           style={styles.outlineBtn}
           activeOpacity={0.7}
-          onPress={() => router.push("/login")}
+          onPress={() => markOnboardedAndNavigate("/login")}
         >
           <GoogleLogo />
           <Text style={styles.outlineBtnText}>Google</Text>
@@ -204,7 +215,7 @@ export default function OnboardingScreen3() {
       {/* ── Bottom text ── */}
       <View style={styles.bottomRow}>
         <Text style={styles.bottomText}>Don't have an account? </Text>
-        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/signup")}>
+        <TouchableOpacity activeOpacity={0.7} onPress={() => markOnboardedAndNavigate("/signup")}>
           <Text style={styles.bottomLink}>Sign Up</Text>
         </TouchableOpacity>
       </View>
