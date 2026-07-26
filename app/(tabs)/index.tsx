@@ -507,7 +507,7 @@ export default function HomeScreen() {
           <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => router.push("/(tabs)/news" as any)}
+              onPress={() => guardedPush(() => router.push("/education" as any))}
               style={{
                 borderRadius: 18,
                 overflow: "hidden",

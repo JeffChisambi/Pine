@@ -175,6 +175,7 @@ function RootLayoutNav() {
         {/* Discovery screens — slide in from right */}
         <Stack.Screen name="stock-search" options={{ headerShown: false, animationDuration: 260 }} />
         <Stack.Screen name="stock/[ticker]" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="education" options={{ headerShown: false, animationDuration: 260 }} />
 
         {/* Trade flow */}
         <Stack.Screen
