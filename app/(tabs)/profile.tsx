@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { useAuth } from "../../services/auth-context";
 import { useWalletBalance } from "../../services/wallet-queries";
@@ -151,7 +151,7 @@ export default function ProfileScreen() {
   const { isDark, toggleTheme } = useTheme();
 
   // Auth state
-  const { user, logout } = useAuth();
+  const { user, logout, refreshProfile } = useAuth();
   const [fingerprintEnabled, setFingerprintEnabled] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userPhone, setUserPhone] = useState<string | null>(null);
@@ -169,6 +169,13 @@ export default function ProfileScreen() {
       setIsVerified(user.kycStatus === "APPROVED");
     }
   }, [user]);
+
+  // Refresh profile (including KYC status) every time the screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      refreshProfile();
+    }, [refreshProfile])
+  );
 
   const handleLogout = async () => {
     await logout();

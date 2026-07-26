@@ -150,6 +150,8 @@ export interface AuthTokens {
     lastName: string;
     role: string;
     kycStatus: string;
+    hasPinSet: boolean;
+    avatarUrl: string | null;
   };
 }
 
@@ -161,6 +163,8 @@ export interface UserProfile {
   lastName: string;
   role: string;
   kycStatus: string;
+  hasPinSet: boolean;
+  avatarUrl: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -462,6 +466,7 @@ export const kycApi = {
     hasIdDocument: boolean;
     hasSelfie: boolean;
     canProcess: boolean;
+    submittedAt: string | null;
   }> =>
     request('/kyc/status'),
 };

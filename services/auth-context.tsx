@@ -71,6 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       lastName: result.user.lastName,
       role: result.user.role,
       kycStatus: result.user.kycStatus,
+      hasPinSet: result.user.hasPinSet ?? false,
+      avatarUrl: result.user.avatarUrl ?? null,
       isActive: true,
       createdAt: new Date().toISOString(),
     };
