@@ -424,7 +424,7 @@ export default function MarketScreen() {
       {/* Header */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 12, paddingBottom: 16 }}>
         <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 24, color: c.text }}>Market</Text>
-        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/stock-search")} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.card, alignItems: "center", justifyContent: "center" }}>
+        <TouchableOpacity activeOpacity={0.7} onPress={() => guardedPush(() => router.push("/stock-search"))} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.card, alignItems: "center", justifyContent: "center" }}>
           <SearchIcon color={c.text} />
         </TouchableOpacity>
       </View>
