@@ -83,8 +83,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (data: { phone?: string; email?: string; password: string }) => {
+    console.log('[Auth] login called with:', { phone: data.phone, email: data.email });
     const result = await authApi.login(data);
+    console.log('[Auth] login API response received, user:', result?.user?.id);
     await handleAuthResponse(result);
+    console.log('[Auth] handleAuthResponse complete, isLoggedIn should be true');
   }, [handleAuthResponse]);
 
   const register = useCallback(async (data: {

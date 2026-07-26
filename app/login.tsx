@@ -236,11 +236,16 @@ export default function LoginScreen() {
     try {
       await auth.login({ phone: identifier.trim(), password });
       router.replace("/(tabs)");
-    } catch (err) {
-      const msg =
-        err instanceof ApiError
-          ? err.message
-          : "Network error. Please check your connection.";
+    } catch (err: any) {
+      console.error("[Login Error]", err);
+      let msg = "Something went wrong. Please try again.";
+      if (err instanceof ApiError) {
+        msg = err.message;
+      } else if (err instanceof Error) {
+        msg = err.message || "Network error. Please check your connection.";
+      } else if (typeof err === "string") {
+        msg = err;
+      }
       setErrorMsg(msg);
     } finally {
       setLoading(false);
