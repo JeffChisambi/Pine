@@ -120,10 +120,10 @@ async function request<T>(path: string, options?: RequestInit & { skipAuth?: boo
     try { errorBody = await res.json(); } catch { errorBody = await res.text().catch(() => res.statusText); }
     const rawMessage = errorBody?.error?.message ?? errorBody?.message;
     const msg =
-      (Array.isArray(rawMessage) ? rawMessage.join('. ') : null) ??
-      (typeof rawMessage === 'string' ? rawMessage : null) ??
-      (typeof errorBody?.error === 'string' ? errorBody.error : null) ??
-      (typeof errorBody === 'string' ? errorBody : `Request failed (HTTP ${res.status})`);
+      (Array.isArray(rawMessage) && rawMessage.length > 0 ? rawMessage.join('. ') : null) ??
+      (typeof rawMessage === 'string' && rawMessage.length > 0 ? rawMessage : null) ??
+      (typeof errorBody?.error === 'string' && errorBody.error.length > 0 ? errorBody.error : null) ??
+      (typeof errorBody === 'string' && errorBody.length > 0 ? errorBody : `Request failed (HTTP ${res.status})`);
     throw new ApiError(res.status, msg, errorBody);
   }
 

@@ -237,10 +237,10 @@ export default function LoginScreen() {
       await auth.login({ phone: identifier.trim(), password });
       router.replace("/(tabs)");
     } catch (err: any) {
-      console.error("[Login Error]", err);
+      console.error("[Login Error]", JSON.stringify({ status: err?.status, message: err?.message, body: err?.body }, null, 2));
       let msg = "Something went wrong. Please try again.";
       if (err instanceof ApiError) {
-        msg = err.message;
+        msg = err.message || `Request failed (HTTP ${err.status})`;
       } else if (err instanceof Error) {
         msg = err.message || "Network error. Please check your connection.";
       } else if (typeof err === "string") {
