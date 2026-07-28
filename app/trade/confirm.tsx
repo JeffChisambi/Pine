@@ -66,22 +66,32 @@ export default function ConfirmScreen() {
     if (!params.stockId || symbol === "—") return;
     setLoading(true);
     try {
-      // Generate a unique idempotency key to prevent duplicate orders on retry
       const idempotencyKey = `${params.stockId}-${Date.now()}`;
+      let result: any;
       if (isBuy) {
-        // Submit buy order — funds will be deducted from the wallet
-        // once the broker confirms execution in the Kusata dashboard.
-        await tradingApi.buy({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey });
+        result = await tradingApi.buy({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey });
       } else {
-        await tradingApi.sell({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey });
+        result = await tradingApi.sell({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey });
       }
-      router.push("/trade/success" as any);
+      router.push({
+        pathname: "/trade/success" as any,
+        params: {
+          queued: result.queued ? "1" : "0",
+          symbol,
+          stockName,
+          side: isBuy ? "BUY" : "SELL",
+          quantity: String(quantity),
+          total: fmt(result.fees?.totalCost ?? total),
+          message: result.message ?? "",
+        },
+      });
     } catch (err) {
       Alert.alert("Trade Error", err instanceof ApiError ? err.message : "Trade failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background, paddingTop: topPad }}>
