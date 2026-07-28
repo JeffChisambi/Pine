@@ -412,39 +412,6 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
         {/* Divider */}
         <View style={{ height: 1, backgroundColor: c.border, marginHorizontal: 20, marginVertical: 20 }} />
 
-        {/* Key Metrics */}
-        {item.metrics && item.metrics.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
-            <Text style={{
-              fontFamily: "PlusJakartaSans_700Bold", fontSize: 12,
-              color: MUTED, marginBottom: 12,
-              textTransform: "uppercase", letterSpacing: 0.8,
-            }}>
-              Key Metrics
-            </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-              {item.metrics.map((m, i) => (
-                <View key={i} style={{
-                  backgroundColor: c.card,
-                  borderRadius: 14, borderWidth: 1, borderColor: c.border,
-                  paddingHorizontal: 14, paddingVertical: 12,
-                  minWidth: "45%", flex: 1,
-                }}>
-                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginBottom: 5 }}>
-                    {m.label}
-                  </Text>
-                  <Text style={{
-                    fontFamily: "PlusJakartaSans_700Bold", fontSize: 15,
-                    color: m.up !== undefined ? (m.up ? GREEN : RED) : c.text,
-                  }}>
-                    {m.value}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
         {/* Body paragraphs */}
         <View style={{ paddingHorizontal: 20, gap: 14 }}>
           {item.body.map((para, i) => (
