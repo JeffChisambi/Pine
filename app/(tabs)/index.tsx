@@ -43,6 +43,7 @@ import Svg, {
 } from "react-native-svg";
 import { SvgXml } from "react-native-svg";
 import { EDUCATION_ICON_SVG } from "@/constants/EducationIconSvg";
+import { LinearGradient } from "expo-linear-gradient";
 import { useColors } from "@/hooks/useColors";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
@@ -509,41 +510,83 @@ export default function HomeScreen() {
               activeOpacity={0.85}
               onPress={() => guardedPush(() => router.push("/education" as any))}
               style={{
-                borderRadius: 18,
+                borderRadius: 20,
                 overflow: "hidden",
-                backgroundColor: TEAL,
+                backgroundColor: "#0D3540",
               }}
             >
-              <View style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: 28,
-              }}>
+              <View style={{ flexDirection: "row", minHeight: 200 }}>
                 {/* Left: text content */}
-                <View style={{ flex: 1, gap: 8, marginTop: -6 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                    <Text numberOfLines={1} style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 20, color: WHITE, lineHeight: 27, flexShrink: 1 }}>Learn</Text>
-                    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                      <Path d="M5 12h14M12 5l7 7-7 7" stroke={WHITE} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-                    </Svg>
+                <View style={{ flex: 1, paddingTop: 22, paddingBottom: 22, paddingLeft: 22, paddingRight: 12, justifyContent: "space-between" }}>
+                  {/* Badge */}
+                  <View>
+                    <View style={{
+                      alignSelf: "flex-start",
+                      backgroundColor: "rgba(69,179,105,0.18)",
+                      borderRadius: 6,
+                      paddingHorizontal: 8,
+                      paddingVertical: 3,
+                      marginBottom: 10,
+                    }}>
+                      <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 10, color: GREEN, letterSpacing: 1.4 }}>EDUCATION</Text>
+                    </View>
+                    <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 21, color: WHITE, lineHeight: 27, marginBottom: 5 }}>
+                      Master the{"\n"}Markets
+                    </Text>
+                    <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "rgba(255,255,255,0.48)", lineHeight: 17 }}>
+                      Structured learning for{"\n"}smarter investing
+                    </Text>
                   </View>
-                  <View style={{ gap: 6, marginTop: 4 }}>
-                    {["Basics", "Portfolio", "Charts", "Risk"].map((topic) => (
-                      <View key={topic} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                        <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: "rgba(255,255,255,0.55)" }} />
-                        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: "rgba(255,255,255,0.68)" }}>{topic}</Text>
+
+                  {/* Topics */}
+                  <View style={{ gap: 6, marginTop: 14, marginBottom: 18 }}>
+                    {[
+                      "Market Fundamentals",
+                      "Portfolio Strategy",
+                      "Technical Analysis",
+                      "Risk Management",
+                    ].map((topic) => (
+                      <View key={topic} style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
+                        <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: GREEN }} />
+                        <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{topic}</Text>
                       </View>
                     ))}
                   </View>
+
+                  {/* CTA */}
+                  <View style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    alignSelf: "flex-start",
+                    gap: 6,
+                    backgroundColor: GREEN,
+                    borderRadius: 10,
+                    paddingHorizontal: 14,
+                    paddingVertical: 9,
+                  }}>
+                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE }}>Start Learning</Text>
+                    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+                      <Path d="M5 12h14M12 5l7 7-7 7" stroke={WHITE} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                    </Svg>
+                  </View>
                 </View>
-                {/* Right: illustration */}
-                <SvgXml
-                  xml={EDUCATION_ICON_SVG}
-                  width={160}
-                  height={124}
-                  style={{ marginLeft: 8 }}
-                />
+
+                {/* Right: photo */}
+                <View style={{ width: 138, overflow: "hidden" }}>
+                  <Image
+                    source={require("../../attached_assets/image_da53edb6-914b-41d1-bc8b-dfe23a6d2164_1785280173516.png")}
+                    style={{ width: 138, height: "100%" }}
+                    resizeMode="cover"
+                  />
+                  {/* Fade edge so photo blends into the dark background */}
+                  <LinearGradient
+                    colors={["#0D3540", "transparent"]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 44 }}
+                    pointerEvents="none"
+                  />
+                </View>
               </View>
             </TouchableOpacity>
           </View>
