@@ -8,6 +8,7 @@ import {
   TextInput,
   Platform,
   Image,
+  StyleSheet,
   useWindowDimensions,
 } from "react-native";
 import ReAnimated, {
@@ -77,7 +78,8 @@ export default function StockSearchScreen() {
   const isLoading = isQuerying ? searching : allLoading;
 
   return (
-    <ReAnimated.View style={[{ flex: 1, backgroundColor: c.background, paddingTop: topPad }, animatedStyle]}>
+    <View style={{ flex: 1, backgroundColor: c.background }}>
+    <ReAnimated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: c.background, paddingTop: topPad }, animatedStyle]}>
       {/* Search bar row */}
       <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 24, paddingBottom: 16, gap: 12 }}>
         <TouchableOpacity onPress={handleBack} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
@@ -163,5 +165,6 @@ export default function StockSearchScreen() {
         <View style={{ height: 32 }} />
       </ScrollView>
     </ReAnimated.View>
+    </View>
   );
 }
