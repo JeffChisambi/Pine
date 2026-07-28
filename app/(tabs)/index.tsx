@@ -525,18 +525,6 @@ export default function HomeScreen() {
               }}>
                 {/* Left: text content */}
                 <View style={{ flex: 1 }}>
-                  {/* Badge */}
-                  <View style={{
-                    alignSelf: "flex-start",
-                    backgroundColor: "rgba(69,179,105,0.18)",
-                    borderRadius: 6,
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                    marginBottom: 9,
-                  }}>
-                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 10, color: GREEN, letterSpacing: 1.4 }}>EDUCATION</Text>
-                  </View>
-
                   {/* Heading */}
                   <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 19, color: WHITE, lineHeight: 25, marginBottom: 3 }}>
                     Master the Markets
@@ -581,7 +569,7 @@ export default function HomeScreen() {
                 {/* Right: contained square photo */}
                 <Image
                   source={require("../../attached_assets/image_da53edb6-914b-41d1-bc8b-dfe23a6d2164_1785280173516.png")}
-                  style={{ width: 138, height: 138, borderRadius: 14 }}
+                  style={{ width: 155, height: 155, borderRadius: 14 }}
                   resizeMode="cover"
                 />
               </View>
