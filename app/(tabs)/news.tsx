@@ -2,21 +2,25 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Platform,
   Image,
+  StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path, Line } from "react-native-svg";
+import Svg, { Path, Circle } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 
-// ─── Static tokens ─────────────────────────────────────────────────────────────
+// ─── Brand tokens ───────────────────────────────────────────────────────────────
 const TEAL  = "#164951";
 const GREEN = "#45B369";
+const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
+const MUTED2 = "#6B7280";
+const RED   = "#EF4770";
 
+// ─── Types ──────────────────────────────────────────────────────────────────────
 type Metric = { label: string; value: string; up?: boolean };
 type NewsItem = {
   id: string;
@@ -48,12 +52,12 @@ const NEWS_ITEMS: NewsItem[] = [
       "Looking to 2026, the Bank projects domestic economic growth of 3.8% with inflation averaging 24%. Management remains committed to its 2024–2026 strategic objectives, leveraging digital capabilities and an extensive distribution network to deliver sustained stakeholder value.",
     ],
     metrics: [
-      { label: "Profit After Tax", value: "MWK 148bn", up: true },
-      { label: "PAT Growth",       value: "+100%",     up: true },
-      { label: "Total Revenue",    value: "MWK 333bn", up: true },
-      { label: "Revenue Growth",   value: "+71%",      up: true },
-      { label: "Total Assets",     value: "MWK 1.6tn", up: true },
-      { label: "Customer Deposits",value: "MWK 1.1tn", up: true },
+      { label: "Profit After Tax",  value: "MWK 148bn",  up: true },
+      { label: "PAT Growth",        value: "+100%",       up: true },
+      { label: "Total Revenue",     value: "MWK 333bn",  up: true },
+      { label: "Revenue Growth",    value: "+71%",        up: true },
+      { label: "Total Assets",      value: "MWK 1.6tn",  up: true },
+      { label: "Customer Deposits", value: "MWK 1.1tn",  up: true },
     ],
     time: "30 Mar 2026",
     source: "FDH Bank Plc",
@@ -95,11 +99,11 @@ const NEWS_ITEMS: NewsItem[] = [
       "The Company's total expenses rose to MWK 1.677 billion (2024: MWK 584.4 million), primarily reflecting fund management fees and operating costs in line with the growth in assets under management. Basic and diluted earnings per share reached 1,497.25 tambala (2024: 220.44 tambala).",
     ],
     metrics: [
-      { label: "Profit After Tax", value: "MWK 202bn",  up: true },
-      { label: "PAT Growth",       value: "+579%",       up: true },
-      { label: "Total Assets",     value: "MWK 276.7bn", up: true },
-      { label: "MSE Return",       value: "247.63%",     up: true },
-      { label: "Fair Value Gains", value: "MWK 201.9bn", up: true },
+      { label: "Profit After Tax", value: "MWK 202bn",   up: true },
+      { label: "PAT Growth",       value: "+579%",        up: true },
+      { label: "Total Assets",     value: "MWK 276.7bn",  up: true },
+      { label: "MSE Return",       value: "247.63%",      up: true },
+      { label: "Fair Value Gains", value: "MWK 201.9bn",  up: true },
       { label: "EPS",              value: "K14.97",       up: true },
     ],
     time: "31 Mar 2026",
@@ -189,7 +193,7 @@ const NEWS_ITEMS: NewsItem[] = [
       { label: "Dividend Growth",       value: "+100%",          up: true },
       { label: "Proposed Final Div",    value: "MWK 8.05/sh",   up: true },
       { label: "Total Payout",          value: "MWK 41.8bn",     up: true },
-      { label: "Ex-Div Date",           value: "8 Apr 2026"  },
+      { label: "Ex-Div Date",           value: "8 Apr 2026" },
       { label: "Payment Date",          value: "20 Apr 2026" },
     ],
     time: "2 Apr 2026",
@@ -198,89 +202,94 @@ const NEWS_ITEMS: NewsItem[] = [
   },
 ];
 
+// ─── Helper ─────────────────────────────────────────────────────────────────────
 function imgSrc(image: any) {
   return typeof image === "string" ? { uri: image } : image;
 }
 
-function ArrowIcon() {
+// ─── Icons ──────────────────────────────────────────────────────────────────────
+function SearchIcon({ color }: { color: string }) {
   return (
-    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-      <Path d="M5 12h14M13 6l6 6-6 6" stroke={TEAL} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
+        stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"
+      />
+      <Path d="M21 21L16.65 16.65" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
-function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void }) {
-  const insets = useSafeAreaInsets();
-  const c = useColors();
-  const RED_ERR = "#EF4770";
-
+function ChevronRightIcon() {
   return (
-    <View style={[StyleSheet.absoluteFillObject, { zIndex: 999, backgroundColor: c.background, paddingTop: Platform.OS === "ios" ? insets.top : 0 }]}>
-        <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 12, paddingHorizontal: 20, paddingBottom: 8 }}>
-          <TouchableOpacity onPress={onClose} style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" }} activeOpacity={0.7}>
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path d="M15 18l-6-6 6-6" stroke={c.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-            </Svg>
-          </TouchableOpacity>
-        </View>
+    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+      <Path d="M9 18l6-6-6-6" stroke={GREEN} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          <View style={{ paddingHorizontal: 20 }}>
-            <Image source={imgSrc(item.image)} style={{ width: "100%", height: 240, backgroundColor: c.card, borderRadius: 4 }} resizeMode="cover" />
-          </View>
+function BackIcon({ color }: { color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path d="M15 18l-6-6 6-6" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
 
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, marginTop: 18 }}>
-            <View style={[{ paddingHorizontal: 10, paddingVertical: 3, borderRadius: 6 }, { backgroundColor: GREEN + "22" }]}>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: GREEN }}>{item.category}</Text>
-            </View>
-            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{item.time}</Text>
-            <Text style={{ color: MUTED, fontSize: 12 }}>·</Text>
-            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: c.text }}>{item.source}</Text>
-          </View>
-
-          <Text style={{ fontFamily: "PlusJakartaSans_300Light", fontSize: 20, color: c.text, lineHeight: 30, paddingHorizontal: 20, marginTop: 12 }}>{item.title}</Text>
-          <View style={{ height: 1, backgroundColor: c.border, marginHorizontal: 20, marginVertical: 20 }} />
-
-          {item.metrics && item.metrics.length > 0 && (
-            <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: c.text, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>Key Metrics</Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                {item.metrics.map((m, i) => (
-                  <View key={i} style={{ backgroundColor: c.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, minWidth: "45%", flex: 1 }}>
-                    <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginBottom: 4 }}>{m.label}</Text>
-                    <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: m.up !== undefined ? (m.up ? GREEN : RED_ERR) : c.text }}>{m.value}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          <View style={{ paddingHorizontal: 20, gap: 14 }}>
-            {item.body.map((para, i) => (
-              <Text key={i} style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.text, lineHeight: 23 }}>{para}</Text>
-            ))}
-          </View>
-          <View style={{ height: 40 }} />
-        </ScrollView>
+// ─── Category badge ─────────────────────────────────────────────────────────────
+function CategoryBadge({ label }: { label: string }) {
+  return (
+    <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: GREEN + "22", alignSelf: "flex-start" }}>
+      <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: GREEN }}>{label}</Text>
     </View>
   );
 }
 
-function HeroCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c: ReturnType<typeof useColors> }) {
+// ─── Featured card ──────────────────────────────────────────────────────────────
+function FeaturedCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c: ReturnType<typeof useColors> }) {
   return (
-    <TouchableOpacity activeOpacity={0.88} style={{ paddingHorizontal: 20 }} onPress={onPress}>
-      <Image source={imgSrc(item.image)} style={{ width: "100%", height: 220, borderRadius: 4, backgroundColor: c.card }} resizeMode="cover" />
-      <View style={{ marginTop: 14, gap: 6 }}>
-        <Text style={{ fontFamily: "PlusJakartaSans_300Light", fontSize: 20, color: c.text, lineHeight: 29 }} numberOfLines={3}>{item.title}</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
+    <TouchableOpacity
+      activeOpacity={0.88}
+      onPress={onPress}
+      style={{
+        marginHorizontal: 20,
+        borderRadius: 20,
+        backgroundColor: c.card,
+        borderWidth: 1,
+        borderColor: c.border,
+        overflow: "hidden",
+        marginBottom: 12,
+      }}
+    >
+      {/* Cover image — clipped by card's overflow: hidden */}
+      <Image
+        source={imgSrc(item.image)}
+        style={{ width: "100%", height: 192, backgroundColor: c.border }}
+        resizeMode="cover"
+      />
+
+      {/* Content */}
+      <View style={{ padding: 16, gap: 10 }}>
+        {/* Meta row */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <CategoryBadge label={item.category} />
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{item.time}</Text>
-          <View style={{ width: 1, height: 11, backgroundColor: c.border }} />
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: GREEN }}>{item.category}</Text>
-          <View style={{ flex: 1 }} />
+        </View>
+
+        {/* Title */}
+        <Text
+          style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: c.text, lineHeight: 24 }}
+          numberOfLines={3}
+        >
+          {item.title}
+        </Text>
+
+        {/* Footer */}
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{item.source}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: GREEN }}>Read more</Text>
-            <ArrowIcon />
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: GREEN }}>Read more</Text>
+            <ChevronRightIcon />
           </View>
         </View>
       </View>
@@ -288,22 +297,171 @@ function HeroCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c
   );
 }
 
-function ThumbCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c: ReturnType<typeof useColors> }) {
+// ─── News card (list row) ───────────────────────────────────────────────────────
+function NewsCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c: ReturnType<typeof useColors> }) {
   return (
-    <TouchableOpacity activeOpacity={0.82} style={{ flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 20, gap: 14 }} onPress={onPress}>
-      <Image source={imgSrc(item.image)} style={{ width: 90, height: 90, borderRadius: 4, backgroundColor: c.card, flexShrink: 0 }} resizeMode="cover" />
-      <View style={{ flex: 1, gap: 4 }}>
-        <Text style={{ fontFamily: "PlusJakartaSans_300Light", fontSize: 14, color: c.text, lineHeight: 21 }} numberOfLines={2}>{item.title}</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{item.time}</Text>
-          <View style={{ width: 1, height: 11, backgroundColor: c.border }} />
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: GREEN }}>{item.category}</Text>
+    <TouchableOpacity
+      activeOpacity={0.82}
+      onPress={onPress}
+      style={{
+        flexDirection: "row",
+        alignItems: "flex-start",
+        marginHorizontal: 20,
+        marginBottom: 10,
+        borderRadius: 16,
+        backgroundColor: c.card,
+        borderWidth: 1,
+        borderColor: c.border,
+        padding: 14,
+        gap: 14,
+      }}
+    >
+      {/* Thumbnail */}
+      <Image
+        source={imgSrc(item.image)}
+        style={{ width: 76, height: 76, borderRadius: 12, backgroundColor: c.border, flexShrink: 0 }}
+        resizeMode="cover"
+      />
+
+      {/* Content */}
+      <View style={{ flex: 1, gap: 6 }}>
+        <CategoryBadge label={item.category} />
+        <Text
+          style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: c.text, lineHeight: 19 }}
+          numberOfLines={2}
+        >
+          {item.title}
+        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED }}>{item.time}</Text>
+          <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: MUTED }} />
+          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED2 }} numberOfLines={1}>
+            {item.source}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 }
 
+// ─── Detail modal ───────────────────────────────────────────────────────────────
+function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void }) {
+  const insets = useSafeAreaInsets();
+  const c = useColors();
+
+  return (
+    <View
+      style={[
+        StyleSheet.absoluteFillObject,
+        { zIndex: 999, backgroundColor: c.background, paddingTop: Platform.OS === "ios" ? insets.top : 0 },
+      ]}
+    >
+      {/* Back header */}
+      <View style={{
+        flexDirection: "row",
+        alignItems: "center",
+        paddingTop: 12,
+        paddingHorizontal: 20,
+        paddingBottom: 12,
+        gap: 14,
+      }}>
+        <TouchableOpacity
+          onPress={onClose}
+          activeOpacity={0.7}
+          style={{
+            width: 36, height: 36, borderRadius: 18,
+            backgroundColor: c.card,
+            borderWidth: 1, borderColor: c.border,
+            alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <BackIcon color={c.text} />
+        </TouchableOpacity>
+        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: c.text, flex: 1 }} numberOfLines={1}>
+          Article
+        </Text>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
+        {/* Hero image */}
+        <View style={{ paddingHorizontal: 20 }}>
+          <Image
+            source={imgSrc(item.image)}
+            style={{ width: "100%", height: 220, borderRadius: 16, backgroundColor: c.card }}
+            resizeMode="cover"
+          />
+        </View>
+
+        {/* Meta */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, marginTop: 18, flexWrap: "wrap" }}>
+          <CategoryBadge label={item.category} />
+          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{item.time}</Text>
+          <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: MUTED }} />
+          <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: c.text }}>{item.source}</Text>
+        </View>
+
+        {/* Title */}
+        <Text style={{
+          fontFamily: "PlusJakartaSans_700Bold",
+          fontSize: 20, color: c.text, lineHeight: 30,
+          paddingHorizontal: 20, marginTop: 14,
+        }}>
+          {item.title}
+        </Text>
+
+        {/* Divider */}
+        <View style={{ height: 1, backgroundColor: c.border, marginHorizontal: 20, marginVertical: 20 }} />
+
+        {/* Key Metrics */}
+        {item.metrics && item.metrics.length > 0 && (
+          <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
+            <Text style={{
+              fontFamily: "PlusJakartaSans_700Bold", fontSize: 12,
+              color: MUTED, marginBottom: 12,
+              textTransform: "uppercase", letterSpacing: 0.8,
+            }}>
+              Key Metrics
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+              {item.metrics.map((m, i) => (
+                <View key={i} style={{
+                  backgroundColor: c.card,
+                  borderRadius: 14, borderWidth: 1, borderColor: c.border,
+                  paddingHorizontal: 14, paddingVertical: 12,
+                  minWidth: "45%", flex: 1,
+                }}>
+                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginBottom: 5 }}>
+                    {m.label}
+                  </Text>
+                  <Text style={{
+                    fontFamily: "PlusJakartaSans_700Bold", fontSize: 15,
+                    color: m.up !== undefined ? (m.up ? GREEN : RED) : c.text,
+                  }}>
+                    {m.value}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Body paragraphs */}
+        <View style={{ paddingHorizontal: 20, gap: 14 }}>
+          {item.body.map((para, i) => (
+            <Text key={i} style={{
+              fontFamily: "PlusJakartaSans_400Regular",
+              fontSize: 14, color: c.text, lineHeight: 23,
+            }}>
+              {para}
+            </Text>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+// ─── Screen ─────────────────────────────────────────────────────────────────────
 export default function NewsScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
@@ -311,24 +469,38 @@ export default function NewsScreen() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [selected, setSelected] = useState<NewsItem | null>(null);
 
-  const filtered = activeCategory === "All" ? NEWS_ITEMS : NEWS_ITEMS.filter((n) => n.category === activeCategory);
-  const hero = filtered[0];
+  const filtered = activeCategory === "All"
+    ? NEWS_ITEMS
+    : NEWS_ITEMS.filter((n) => n.category === activeCategory);
+
+  const featured = filtered[0];
   const rest = filtered.slice(1);
 
   return (
-    <View style={[{ flex: 1, backgroundColor: c.background }, { paddingTop: topPad }]}>
+    <View style={{ flex: 1, backgroundColor: c.background }}>
       {selected && <DetailModal item={selected} onClose={() => setSelected(null)} />}
 
-      {/* Header */}
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 14 }}>
-        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 24, color: c.text }}>Market News</Text>
-        <TouchableOpacity activeOpacity={0.7} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.card, alignItems: "center", justifyContent: "center" }}>
-          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-            <Path d="M12.02 2.91C8.71 2.91 6.02 5.6 6.02 8.91V11.8C6.02 12.41 5.76 13.34 5.45 13.86L4.3 15.77C3.59 16.95 4.08 18.26 5.38 18.7C9.69 20.14 14.34 20.14 18.65 18.7C19.86 18.3 20.39 16.87 19.73 15.77L18.58 13.86C18.28 13.34 18.02 12.41 18.02 11.8V8.91C18.02 5.61 15.32 2.91 12.02 2.91Z" stroke={c.text} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" />
-            <Path d="M13.87 3.2C13.56 3.11 13.24 3.04 12.91 3C11.95 2.88 11.03 2.95 10.17 3.2C10.46 2.46 11.18 1.94 12.02 1.94C12.86 1.94 13.58 2.46 13.87 3.2Z" stroke={c.text} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
-            <Path d="M15.02 19.06C15.02 20.71 13.67 22.06 12.02 22.06C11.2 22.06 10.44 21.72 9.9 21.18C9.36 20.64 9.02 19.88 9.02 19.06" stroke={c.text} strokeWidth={1.5} strokeMiterlimit={10} />
-          </Svg>
-        </TouchableOpacity>
+      {/* Header — matches Market screen pattern exactly */}
+      <View style={{
+        paddingTop: topPad,
+        paddingHorizontal: 20,
+        paddingBottom: 16,
+      }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 24, color: c.text }}>
+            Market News
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={{
+              width: 40, height: 40, borderRadius: 20,
+              backgroundColor: c.card,
+              alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <SearchIcon color={c.text} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Category pills */}
@@ -336,13 +508,14 @@ export default function NewsScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 8, paddingVertical: 2 }}
-        style={{ flexGrow: 0, flexShrink: 0, marginBottom: 10 }}
+        style={{ flexGrow: 0, flexShrink: 0, marginBottom: 16 }}
       >
         {CATEGORIES.map((cat) => {
           const active = cat === activeCategory;
           return (
             <TouchableOpacity
-              key={cat} activeOpacity={0.75}
+              key={cat}
+              activeOpacity={0.75}
               onPress={() => setActiveCategory(cat)}
               style={[
                 { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 20, borderWidth: 1 },
@@ -351,12 +524,10 @@ export default function NewsScreen() {
                   : { backgroundColor: c.card, borderColor: c.border },
               ]}
             >
-              <Text
-                style={[
-                  { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, lineHeight: 18 },
-                  active ? { color: "#FFFFFF" } : { color: c.text },
-                ]}
-              >
+              <Text style={[
+                { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, lineHeight: 18 },
+                active ? { color: WHITE } : { color: c.text },
+              ]}>
                 {cat}
               </Text>
             </TouchableOpacity>
@@ -364,17 +535,38 @@ export default function NewsScreen() {
         })}
       </ScrollView>
 
-      {/* News list */}
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-        {hero && <HeroCard item={hero} onPress={() => setSelected(hero)} c={c} />}
-        {rest.length > 0 && <View style={{ height: 1, backgroundColor: c.border, marginVertical: 20, marginHorizontal: 20 }} />}
-        {rest.map((item, i) => (
-          <React.Fragment key={item.id}>
-            <ThumbCard item={item} onPress={() => setSelected(item)} c={c} />
-            {i < rest.length - 1 && <View style={{ height: 1, backgroundColor: c.border, marginVertical: 16, marginHorizontal: 20 }} />}
-          </React.Fragment>
-        ))}
-        <View style={{ height: 24 }} />
+      {/* News feed */}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+        {featured && (
+          <FeaturedCard item={featured} onPress={() => setSelected(featured)} c={c} />
+        )}
+
+        {rest.length > 0 && (
+          <>
+            {/* "Latest" section header — matches Market section header pattern */}
+            <View style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: 20,
+              marginTop: 8,
+              marginBottom: 12,
+            }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>
+                Latest
+              </Text>
+            </View>
+
+            {rest.map((item) => (
+              <NewsCard
+                key={item.id}
+                item={item}
+                onPress={() => setSelected(item)}
+                c={c}
+              />
+            ))}
+          </>
+        )}
       </ScrollView>
     </View>
   );
