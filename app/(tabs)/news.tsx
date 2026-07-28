@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,16 @@ import {
   Platform,
   Image,
   StyleSheet,
+  useWindowDimensions,
 } from "react-native";
+import ReAnimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  runOnJS,
+  Easing,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
@@ -348,12 +357,31 @@ function NewsCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c
 function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void }) {
   const insets = useSafeAreaInsets();
   const c = useColors();
+  const { width } = useWindowDimensions();
+
+  const translateX = useSharedValue(width);
+
+  useEffect(() => {
+    translateX.value = withSpring(0, { damping: 22, stiffness: 220, mass: 0.8 });
+  }, []);
+
+  const handleClose = () => {
+    translateX.value = withTiming(width, {
+      duration: 260,
+      easing: Easing.in(Easing.cubic),
+    }, () => runOnJS(onClose)());
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
 
   return (
-    <View
+    <ReAnimated.View
       style={[
         StyleSheet.absoluteFillObject,
         { zIndex: 999, backgroundColor: c.background, paddingTop: Platform.OS === "ios" ? insets.top : 0 },
+        animatedStyle,
       ]}
     >
       {/* Back header */}
@@ -366,7 +394,7 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
         gap: 14,
       }}>
         <TouchableOpacity
-          onPress={onClose}
+          onPress={handleClose}
           activeOpacity={0.7}
           style={{ width: 36, height: 36, alignItems: "center", justifyContent: "center" }}
         >
@@ -419,7 +447,7 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
           ))}
         </View>
       </ScrollView>
-    </View>
+    </ReAnimated.View>
   );
 }
 
