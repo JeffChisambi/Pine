@@ -155,7 +155,7 @@ export default function ProfileScreen() {
   const [fingerprintEnabled, setFingerprintEnabled] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userPhone, setUserPhone] = useState<string | null>(null);
-  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [kycStatus, setKycStatus] = useState<string>("NOT_SUBMITTED");
   const { data: walletBalanceData } = useWalletBalance();
   const walletBalance = Number(
     walletBalanceData?.availableBalance || walletBalanceData?.balance || 0,
@@ -166,7 +166,7 @@ export default function ProfileScreen() {
     if (user) {
       setUserName(`${user.firstName} ${user.lastName}`);
       setUserPhone(user.phone);
-      setIsVerified(user.kycStatus === "APPROVED");
+      setKycStatus(user.kycStatus ?? "NOT_SUBMITTED");
     }
   }, [user]);
 
@@ -349,13 +349,27 @@ export default function ProfileScreen() {
             <View style={styles.profileTextBlock}>
               <Text style={styles.profileName}>{userName ?? "—"}</Text>
               <Text style={styles.profilePhone}>{userPhone ?? "—"}</Text>
-              {!isVerified && (
+              {kycStatus === "NOT_SUBMITTED" && (
                 <TouchableOpacity
                   style={styles.unverifiedChip}
                   onPress={() => router.push("/kyc/upload-id" as any)}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.unverifiedText}>⚠ Verify Now</Text>
+                </TouchableOpacity>
+              )}
+              {kycStatus === "PENDING" && (
+                <View style={[styles.unverifiedChip, { backgroundColor: "#EFF6FF", borderColor: "#93C5FD" }]}>
+                  <Text style={[styles.unverifiedText, { color: "#1E40AF" }]}>⏳ Under Review</Text>
+                </View>
+              )}
+              {kycStatus === "REJECTED" && (
+                <TouchableOpacity
+                  style={[styles.unverifiedChip, { backgroundColor: "#FEF2F2", borderColor: "#FCA5A5" }]}
+                  onPress={() => router.push("/kyc/upload-id" as any)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.unverifiedText, { color: "#991B1B" }]}>✗ Rejected — Try Again</Text>
                 </TouchableOpacity>
               )}
             </View>
