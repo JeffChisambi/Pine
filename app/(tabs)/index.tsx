@@ -581,7 +581,7 @@ export default function HomeScreen() {
                 {/* Right: contained square photo */}
                 <Image
                   source={require("../../attached_assets/image_da53edb6-914b-41d1-bc8b-dfe23a6d2164_1785280173516.png")}
-                  style={{ width: 118, height: 118, borderRadius: 14 }}
+                  style={{ width: 138, height: 138, borderRadius: 14 }}
                   resizeMode="cover"
                 />
               </View>
