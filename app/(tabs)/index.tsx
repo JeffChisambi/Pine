@@ -526,7 +526,7 @@ export default function HomeScreen() {
                 {/* Left: text content */}
                 <View style={{ flex: 1 }}>
                   {/* Heading */}
-                  <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 19, color: WHITE, lineHeight: 25, marginBottom: 3 }}>
+                  <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 19, color: WHITE, lineHeight: 25, marginBottom: 3 }}>
                     Master the Markets
                   </Text>
                   <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 16, marginBottom: 12 }}>
