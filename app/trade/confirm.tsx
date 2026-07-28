@@ -13,27 +13,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path } from "react-native-svg";
-import { tradingApi, paymentsApi, ApiError } from "../../services/api";
+import { tradingApi, ApiError } from "../../services/api";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 
-const PAYCHANGU_LOGO = require("../../assets/images/paychangu-logo.png");
-const BANK_CARD_LOGO  = require("../../assets/images/bankcard.png");
-
 const TEAL  = "#164951";
-const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
-
-function PaychanguIcon() {
-  return (
-    <Image
-      source={PAYCHANGU_LOGO}
-      style={{ width: 36, height: 36, borderRadius: 8 }}
-      resizeMode="contain"
-    />
-  );
-}
 
 function Row({ label, value, valueColor, bold }: {
   label: string; value: string; valueColor?: string; bold?: boolean;
@@ -57,7 +43,6 @@ export default function ConfirmScreen() {
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const c = useColors();
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"paychangu" | "bankcard">("paychangu");
 
   const params = useLocalSearchParams<{
     stockId?: string; symbol?: string; name?: string;
@@ -78,26 +63,19 @@ export default function ConfirmScreen() {
     `MWK ${n.toLocaleString("en-MW", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const handleConfirmOrder = async () => {
-    if (!params.stockId) return;
+    if (!params.stockId || symbol === "—") return;
     setLoading(true);
     try {
+      // Generate a unique idempotency key to prevent duplicate orders on retry
+      const idempotencyKey = `${params.stockId}-${Date.now()}`;
       if (isBuy) {
-        const session = await paymentsApi.initiate({
-          amount: Math.ceil(total),
-          currency: "MWK",
-          purpose: "BUY_SHARES",
-          stockSymbol: symbol,
-          quantity,
-        });
-        if (!session.checkoutUrl) throw new Error("Payment gateway did not return a checkout URL.");
-        router.push({
-          pathname: "/trade/payment-webview" as any,
-          params: { checkoutUrl: session.checkoutUrl, txRef: session.txRef, symbol, amount: String(Math.ceil(total)), purpose: "BUY_SHARES" },
-        });
+        // Submit buy order — funds will be deducted from the wallet
+        // once the broker confirms execution in the Kusata dashboard.
+        await tradingApi.buy({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey });
       } else {
-        await tradingApi.sell({ stockId: params.stockId, quantity, orderType: "MARKET", pinToken: "skip" });
-        router.push("/trade/success" as any);
+        await tradingApi.sell({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey });
       }
+      router.push("/trade/success" as any);
     } catch (err) {
       Alert.alert("Trade Error", err instanceof ApiError ? err.message : "Trade failed. Please try again.");
     } finally {
@@ -133,11 +111,12 @@ export default function ConfirmScreen() {
             <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: c.text, marginBottom: 3 }}>{symbol}</Text>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED }}>{stockName}</Text>
           </View>
-
         </View>
 
-        {/* Single order summary card */}
+        {/* Order summary card */}
         <View style={{ backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 4, marginBottom: 20 }}>
+          <Row label="Order Type" value={isBuy ? "Buy" : "Sell"} valueColor={isBuy ? "#16A34A" : "#DC2626"} />
+          <Divider />
           <Row label="Quantity" value={`${quantity} share${quantity !== 1 ? "s" : ""}`} />
           <Divider />
           <Row label="Price per Share" value={fmt(priceRaw)} />
@@ -147,79 +126,26 @@ export default function ConfirmScreen() {
           <Row label="Total" value={fmt(total)} bold />
         </View>
 
-        {/* Payment method */}
+        {/* Wallet deduction notice for buy orders */}
         {isBuy && (
-          <>
-            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, marginBottom: 10 }}>Payment Method</Text>
-
-            {/* Paychangu */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setPaymentMethod("paychangu")}
-              style={{
-                flexDirection: "row", alignItems: "center",
-                backgroundColor: c.card, borderRadius: 14,
-                borderWidth: paymentMethod === "paychangu" ? 2 : 1,
-                borderColor: paymentMethod === "paychangu" ? TEAL : c.border,
-                paddingHorizontal: 16, paddingVertical: 14, marginBottom: 10, gap: 12,
-              }}
-            >
-              <PaychanguIcon />
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, marginBottom: 2 }}>Paychangu</Text>
-                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>Mobile money & card payments</Text>
-              </View>
-              <View style={{
-                width: 20, height: 20, borderRadius: 10,
-                borderWidth: 2,
-                borderColor: paymentMethod === "paychangu" ? TEAL : MUTED,
-                backgroundColor: paymentMethod === "paychangu" ? TEAL : "transparent",
-                alignItems: "center", justifyContent: "center",
-              }}>
-                {paymentMethod === "paychangu" && (
-                  <Svg width={10} height={10} viewBox="0 0 10 10" fill="none">
-                    <Path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-                  </Svg>
-                )}
-              </View>
-            </TouchableOpacity>
-
-            {/* Bank Card */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setPaymentMethod("bankcard")}
-              style={{
-                flexDirection: "row", alignItems: "center",
-                backgroundColor: c.card, borderRadius: 14,
-                borderWidth: paymentMethod === "bankcard" ? 2 : 1,
-                borderColor: paymentMethod === "bankcard" ? TEAL : c.border,
-                paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20, gap: 12,
-              }}
-            >
-              <Image source={BANK_CARD_LOGO} style={{ width: 36, height: 36, borderRadius: 8 }} resizeMode="contain" />
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, marginBottom: 2 }}>Bank Card</Text>
-                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>Visa, Mastercard & local debit cards</Text>
-              </View>
-              <View style={{
-                width: 20, height: 20, borderRadius: 10,
-                borderWidth: 2,
-                borderColor: paymentMethod === "bankcard" ? TEAL : MUTED,
-                backgroundColor: paymentMethod === "bankcard" ? TEAL : "transparent",
-                alignItems: "center", justifyContent: "center",
-              }}>
-                {paymentMethod === "bankcard" && (
-                  <Svg width={10} height={10} viewBox="0 0 10 10" fill="none">
-                    <Path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-                  </Svg>
-                )}
-              </View>
-            </TouchableOpacity>
-          </>
+          <View style={{
+            backgroundColor: c.card, borderRadius: 14,
+            borderWidth: 1, borderColor: c.border,
+            paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20,
+            flexDirection: "row", alignItems: "center", gap: 10,
+          }}>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+              <Path d="M21 12a2 2 0 00-2-2h-2a2 2 0 000 4h2a2 2 0 002-2z" stroke={TEAL} strokeWidth={1.5} />
+              <Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2v-1M3 7a2 2 0 012-2h12a2 2 0 012 2v1M3 7h16" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" />
+            </Svg>
+            <Text style={{ flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, lineHeight: 18 }}>
+              Funds will be deducted from your wallet once the broker confirms your order has been executed.
+            </Text>
+          </View>
         )}
 
         <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, textAlign: "center", lineHeight: 18 }}>
-          By confirming, you agree to execute this order at market price.{"\n"}Orders are typically filled within seconds during market hours.
+          By confirming, you agree to submit this order for broker execution.{"\n"}Your broker will review and execute the order during market hours.
         </Text>
       </ScrollView>
 

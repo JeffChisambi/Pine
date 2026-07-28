@@ -31,6 +31,15 @@ function resolveBaseUrl(): string {
 
 export const API_BASE_URL = resolveBaseUrl();
 
+// In production builds, refuse to communicate over plain HTTP.
+// The http:// fallbacks above are only reachable in dev (EXPO_PUBLIC_API_URL unset).
+if (!__DEV__ && !API_BASE_URL.startsWith('https://')) {
+  throw new Error(
+    'API_BASE_URL must use HTTPS in production. ' +
+    'Set EXPO_PUBLIC_API_URL to an https:// URL in your EAS Build environment.',
+  );
+}
+
 // ─── Error class ──────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {
@@ -348,29 +357,27 @@ export interface TradeOrder {
 
 export const tradingApi = {
   buy: (data: {
-    stockId: string;
+    stockSymbol: string;
     quantity: number;
-    orderType?: string;
+    orderType: 'MARKET' | 'LIMIT';
     limitPrice?: number;
-    pinToken: string;
+    idempotencyKey?: string;
   }): Promise<TradeOrder> =>
     request<TradeOrder>('/trading/buy', {
       method: 'POST',
       body: JSON.stringify(data),
-      headers: { 'x-pin-token': data.pinToken },
     }),
 
   sell: (data: {
-    stockId: string;
+    stockSymbol: string;
     quantity: number;
-    orderType?: string;
+    orderType: 'MARKET' | 'LIMIT';
     limitPrice?: number;
-    pinToken: string;
+    idempotencyKey?: string;
   }): Promise<TradeOrder> =>
     request<TradeOrder>('/trading/sell', {
       method: 'POST',
       body: JSON.stringify(data),
-      headers: { 'x-pin-token': data.pinToken },
     }),
 
   getOrders: (status?: string): Promise<{ orders: TradeOrder[]; count: number }> =>
