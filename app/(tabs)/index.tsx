@@ -515,31 +515,38 @@ export default function HomeScreen() {
                 backgroundColor: "#0D3540",
               }}
             >
-              <View style={{ flexDirection: "row", minHeight: 200 }}>
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 18,
+                paddingLeft: 20,
+                paddingRight: 16,
+                gap: 16,
+              }}>
                 {/* Left: text content */}
-                <View style={{ flex: 1, paddingTop: 22, paddingBottom: 22, paddingLeft: 22, paddingRight: 12, justifyContent: "space-between" }}>
+                <View style={{ flex: 1 }}>
                   {/* Badge */}
-                  <View>
-                    <View style={{
-                      alignSelf: "flex-start",
-                      backgroundColor: "rgba(69,179,105,0.18)",
-                      borderRadius: 6,
-                      paddingHorizontal: 8,
-                      paddingVertical: 3,
-                      marginBottom: 10,
-                    }}>
-                      <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 10, color: GREEN, letterSpacing: 1.4 }}>EDUCATION</Text>
-                    </View>
-                    <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 21, color: WHITE, lineHeight: 27, marginBottom: 5 }}>
-                      Master the{"\n"}Markets
-                    </Text>
-                    <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "rgba(255,255,255,0.48)", lineHeight: 17 }}>
-                      Structured learning for{"\n"}smarter investing
-                    </Text>
+                  <View style={{
+                    alignSelf: "flex-start",
+                    backgroundColor: "rgba(69,179,105,0.18)",
+                    borderRadius: 6,
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    marginBottom: 9,
+                  }}>
+                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 10, color: GREEN, letterSpacing: 1.4 }}>EDUCATION</Text>
                   </View>
 
+                  {/* Heading */}
+                  <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 19, color: WHITE, lineHeight: 25, marginBottom: 3 }}>
+                    Master the Markets
+                  </Text>
+                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 16, marginBottom: 12 }}>
+                    Structured courses for every level
+                  </Text>
+
                   {/* Topics */}
-                  <View style={{ gap: 6, marginTop: 14, marginBottom: 18 }}>
+                  <View style={{ gap: 5, marginBottom: 14 }}>
                     {[
                       "Market Fundamentals",
                       "Portfolio Strategy",
@@ -548,7 +555,7 @@ export default function HomeScreen() {
                     ].map((topic) => (
                       <View key={topic} style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
                         <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: GREEN }} />
-                        <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{topic}</Text>
+                        <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11.5, color: "rgba(255,255,255,0.7)" }}>{topic}</Text>
                       </View>
                     ))}
                   </View>
@@ -558,35 +565,25 @@ export default function HomeScreen() {
                     flexDirection: "row",
                     alignItems: "center",
                     alignSelf: "flex-start",
-                    gap: 6,
+                    gap: 5,
                     backgroundColor: GREEN,
-                    borderRadius: 10,
-                    paddingHorizontal: 14,
-                    paddingVertical: 9,
+                    borderRadius: 9,
+                    paddingHorizontal: 12,
+                    paddingVertical: 7,
                   }}>
-                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE }}>Start Learning</Text>
-                    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE }}>Start Learning</Text>
+                    <Svg width={11} height={11} viewBox="0 0 24 24" fill="none">
                       <Path d="M5 12h14M12 5l7 7-7 7" stroke={WHITE} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
                   </View>
                 </View>
 
-                {/* Right: photo */}
-                <View style={{ width: 138, overflow: "hidden" }}>
-                  <Image
-                    source={require("../../attached_assets/image_da53edb6-914b-41d1-bc8b-dfe23a6d2164_1785280173516.png")}
-                    style={{ width: 138, height: "100%" }}
-                    resizeMode="cover"
-                  />
-                  {/* Fade edge so photo blends into the dark background */}
-                  <LinearGradient
-                    colors={["#0D3540", "transparent"]}
-                    start={{ x: 0, y: 0.5 }}
-                    end={{ x: 1, y: 0.5 }}
-                    style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 44 }}
-                    pointerEvents="none"
-                  />
-                </View>
+                {/* Right: contained square photo */}
+                <Image
+                  source={require("../../attached_assets/image_da53edb6-914b-41d1-bc8b-dfe23a6d2164_1785280173516.png")}
+                  style={{ width: 118, height: 118, borderRadius: 14 }}
+                  resizeMode="cover"
+                />
               </View>
             </TouchableOpacity>
           </View>
