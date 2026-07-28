@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Platform,
   ScrollView,
@@ -7,203 +7,72 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { SvgXml } from "react-native-svg";
-import Svg, { Circle, Path } from "react-native-svg";
-
-import { EDUCATION_ICON_SVG } from "@/constants/EducationIconSvg";
+import Svg, { Path } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 import { guardedBack } from "@/utils/navigation";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
-const MUTED = "#9CA3AF";
 const WHITE = "#FFFFFF";
 
 type Colors = ReturnType<typeof useColors>;
 
-type LearningPath = {
-  id: string;
-  label: string;
-  title: string;
-  description: string;
-  lessons: string;
-  Icon: React.ComponentType<{ color: string }>;
-};
-
-type Topic = {
-  category: string;
-  title: string;
-  description: string;
-  Icon: React.ComponentType<{ color: string }>;
-};
-
 function BackIcon({ color }: { color: string }) {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M15 19l-7-7 7-7"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <Path d="M15 19l-7-7 7-7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
-function BookIcon({ color }: { color: string }) {
+function PlayIcon() {
   return (
-    <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"
-        stroke={color}
-        strokeWidth={1.7}
-        strokeLinejoin="round"
-      />
-      <Path d="M4 5.5v16M8 7h8M8 11h8" stroke={color} strokeWidth={1.7} strokeLinecap="round" />
+    <Svg width={13} height={13} viewBox="0 0 24 24">
+      <Path d="M6 4l14 8-14 8V4z" fill={GREEN} />
     </Svg>
   );
 }
 
-function ChartIcon({ color }: { color: string }) {
+function LockIcon({ color }: { color: string }) {
   return (
-    <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 19.5V4.5M4 19.5h16" stroke={color} strokeWidth={1.7} strokeLinecap="round" />
-      <Path
-        d="m7 15 3.2-3.4 2.8 2.1L18 8.5"
-        stroke={color}
-        strokeWidth={1.7}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path d="M15.5 8.5H18v2.5" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
+    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+      <Path d="M8 11V7a4 4 0 0 1 8 0v4" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Path d="M5 11h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z" stroke={color} strokeWidth={1.8} />
     </Svg>
   );
 }
 
-function ShieldIcon({ color }: { color: string }) {
-  return (
-    <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M12 2.75 20 6.5v5.1c0 4.5-3.15 8.65-8 9.65-4.85-1-8-5.15-8-9.65V6.5l8-3.75Z"
-        stroke={color}
-        strokeWidth={1.7}
-        strokeLinejoin="round"
-      />
-      <Path d="m8.5 12 2.2 2.2 4.8-5" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function WalletIcon({ color }: { color: string }) {
-  return (
-    <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M4 6.5A2.5 2.5 0 0 1 6.5 4H19a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.5A2.5 2.5 0 0 1 4 17.5v-11Z"
-        stroke={color}
-        strokeWidth={1.7}
-      />
-      <Path d="M4 7h14.5A2.5 2.5 0 0 1 21 9.5v5H16a2.5 2.5 0 0 1 0-5h5" stroke={color} strokeWidth={1.7} strokeLinejoin="round" />
-      <Circle cx={16} cy={12} r={0.8} fill={color} />
-    </Svg>
-  );
-}
-
-const LEARNING_PATHS: LearningPath[] = [
-  {
-    id: "foundations",
-    label: "START HERE",
-    title: "Investment foundations",
-    description: "Learn the essentials before you make your first move.",
-    lessons: "4 lessons · 12 min",
-    Icon: BookIcon,
-  },
-  {
-    id: "portfolio",
-    label: "BUILD SKILL",
-    title: "Build your portfolio",
-    description: "Turn your goals into a balanced investment plan.",
-    lessons: "5 lessons · 18 min",
-    Icon: ChartIcon,
-  },
-  {
-    id: "risk",
-    label: "INVEST SMART",
-    title: "Manage risk with confidence",
-    description: "Understand volatility and make decisions that fit you.",
-    lessons: "3 lessons · 10 min",
-    Icon: ShieldIcon,
-  },
+const LESSONS = [
+  { number: 1, title: "What Is a Stock?",                duration: "3 min", unlocked: true  },
+  { number: 2, title: "How the Stock Exchange Works",    duration: "4 min", unlocked: false },
+  { number: 3, title: "Reading Stock Prices",            duration: "3 min", unlocked: false },
+  { number: 4, title: "Market Indices Explained",        duration: "5 min", unlocked: false },
+  { number: 5, title: "Buy, Sell & Hold",                duration: "4 min", unlocked: false },
+  { number: 6, title: "Building Your First Portfolio",   duration: "6 min", unlocked: false },
 ];
 
-const TOPICS: Topic[] = [
-  {
-    category: "BASICS",
-    title: "How shares work",
-    description: "The simple guide to owning a piece of a company.",
-    Icon: ChartIcon,
-  },
-  {
-    category: "PLANNING",
-    title: "Set an investing goal",
-    description: "Match your investments to the life you are building.",
-    Icon: WalletIcon,
-  },
-  {
-    category: "RISK",
-    title: "Diversification explained",
-    description: "Why spreading your money can help smooth the ride.",
-    Icon: ShieldIcon,
-  },
+const STATS = [
+  { label: "Lessons",  value: "6"        },
+  { label: "Duration", value: "25 min"   },
+  { label: "Level",    value: "Beginner" },
 ];
-
-function SectionHeading({
-  eyebrow,
-  title,
-  c,
-}: {
-  eyebrow: string;
-  title: string;
-  c: Colors;
-}) {
-  return (
-    <View style={{ marginBottom: 14 }}>
-      <Text
-        style={{
-          fontFamily: "PlusJakartaSans_600SemiBold",
-          fontSize: 11,
-          letterSpacing: 1.1,
-          color: GREEN,
-          marginBottom: 5,
-        }}
-      >
-        {eyebrow}
-      </Text>
-      <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 21, color: c.text }}>
-        {title}
-      </Text>
-    </View>
-  );
-}
 
 export default function EducationScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
   const c = useColors();
-  const [selectedPath, setSelectedPath] = useState(LEARNING_PATHS[0].id);
-  const selected = LEARNING_PATHS.find((path) => path.id === selectedPath) ?? LEARNING_PATHS[0];
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
-      <View
-        style={{
-          paddingTop: topPad + 8,
-          paddingHorizontal: 20,
-          paddingBottom: 10,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
+
+      {/* ── Nav header ── */}
+      <View style={{
+        paddingTop: topPad + 8,
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: c.background,
+      }}>
         <TouchableOpacity
           onPress={() => guardedBack("/(tabs)")}
           activeOpacity={0.7}
@@ -222,220 +91,175 @@ export default function EducationScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 48 }}
       >
-        <View
-          style={{
-            backgroundColor: TEAL,
-            borderRadius: 20,
-            minHeight: 208,
-            padding: 22,
-            overflow: "hidden",
-            marginBottom: 30,
-          }}
-        >
-          <View style={{ width: "63%", zIndex: 1 }}>
-            <Text
-              style={{
-                fontFamily: "PlusJakartaSans_600SemiBold",
-                fontSize: 11,
-                letterSpacing: 1.1,
-                color: "rgba(255,255,255,0.66)",
-                marginBottom: 9,
-              }}
-            >
-              PINE EDUCATION
-            </Text>
-            <Text
-              style={{
-                fontFamily: "PlusJakartaSans_700Bold",
-                fontSize: 24,
-                lineHeight: 31,
-                color: WHITE,
-                marginBottom: 9,
-              }}
-            >
-              Invest with{"\n"}more confidence.
-            </Text>
-            <Text
-              style={{
-                fontFamily: "PlusJakartaSans_400Regular",
-                fontSize: 12,
-                lineHeight: 18,
-                color: "rgba(255,255,255,0.72)",
-              }}
-            >
-              Clear, practical lessons to help you make informed decisions.
-            </Text>
-          </View>
-          <View
-            style={{
-              position: "absolute",
-              right: -4,
-              bottom: 0,
-              opacity: 0.98,
-            }}
-          >
-            <SvgXml xml={EDUCATION_ICON_SVG} width={164} height={120} />
-          </View>
-          <View
-            style={{
-              position: "absolute",
-              width: 190,
-              height: 190,
-              borderRadius: 95,
-              borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.18)",
-              right: -82,
-              top: -68,
-            }}
-          />
-        </View>
 
-        <SectionHeading eyebrow="YOUR NEXT STEP" title="Choose a learning path" c={c} />
-        <View
-          style={{
-            backgroundColor: c.card,
-            borderRadius: 16,
-            borderWidth: 1,
-            borderColor: c.border,
-            padding: 16,
-            marginBottom: 12,
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
-              backgroundColor: `${GREEN}22`,
-              alignItems: "center",
-              justifyContent: "center",
-              marginRight: 13,
-            }}
-          >
-            <selected.Icon color={GREEN} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text }}>
-              Continue with {selected.title}
+        {/* ── Hero card ── */}
+        <View style={{
+          backgroundColor: "#0D3540",
+          borderRadius: 20,
+          padding: 24,
+          marginBottom: 28,
+        }}>
+          {/* Badge */}
+          <View style={{
+            alignSelf: "flex-start",
+            backgroundColor: "rgba(69,179,105,0.18)",
+            borderRadius: 6,
+            paddingHorizontal: 9,
+            paddingVertical: 4,
+            marginBottom: 14,
+          }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 10, color: GREEN, letterSpacing: 1.4 }}>
+              FUNDAMENTALS COURSE
             </Text>
-            <Text
-              style={{
-                fontFamily: "PlusJakartaSans_400Regular",
-                fontSize: 12,
-                color: c.mutedForeground,
-                marginTop: 4,
-              }}
-            >
-              {selected.lessons}
-            </Text>
-            <View style={{ height: 5, backgroundColor: c.secondary, borderRadius: 3, marginTop: 11, overflow: "hidden" }}>
-              <View style={{ width: "28%", height: "100%", backgroundColor: GREEN, borderRadius: 3 }} />
-            </View>
           </View>
-        </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 10, paddingBottom: 3 }}
-        >
-          {LEARNING_PATHS.map((path) => {
-            const isSelected = path.id === selectedPath;
-            return (
-              <TouchableOpacity
-                key={path.id}
-                activeOpacity={0.85}
-                onPress={() => setSelectedPath(path.id)}
-                style={{
-                  width: 204,
-                  minHeight: 154,
-                  padding: 15,
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: isSelected ? GREEN : c.border,
-                  backgroundColor: isSelected ? `${GREEN}12` : c.card,
-                }}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 13 }}>
-                  <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: isSelected ? `${GREEN}25` : c.secondary, alignItems: "center", justifyContent: "center" }}>
-                    <path.Icon color={isSelected ? GREEN : c.text} />
-                  </View>
-                  {isSelected && <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: GREEN }} />}
-                </View>
-                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 10, letterSpacing: 0.8, color: GREEN, marginBottom: 5 }}>
-                  {path.label}
-                </Text>
-                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, lineHeight: 19, color: c.text }}>
-                  {path.title}
-                </Text>
-                <Text numberOfLines={2} style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, lineHeight: 16, color: c.mutedForeground, marginTop: 5 }}>
-                  {path.description}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+          {/* Title */}
+          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 26, color: WHITE, lineHeight: 33, marginBottom: 8 }}>
+            Market{"\n"}Fundamentals
+          </Text>
 
-        <View style={{ marginTop: 30 }}>
-          <SectionHeading eyebrow="QUICK READS" title="Build your investing toolkit" c={c} />
-          <View
-            style={{
-              backgroundColor: c.card,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: c.border,
-              overflow: "hidden",
-            }}
-          >
-            {TOPICS.map((topic, index) => (
-              <View
-                key={topic.title}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  padding: 15,
-                  borderBottomWidth: index < TOPICS.length - 1 ? 1 : 0,
-                  borderBottomColor: c.border,
-                }}
-              >
-                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: `${TEAL}18`, alignItems: "center", justifyContent: "center", marginRight: 12 }}>
-                  <topic.Icon color={c.text} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 10, letterSpacing: 0.8, color: GREEN, marginBottom: 4 }}>
-                    {topic.category}
-                  </Text>
-                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text }}>
-                    {topic.title}
-                  </Text>
-                  <Text numberOfLines={1} style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: c.mutedForeground, marginTop: 3 }}>
-                    {topic.description}
-                  </Text>
-                </View>
+          {/* Subtitle */}
+          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.52)", lineHeight: 19, marginBottom: 22 }}>
+            Build a confident foundation before you make your first investment.
+          </Text>
+
+          {/* Stats row */}
+          <View style={{ flexDirection: "row", gap: 24 }}>
+            {STATS.map((stat) => (
+              <View key={stat.label}>
+                <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: WHITE }}>{stat.value}</Text>
+                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.42)", marginTop: 2 }}>{stat.label}</Text>
               </View>
             ))}
           </View>
+
+          {/* Divider */}
+          <View style={{ height: 1, backgroundColor: "rgba(255,255,255,0.08)", marginVertical: 20 }} />
+
+          {/* CTA */}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={{
+              backgroundColor: GREEN,
+              borderRadius: 12,
+              height: 48,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: WHITE }}>
+              Begin Course
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        <View
-          style={{
-            marginTop: 24,
-            padding: 16,
-            borderRadius: 14,
-            backgroundColor: c.secondary,
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
-          <BookIcon color={GREEN} />
-          <Text style={{ flex: 1, marginLeft: 11, fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, lineHeight: 18, color: c.mutedForeground }}>
-            Education is for information only and is not investment advice.
-          </Text>
+        {/* ── Section heading ── */}
+        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text, marginBottom: 4 }}>
+          Lessons
+        </Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: c.mutedForeground, marginBottom: 16 }}>
+          Complete in order to unlock
+        </Text>
+
+        {/* ── Lesson list ── */}
+        <View style={{
+          backgroundColor: c.card,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: c.border,
+          overflow: "hidden",
+        }}>
+          {LESSONS.map((lesson, index) => (
+            <TouchableOpacity
+              key={lesson.number}
+              activeOpacity={lesson.unlocked ? 0.75 : 1}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingHorizontal: 16,
+                paddingVertical: 15,
+                borderBottomWidth: index < LESSONS.length - 1 ? 1 : 0,
+                borderBottomColor: c.border,
+                opacity: lesson.unlocked ? 1 : 0.48,
+              }}
+            >
+              {/* Number badge */}
+              <View style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: lesson.unlocked ? `${GREEN}18` : c.secondary,
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 14,
+                flexShrink: 0,
+              }}>
+                <Text style={{
+                  fontFamily: "PlusJakartaSans_700Bold",
+                  fontSize: 13,
+                  color: lesson.unlocked ? GREEN : c.mutedForeground,
+                }}>
+                  {lesson.number}
+                </Text>
+              </View>
+
+              {/* Title + duration */}
+              <View style={{ flex: 1 }}>
+                <Text style={{
+                  fontFamily: "PlusJakartaSans_600SemiBold",
+                  fontSize: 14,
+                  color: c.text,
+                  lineHeight: 20,
+                }}>
+                  {lesson.title}
+                </Text>
+                <Text style={{
+                  fontFamily: "PlusJakartaSans_400Regular",
+                  fontSize: 12,
+                  color: c.mutedForeground,
+                  marginTop: 2,
+                }}>
+                  {lesson.duration}
+                </Text>
+              </View>
+
+              {/* Status */}
+              {lesson.unlocked ? (
+                <View style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: `${GREEN}18`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}>
+                  <PlayIcon />
+                </View>
+              ) : (
+                <View style={{ flexShrink: 0, width: 32, alignItems: "center" }}>
+                  <LockIcon color={c.mutedForeground} />
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
         </View>
+
+        {/* Disclaimer */}
+        <Text style={{
+          fontFamily: "PlusJakartaSans_400Regular",
+          fontSize: 11,
+          color: c.mutedForeground,
+          lineHeight: 16,
+          marginTop: 20,
+          textAlign: "center",
+          opacity: 0.7,
+        }}>
+          Educational content only · Not investment advice
+        </Text>
+
       </ScrollView>
     </View>
   );
