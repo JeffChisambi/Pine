@@ -368,12 +368,7 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
         <TouchableOpacity
           onPress={onClose}
           activeOpacity={0.7}
-          style={{
-            width: 36, height: 36, borderRadius: 18,
-            backgroundColor: c.card,
-            borderWidth: 1, borderColor: c.border,
-            alignItems: "center", justifyContent: "center",
-          }}
+          style={{ width: 36, height: 36, alignItems: "center", justifyContent: "center" }}
         >
           <BackIcon color={c.text} />
         </TouchableOpacity>
