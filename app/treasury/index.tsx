@@ -35,7 +35,7 @@ function ChevronIcon({ color }: { color: string }) {
 
 const STATUS_CONFIG = {
   open:         { bg: `${GREEN}22`,    text: GREEN,     label: "Open"         },
-  closing_soon: { bg: "#F59E0B22",     text: "#F59E0B", label: "Closing Soon" },
+  closing_soon: { bg: "#F59E0B22",     text: "#F59E0B", label: "Closing"      },
   closed:       { bg: "#EF444422",     text: "#EF4444", label: "Closed"       },
 };
 
