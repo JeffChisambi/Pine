@@ -190,7 +190,7 @@ export default function ProfileScreen() {
   const SETTINGS_GROUP_1 = [
     { icon: <CalendarIcon color={iconColor} />, label: "Personal Data", sub: "Name, address, email", route: "/profile/personal-data" },
     { icon: <SealCheckIcon color={iconColor} />, label: "Identity Verification", sub: "KYC — verify your identity", route: "/kyc/upload-id" },
-    { icon: <LockIcon color={iconColor} />, label: "Security", sub: "Password & PIN", route: null },
+    { icon: <LockIcon color={iconColor} />, label: "Security", sub: "Password & PIN", route: "/profile/security" },
   ];
 
   const SETTINGS_GROUP_2 = [
