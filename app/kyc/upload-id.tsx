@@ -153,11 +153,18 @@ export default function UploadIdScreen() {
   const [frontUploading, setFrontUploading] = useState(false);
   const [backUploading, setBackUploading] = useState(false);
   const [starting, setStarting] = useState(true);
-  const startedRef = useRef(false);
+  const startedForUserRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
+    // Wait until user is resolved — avoids running with a null or stale user.
+    if (!user) return;
+
+    // Only run the init sequence ONCE per user session.
+    // Using the user ID as the key ensures this re-runs if a DIFFERENT user
+    // navigates here after account switching (rather than reusing the stale
+    // applicationId from the previous user's session).
+    if (startedForUserRef.current === user.id) return;
+    startedForUserRef.current = user.id;
 
     (async () => {
       try {
@@ -169,6 +176,8 @@ export default function UploadIdScreen() {
 
         // Guard: if user is already PENDING or APPROVED, don't let them re-enter
         // the upload flow — show the "under review" screen instead.
+        // Read from `user` directly — this is always the current session's user
+        // because auth-context guarantees setUser(null) before setUser(newUser).
         const currentStatus = user.kycStatus ?? "NOT_SUBMITTED";
         if (currentStatus === "PENDING" || currentStatus === "APPROVED") {
           router.replace("/kyc/under-review" as any);
@@ -212,7 +221,8 @@ export default function UploadIdScreen() {
         setStarting(false);
       }
     })();
-  }, []);
+  }, [user]);
+
 
   const pickAndUpload = async (side: "front" | "back") => {
     if (!applicationId) return;

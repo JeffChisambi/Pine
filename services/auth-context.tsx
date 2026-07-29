@@ -1,8 +1,36 @@
 /**
  * AuthContext — provides authentication state and actions to the app.
  * Wraps the entire app to gate authenticated routes.
+ *
+ * SECURITY — Cross-user data isolation:
+ *
+ *   The single most important invariant is:
+ *     No data belonging to User A must ever be visible during User B's session.
+ *
+ *   This is enforced by three mechanisms:
+ *
+ *   1. On app restore (mount): the cached SecureStore profile is only used if
+ *      its `id` matches the JWT `sub` from the stored access token
+ *      (`AuthStore.getSafeProfile()`). A mismatch wipes the stale cache and
+ *      forces a fresh login.
+ *
+ *   2. On login: before writing User B's data, we atomically:
+ *        a. Clear the React Query cache (`queryClient.clear()`)
+ *        b. Null out the user state (`setUser(null)`)
+ *      Then — and only then — write and display User B's profile. This
+ *      eliminates any render window where User A's data is active.
+ *
+ *   3. On logout: same full clear as (2a) + SecureStore wipe. Nothing of
+ *      User A survives to the next session.
  */
-import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthStore } from './auth-store';
 import { authApi, type AuthTokens, type UserProfile, ApiError } from './api';
@@ -13,77 +41,111 @@ interface AuthState {
   isLoading: boolean;
   isLoggedIn: boolean;
   user: UserProfile | null;
-  login: (data: { phone?: string; email?: string; password: string }) => Promise<void>;
-  register: (data: { phone: string; firstName: string; lastName: string; password: string; email?: string }) => Promise<void>;
-  logout: () => Promise<void>;
+  login:         (data: { phone?: string; email?: string; password: string }) => Promise<void>;
+  register:      (data: { phone: string; firstName: string; lastName: string; password: string; email?: string }) => Promise<void>;
+  logout:        () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<UserProfile | null>(null);
+/** Build a UserProfile from the login/register response payload. */
+function buildProfile(user: AuthTokens['user']): UserProfile {
+  return {
+    id:         user.id,
+    phone:      user.phone,
+    email:      user.email,
+    firstName:  user.firstName,
+    lastName:   user.lastName,
+    role:       user.role,
+    kycStatus:  user.kycStatus,
+    hasPinSet:  user.hasPinSet ?? false,
+    avatarUrl:  user.avatarUrl ?? null,
+    isActive:   true,
+    createdAt:  new Date().toISOString(),
+  };
+}
 
-  // Check stored auth on mount
+/**
+ * Wipe every trace of the current user's data from memory and storage.
+ * Called before writing a NEW user's data to guarantee zero cross-user leakage.
+ */
+async function clearAllUserState(setUser: (u: UserProfile | null) => void) {
+  // 1. Synchronously null out React state so no component can render stale data.
+  setUser(null);
+  // 2. Wipe the React Query in-memory cache (wallet balance, portfolio, etc.)
+  queryClient.clear();
+  // 3. Remove the pending deposit record (it belongs to the outgoing user).
+  await clearPendingDeposit();
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [isLoading,  setIsLoading]  = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user,       setUser]       = useState<UserProfile | null>(null);
+
+  // ── App restore ────────────────────────────────────────────────────────────
+  // On mount, check whether a valid, identity-verified session exists.
   useEffect(() => {
     (async () => {
       try {
         const hasToken = await AuthStore.isLoggedIn();
-        if (hasToken) {
-          // Try to load cached profile
-          const cached = await AuthStore.getProfile();
-          if (cached) {
-            setUser(cached as unknown as UserProfile);
-            setIsLoggedIn(true);
-          }
+        if (!hasToken) return; // No token → stay logged out
 
-          // Verify token by fetching fresh profile
-          try {
-            const profile = await authApi.getProfile();
-            setUser(profile);
-            setIsLoggedIn(true);
-            await AuthStore.saveProfile(profile as unknown as Record<string, unknown>);
-          } catch (err) {
-            // Token expired and refresh failed
-            if (err instanceof ApiError && err.status === 401) {
-              await AuthStore.clear();
-              setIsLoggedIn(false);
-              setUser(null);
-            }
-            // If it's a network error, keep cached state
+        // Load the cached profile ONLY if its ID matches the JWT sub.
+        // getSafeProfile() wipes stale data and returns null on mismatch.
+        const cached = await AuthStore.getSafeProfile();
+        if (cached) {
+          setUser(cached as unknown as UserProfile);
+          setIsLoggedIn(true);
+        }
+
+        // Always fetch a fresh profile from the server to confirm token validity.
+        try {
+          const profile = await authApi.getProfile();
+          setUser(profile);
+          setIsLoggedIn(true);
+          await AuthStore.saveProfile(profile as unknown as Record<string, unknown>);
+        } catch (err) {
+          // Token expired / invalid → force logout
+          if (err instanceof ApiError && err.status === 401) {
+            await AuthStore.clear();
+            setUser(null);
+            setIsLoggedIn(false);
           }
+          // Network error: keep the safely-loaded cached state above.
         }
       } catch {
-        // Storage error, treat as not logged in
+        // Storage failure → treat as logged out
       } finally {
         setIsLoading(false);
       }
     })();
   }, []);
 
+  // ── handleAuthResponse ─────────────────────────────────────────────────────
+  // Shared by login() and register(). Atomically swaps from any previous user
+  // to the new user — no stale data can flash through between the two states.
   const handleAuthResponse = useCallback(async (result: AuthTokens) => {
+    // STEP 1: Atomically clear all previous user data BEFORE writing new data.
+    //         This is the critical guard against cross-user leakage on login.
+    await clearAllUserState(setUser);
+
+    // STEP 2: Persist the new user's credentials.
     await AuthStore.saveTokens(result.accessToken, result.refreshToken);
-    const profile: UserProfile = {
-      id: result.user.id,
-      phone: result.user.phone,
-      email: result.user.email,
-      firstName: result.user.firstName,
-      lastName: result.user.lastName,
-      role: result.user.role,
-      kycStatus: result.user.kycStatus,
-      hasPinSet: result.user.hasPinSet ?? false,
-      avatarUrl: result.user.avatarUrl ?? null,
-      isActive: true,
-      createdAt: new Date().toISOString(),
-    };
+
+    const profile = buildProfile(result.user);
     await AuthStore.saveProfile(profile as unknown as Record<string, unknown>);
+
+    // STEP 3: Mark onboarding complete.
     await AsyncStorage.setItem('@pine_has_onboarded', 'true');
+
+    // STEP 4: Activate the new user in React state.
     setUser(profile);
     setIsLoggedIn(true);
   }, []);
 
+  // ── login ──────────────────────────────────────────────────────────────────
   const login = useCallback(async (data: { phone?: string; email?: string; password: string }) => {
     console.log('[Auth] login called with:', { phone: data.phone, email: data.email });
     const result = await authApi.login(data);
@@ -92,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('[Auth] handleAuthResponse complete, isLoggedIn should be true');
   }, [handleAuthResponse]);
 
+  // ── register ───────────────────────────────────────────────────────────────
   const register = useCallback(async (data: {
     phone: string; firstName: string; lastName: string; password: string; email?: string;
   }) => {
@@ -99,29 +162,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await handleAuthResponse(result);
   }, [handleAuthResponse]);
 
+  // ── logout ─────────────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
     } catch {
-      // Best effort — clear local state regardless
+      // Best effort — clear local state regardless of API response.
     }
-    // Clear all user-specific cached data so the next user on this device
-    // never sees a previous user's wallet balance, portfolio, or watchlist.
-    queryClient.clear();
-    // Clear any pending deposit that belongs to the outgoing user.
-    await clearPendingDeposit();
+
+    // Wipe everything: React state, query cache, pending deposit, secure storage.
+    await clearAllUserState(setUser);
     await AuthStore.clear();
-    setUser(null);
     setIsLoggedIn(false);
   }, []);
 
+  // ── refreshProfile ─────────────────────────────────────────────────────────
+  // Called by screens that need to sync KYC status, name, etc. from the server.
+  // Validates that the returned profile still belongs to the current user.
   const refreshProfile = useCallback(async () => {
     try {
       const profile = await authApi.getProfile();
-      setUser(profile);
+
+      // Guard: the refresh should only update state if the user hasn't changed
+      // in the meantime (e.g., logout racing with a pending refresh call).
+      setUser((current) => {
+        if (!current) return null; // Already logged out — discard the response.
+        if (current.id !== profile.id) {
+          // The profile response is for a DIFFERENT user — this should never
+          // happen in normal operation, but if it does (stale request), we
+          // must not apply it.
+          console.error(
+            '[Auth] refreshProfile: server returned profile for a different user. Discarding.',
+            { currentId: current.id, responseId: profile.id },
+          );
+          return current;
+        }
+        return profile;
+      });
+
       await AuthStore.saveProfile(profile as unknown as Record<string, unknown>);
     } catch {
-      // Silently fail
+      // Silently fail — current user state is unaffected.
     }
   }, []);
 

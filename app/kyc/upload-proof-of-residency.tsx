@@ -2,11 +2,14 @@
  * Upload Proof of Residency screen.
  *
  * Final step before KYC processing is triggered.
- * Accepts: JPEG, PNG, or PDF (utility bill / bank statement / tax document).
- * Size limit: 8 MB (enforced client-side; backend enforces 10 MB).
+ * Accepts: JPEG or PNG photo of a utility bill / bank statement / tax doc.
+ * Size limit: 8 MB (enforced client-side).
  * Single document only — prevents multi-upload abuse.
  *
- * Flow: upload-id → upload-id-selfie → selfie-camera → HERE → verify-success
+ * NOTE: PDF support requires a custom dev client rebuild (expo-document-picker).
+ * Until then, instruct users to photograph their document.
+ *
+ * Flow: upload-id → selfie-camera → HERE → verify-success
  */
 import { guardedBack } from "@/utils/navigation";
 import React, { useState } from "react";
@@ -24,7 +27,6 @@ import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import * as DocumentPicker from "expo-document-picker";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 import { kycApi } from "../../services/api";
@@ -51,15 +53,12 @@ function UploadIcon({ color }: { color: string }) {
   );
 }
 
-function PdfIcon() {
+function CameraIcon({ color }: { color: string }) {
   return (
-    <Svg width={36} height={36} viewBox="0 0 36 36" fill="none">
-      <Rect x={4} y={2} width={22} height={30} rx={3} fill="#FEE2E2" />
-      <Rect x={4} y={2} width={22} height={30} rx={3} stroke="#EF4444" strokeWidth={1.5} />
-      <Path d="M10 14h10M10 19h7" stroke="#EF4444" strokeWidth={1.5} strokeLinecap="round" />
-      <Rect x={16} y={1} width={10} height={10} rx={2} fill="#EF4444" />
-      <Path d="M18 5h6M18 8h4" stroke="#fff" strokeWidth={1.2} strokeLinecap="round" />
-      <Path d="M10 24h4" stroke="#EF4444" strokeWidth={1.5} strokeLinecap="round" />
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+        stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx={12} cy={13} r={4} stroke={color} strokeWidth={1.8} />
     </Svg>
   );
 }
@@ -88,8 +87,6 @@ export default function UploadProofOfResidencyScreen() {
 
   const [fileUri, setFileUri] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
-  const [fileMime, setFileMime] = useState<string>("image/jpeg");
-  const [isPdf, setIsPdf] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [uploaded, setUploaded] = useState(false);
@@ -97,41 +94,36 @@ export default function UploadProofOfResidencyScreen() {
 
   const canContinue = uploaded && !uploading && !processing;
 
-  /** Pick an image (JPEG / PNG) from gallery */
-  const pickImage = async () => {
+  const pickFromGallery = async () => {
     if (uploading || processing) return;
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       quality: 0.85,
       allowsEditing: false,
     });
-
     if (result.canceled || !result.assets[0]) return;
-
     const asset = result.assets[0];
+    // Check file size if available
+    if (asset.fileSize && asset.fileSize > MAX_SIZE_BYTES) {
+      Alert.alert("File Too Large", "Image must be smaller than 8 MB. Please compress it and try again.");
+      return;
+    }
     await doUpload(asset.uri, asset.fileName ?? "address_doc.jpg", "image/jpeg");
   };
 
-  /** Pick a PDF from the document picker */
-  const pickPdf = async () => {
+  const pickFromCamera = async () => {
     if (uploading || processing) return;
-
-    const result = await DocumentPicker.getDocumentAsync({
-      type: "application/pdf",
-      copyToCacheDirectory: true,
-      multiple: false,
-    });
-
-    if (result.canceled || !result.assets?.[0]) return;
-
-    const asset = result.assets[0];
-    if (asset.size && asset.size > MAX_SIZE_BYTES) {
-      Alert.alert("File Too Large", "PDF must be smaller than 8 MB. Please compress it and try again.");
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission needed", "Camera access is required to photograph your document.");
       return;
     }
-
-    await doUpload(asset.uri, asset.name ?? "address_doc.pdf", "application/pdf");
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.85,
+      allowsEditing: false,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    await doUpload(result.assets[0].uri, "address_doc_camera.jpg", "image/jpeg");
   };
 
   const doUpload = async (uri: string, name: string, mime: string) => {
@@ -143,8 +135,6 @@ export default function UploadProofOfResidencyScreen() {
 
     setFileUri(uri);
     setFileName(name);
-    setFileMime(mime);
-    setIsPdf(mime === "application/pdf");
     setUploaded(false);
     setUploading(true);
 
@@ -180,14 +170,14 @@ export default function UploadProofOfResidencyScreen() {
   };
 
   const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: c.background },
-    header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
-    backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
-    headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text },
-    scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 40, gap: 20 },
-    descBlock: { gap: 8, alignItems: "center" },
-    descTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text, textAlign: "center" },
-    descSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, lineHeight: 22, textAlign: "center" },
+    root:           { flex: 1, backgroundColor: c.background },
+    header:         { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 16 },
+    backBtn:        { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
+    headerTitle:    { fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text },
+    scroll:         { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 40, gap: 20 },
+    descBlock:      { gap: 8, alignItems: "center" },
+    descTitle:      { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text, textAlign: "center" },
+    descSub:        { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, lineHeight: 22, textAlign: "center" },
     uploadSlot: {
       backgroundColor: c.card,
       borderRadius: 12,
@@ -202,20 +192,45 @@ export default function UploadProofOfResidencyScreen() {
     },
     uploadSlotDone: { borderColor: GREEN, backgroundColor: "#F0FDF4", borderStyle: "solid" },
     uploadIconArea: { width: 56, height: 56, borderRadius: 28, backgroundColor: c.border, alignItems: "center", justifyContent: "center" },
-    uploadLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text },
+    uploadLabel:    { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text },
     uploadLabelDone: { color: "#166534" },
-    uploadHint: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: c.mutedForeground },
-    orRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-    orLine: { flex: 1, height: 1, backgroundColor: c.border },
-    orText: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: c.mutedForeground },
-    pdfBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 1.5, borderColor: "#EF4444", borderRadius: 10, paddingVertical: 14, paddingHorizontal: 20 },
-    pdfBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: "#EF4444" },
-    tipBox: { flexDirection: "row", gap: 10, backgroundColor: c.card, borderRadius: 10, padding: 14, alignItems: "flex-start", borderWidth: 1, borderColor: c.border },
+    uploadHint:     { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: c.mutedForeground },
+    orRow:          { flexDirection: "row", alignItems: "center", gap: 10 },
+    orLine:         { flex: 1, height: 1, backgroundColor: c.border },
+    orText:         { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: c.mutedForeground },
+    cameraBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      borderWidth: 1.5,
+      borderColor: TEAL,
+      borderRadius: 10,
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+    },
+    cameraBtnText:  { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: TEAL },
+    tipBox: {
+      flexDirection: "row",
+      gap: 10,
+      backgroundColor: c.card,
+      borderRadius: 10,
+      padding: 14,
+      alignItems: "flex-start",
+      borderWidth: 1,
+      borderColor: c.border,
+    },
     tipText: { flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: TEAL, lineHeight: 20 },
-    footer: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: c.background, borderTopWidth: 1, borderTopColor: c.border },
-    continueBtn: { backgroundColor: TEAL, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
+    footer: {
+      paddingHorizontal: 24,
+      paddingTop: 12,
+      backgroundColor: c.background,
+      borderTopWidth: 1,
+      borderTopColor: c.border,
+    },
+    continueBtn:         { backgroundColor: TEAL, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
     continueBtnDisabled: { backgroundColor: "#A0B8BC" },
-    continueBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
+    continueBtnText:     { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
   });
 
   return (
@@ -234,54 +249,49 @@ export default function UploadProofOfResidencyScreen() {
         <View style={styles.descBlock}>
           <Text style={styles.descTitle}>Address Verification</Text>
           <Text style={styles.descSub}>
-            Upload a recent utility bill (water or electricity), bank statement, or tax document showing your full name and residential address.
+            Upload or photograph a recent utility bill (water or electricity), bank statement, or tax document showing your full name and address.
           </Text>
         </View>
 
-        {/* Image upload slot */}
+        {/* Gallery upload slot */}
         <TouchableOpacity
           style={[styles.uploadSlot, uploaded && styles.uploadSlotDone]}
-          onPress={pickImage}
+          onPress={pickFromGallery}
           activeOpacity={0.8}
           disabled={uploading || processing}
         >
           {uploading ? (
             <ActivityIndicator size="large" color={TEAL} />
-          ) : fileUri && uploaded && !isPdf ? (
+          ) : fileUri && uploaded ? (
             <Image source={{ uri: fileUri }} style={{ width: "90%", height: 110, borderRadius: 8 }} contentFit="cover" />
-          ) : fileUri && uploaded && isPdf ? (
-            <PdfIcon />
           ) : (
             <View style={styles.uploadIconArea}>
               <UploadIcon color={c.mutedForeground} />
             </View>
           )}
           <Text style={[styles.uploadLabel, uploaded && styles.uploadLabelDone]}>
-            {uploading ? "Uploading…" : uploaded ? `✓ ${fileName ?? "Document uploaded"}` : "Upload Image"}
+            {uploading ? "Uploading…" : uploaded ? `✓ ${fileName ?? "Document uploaded"}` : "Choose from Gallery"}
           </Text>
           <Text style={styles.uploadHint}>
             {uploading ? "Please wait" : uploaded ? "Tap to replace" : "JPG or PNG • Max 8 MB"}
           </Text>
         </TouchableOpacity>
 
-        {/* OR divider + PDF button */}
+        {/* OR camera option */}
         <View style={styles.orRow}>
           <View style={styles.orLine} />
-          <Text style={styles.orText}>or upload a PDF</Text>
+          <Text style={styles.orText}>or take a photo</Text>
           <View style={styles.orLine} />
         </View>
 
         <TouchableOpacity
-          style={styles.pdfBtn}
-          onPress={pickPdf}
+          style={styles.cameraBtn}
+          onPress={pickFromCamera}
           disabled={uploading || processing}
           activeOpacity={0.8}
         >
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-            <Rect x={3} y={2} width={14} height={19} rx={2} stroke="#EF4444" strokeWidth={1.8} />
-            <Path d="M7 8h6M7 12h4" stroke="#EF4444" strokeWidth={1.6} strokeLinecap="round" />
-          </Svg>
-          <Text style={styles.pdfBtnText}>Pick PDF Bill • Max 8 MB</Text>
+          <CameraIcon color={TEAL} />
+          <Text style={styles.cameraBtnText}>Open Camera</Text>
         </TouchableOpacity>
 
         <View style={styles.tipBox}>
@@ -290,7 +300,7 @@ export default function UploadProofOfResidencyScreen() {
             <Path d="M8 7v5M8 5v1" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" />
           </Svg>
           <Text style={styles.tipText}>
-            Must be issued within the last 3 months. Ensure your full name and address are clearly visible.
+            Must be issued within the last 3 months. Ensure your full name and address are clearly visible and legible.
           </Text>
         </View>
       </ScrollView>

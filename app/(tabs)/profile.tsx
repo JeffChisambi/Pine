@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -153,24 +153,23 @@ export default function ProfileScreen() {
   // Auth state
   const { user, logout, refreshProfile } = useAuth();
   const [fingerprintEnabled, setFingerprintEnabled] = useState(false);
-  const [userName, setUserName] = useState<string | null>(null);
-  const [userPhone, setUserPhone] = useState<string | null>(null);
-  const [kycStatus, setKycStatus] = useState<string>("NOT_SUBMITTED");
+
+  // Derive display values directly from `user` — no local copy.
+  // This eliminates the race window where useState holds a previous
+  // user's data after account switching.
+  const userName  = user ? `${user.firstName} ${user.lastName}` : null;
+  const userPhone = user?.phone ?? null;
+  const kycStatus = user?.kycStatus ?? "NOT_SUBMITTED";
+
   const { data: walletBalanceData } = useWalletBalance();
   const walletBalance = Number(
     walletBalanceData?.availableBalance || walletBalanceData?.balance || 0,
   );
   const pendingBalance = Number(walletBalanceData?.reservedBalance || 0);
 
-  useEffect(() => {
-    if (user) {
-      setUserName(`${user.firstName} ${user.lastName}`);
-      setUserPhone(user.phone);
-      setKycStatus(user.kycStatus ?? "NOT_SUBMITTED");
-    }
-  }, [user]);
-
-  // Refresh profile (including KYC status) every time the screen is focused
+  // Refresh profile (including KYC status) every time the screen is focused.
+  // Uses the identity-safe refreshProfile() from auth-context which discards
+  // any response whose user ID doesn't match the current session.
   useFocusEffect(
     useCallback(() => {
       refreshProfile();
