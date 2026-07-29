@@ -113,15 +113,11 @@ export default function SelfieCameraScreen() {
       await kycApi.uploadSelfie(applicationId, photo.uri);
       setUploading(false);
 
-      setProcessing(true);
-      const result = await kycApi.process(applicationId);
-
-      // Navigate immediately — verify-success calls refreshProfile() on Done,
-      // which is the right place to sync the KYC status after the user has seen
-      // the result screen.
-      router.replace({
-        pathname: "/kyc/verify-success",
-        params: { decision: result.decision, confidenceScore: String(result.confidenceScore) },
+      // Navigate to proof-of-residence upload — processing happens after
+      // all documents (ID front, ID back, selfie, address doc) are uploaded.
+      router.push({
+        pathname: "/kyc/upload-proof-of-residency",
+        params: { applicationId },
       } as any);
     } catch (err: any) {
       const msg = typeof err?.message === "string" ? err.message : "Something went wrong. Please try again.";
@@ -131,6 +127,7 @@ export default function SelfieCameraScreen() {
       setProcessing(false);
     }
   };
+
 
   if (!permission) {
     return <View style={{ flex: 1, backgroundColor: BG }} />;

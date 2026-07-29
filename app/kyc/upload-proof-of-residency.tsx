@@ -1,19 +1,12 @@
 /**
  * Upload Proof of Residency screen.
  *
- * Allows the user to pick a document from their gallery (utility bill,
- * bank statement, etc.) and upload it.
+ * Final step before KYC processing is triggered.
+ * Accepts: JPEG, PNG, or PDF (utility bill / bank statement / tax document).
+ * Size limit: 8 MB (enforced client-side; backend enforces 10 MB).
+ * Single document only — prevents multi-upload abuse.
  *
- * NOTE — Backend endpoint pending:
- *   There is currently no `/kyc/upload-proof-of-residency` endpoint defined
- *   in the API. The image picker and local state are fully wired up so the UX
- *   is complete; the actual upload call is marked with a TODO and must be
- *   connected once the backend exposes the endpoint.
- *
- *   Required backend change:
- *     POST /kyc/upload-proof-of-residency
- *     Body: multipart/form-data { applicationId: string, file: image/jpeg|pdf }
- *     Response: { documentId: string }
+ * Flow: upload-id → upload-id-selfie → selfie-camera → HERE → verify-success
  */
 import { guardedBack } from "@/utils/navigation";
 import React, { useState } from "react";
@@ -29,14 +22,17 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
+import { kycApi } from "../../services/api";
 
 const TEAL  = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
+const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB
 
 function BackArrow({ color }: { color: string }) {
   return (
@@ -55,7 +51,19 @@ function UploadIcon({ color }: { color: string }) {
   );
 }
 
-// ─── Illustration — untouched ─────────────────────────────────────────────────
+function PdfIcon() {
+  return (
+    <Svg width={36} height={36} viewBox="0 0 36 36" fill="none">
+      <Rect x={4} y={2} width={22} height={30} rx={3} fill="#FEE2E2" />
+      <Rect x={4} y={2} width={22} height={30} rx={3} stroke="#EF4444" strokeWidth={1.5} />
+      <Path d="M10 14h10M10 19h7" stroke="#EF4444" strokeWidth={1.5} strokeLinecap="round" />
+      <Rect x={16} y={1} width={10} height={10} rx={2} fill="#EF4444" />
+      <Path d="M18 5h6M18 8h4" stroke="#fff" strokeWidth={1.2} strokeLinecap="round" />
+      <Path d="M10 24h4" stroke="#EF4444" strokeWidth={1.5} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 function DocIllustration() {
   return (
     <View style={{ alignItems: "center", marginTop: 8, marginBottom: 4 }}>
@@ -76,14 +84,23 @@ function DocIllustration() {
 export default function UploadProofOfResidencyScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const { applicationId } = useLocalSearchParams<{ applicationId: string }>();
+
+  const [fileUri, setFileUri] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileMime, setFileMime] = useState<string>("image/jpeg");
+  const [isPdf, setIsPdf] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const c = useColors();
 
-  const canContinue = uploaded && !uploading;
+  const canContinue = uploaded && !uploading && !processing;
 
-  const pickDocument = async () => {
+  /** Pick an image (JPEG / PNG) from gallery */
+  const pickImage = async () => {
+    if (uploading || processing) return;
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       quality: 0.85,
@@ -93,29 +110,72 @@ export default function UploadProofOfResidencyScreen() {
     if (result.canceled || !result.assets[0]) return;
 
     const asset = result.assets[0];
-    setImageUri(asset.uri);
+    await doUpload(asset.uri, asset.fileName ?? "address_doc.jpg", "image/jpeg");
+  };
+
+  /** Pick a PDF from the document picker */
+  const pickPdf = async () => {
+    if (uploading || processing) return;
+
+    const result = await DocumentPicker.getDocumentAsync({
+      type: "application/pdf",
+      copyToCacheDirectory: true,
+      multiple: false,
+    });
+
+    if (result.canceled || !result.assets?.[0]) return;
+
+    const asset = result.assets[0];
+    if (asset.size && asset.size > MAX_SIZE_BYTES) {
+      Alert.alert("File Too Large", "PDF must be smaller than 8 MB. Please compress it and try again.");
+      return;
+    }
+
+    await doUpload(asset.uri, asset.name ?? "address_doc.pdf", "application/pdf");
+  };
+
+  const doUpload = async (uri: string, name: string, mime: string) => {
+    if (!applicationId) {
+      Alert.alert("Session Error", "Verification session not found. Please start again.");
+      guardedBack("/(tabs)/profile");
+      return;
+    }
+
+    setFileUri(uri);
+    setFileName(name);
+    setFileMime(mime);
+    setIsPdf(mime === "application/pdf");
     setUploaded(false);
     setUploading(true);
 
     try {
-      // TODO: Replace this placeholder with a real API call once the backend
-      // exposes POST /kyc/upload-proof-of-residency.
-      //
-      // Example:
-      //   const formData = new FormData();
-      //   formData.append('applicationId', applicationId);
-      //   formData.append('file', { uri: asset.uri, name: 'proof.jpg', type: 'image/jpeg' } as any);
-      //   await requestFormData('/kyc/upload-proof-of-residency', formData);
-      //
-      // For now we simulate a brief network delay so the loading state is visible.
-      await new Promise((r) => setTimeout(r, 800));
+      await kycApi.uploadProofOfResidence(applicationId, uri, name, mime);
       setUploaded(true);
     } catch (err: any) {
-      setImageUri(null);
+      setFileUri(null);
+      setFileName(null);
       const msg = typeof err?.message === "string" ? err.message : "Could not upload document. Please try again.";
       Alert.alert("Upload Failed", msg);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!canContinue || !applicationId) return;
+
+    setProcessing(true);
+    try {
+      const result = await kycApi.process(applicationId);
+      router.replace({
+        pathname: "/kyc/verify-success",
+        params: { decision: result.decision, confidenceScore: String(result.confidenceScore) },
+      } as any);
+    } catch (err: any) {
+      const msg = typeof err?.message === "string" ? err.message : "Submission failed. Please try again.";
+      Alert.alert("Submission Failed", msg);
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -145,6 +205,11 @@ export default function UploadProofOfResidencyScreen() {
     uploadLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text },
     uploadLabelDone: { color: "#166534" },
     uploadHint: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: c.mutedForeground },
+    orRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+    orLine: { flex: 1, height: 1, backgroundColor: c.border },
+    orText: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: c.mutedForeground },
+    pdfBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 1.5, borderColor: "#EF4444", borderRadius: 10, paddingVertical: 14, paddingHorizontal: 20 },
+    pdfBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: "#EF4444" },
     tipBox: { flexDirection: "row", gap: 10, backgroundColor: c.card, borderRadius: 10, padding: 14, alignItems: "flex-start", borderWidth: 1, borderColor: c.border },
     tipText: { flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: TEAL, lineHeight: 20 },
     footer: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: c.background, borderTopWidth: 1, borderTopColor: c.border },
@@ -156,10 +221,10 @@ export default function UploadProofOfResidencyScreen() {
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => guardedBack("/(tabs)/profile")}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => guardedBack("/kyc/selfie-camera")}>
           <BackArrow color={c.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Proof of Residency</Text>
+        <Text style={styles.headerTitle}>Proof of Address</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -169,31 +234,54 @@ export default function UploadProofOfResidencyScreen() {
         <View style={styles.descBlock}>
           <Text style={styles.descTitle}>Address Verification</Text>
           <Text style={styles.descSub}>
-            Upload a recent utility bill, bank statement, or tax document showing your full name and residential address.
+            Upload a recent utility bill (water or electricity), bank statement, or tax document showing your full name and residential address.
           </Text>
         </View>
 
+        {/* Image upload slot */}
         <TouchableOpacity
           style={[styles.uploadSlot, uploaded && styles.uploadSlotDone]}
-          onPress={pickDocument}
+          onPress={pickImage}
           activeOpacity={0.8}
-          disabled={uploading}
+          disabled={uploading || processing}
         >
           {uploading ? (
             <ActivityIndicator size="large" color={TEAL} />
-          ) : imageUri && uploaded ? (
-            <Image source={{ uri: imageUri }} style={{ width: "90%", height: 100, borderRadius: 8 }} contentFit="cover" />
+          ) : fileUri && uploaded && !isPdf ? (
+            <Image source={{ uri: fileUri }} style={{ width: "90%", height: 110, borderRadius: 8 }} contentFit="cover" />
+          ) : fileUri && uploaded && isPdf ? (
+            <PdfIcon />
           ) : (
             <View style={styles.uploadIconArea}>
               <UploadIcon color={c.mutedForeground} />
             </View>
           )}
           <Text style={[styles.uploadLabel, uploaded && styles.uploadLabelDone]}>
-            {uploading ? "Uploading…" : uploaded ? "✓ Uploaded" : "Upload Document"}
+            {uploading ? "Uploading…" : uploaded ? `✓ ${fileName ?? "Document uploaded"}` : "Upload Image"}
           </Text>
           <Text style={styles.uploadHint}>
-            {uploading ? "Please wait" : uploaded ? "Tap to replace" : "JPG or PNG • Max 5MB"}
+            {uploading ? "Please wait" : uploaded ? "Tap to replace" : "JPG or PNG • Max 8 MB"}
           </Text>
+        </TouchableOpacity>
+
+        {/* OR divider + PDF button */}
+        <View style={styles.orRow}>
+          <View style={styles.orLine} />
+          <Text style={styles.orText}>or upload a PDF</Text>
+          <View style={styles.orLine} />
+        </View>
+
+        <TouchableOpacity
+          style={styles.pdfBtn}
+          onPress={pickPdf}
+          disabled={uploading || processing}
+          activeOpacity={0.8}
+        >
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+            <Rect x={3} y={2} width={14} height={19} rx={2} stroke="#EF4444" strokeWidth={1.8} />
+            <Path d="M7 8h6M7 12h4" stroke="#EF4444" strokeWidth={1.6} strokeLinecap="round" />
+          </Svg>
+          <Text style={styles.pdfBtnText}>Pick PDF Bill • Max 8 MB</Text>
         </TouchableOpacity>
 
         <View style={styles.tipBox}>
@@ -202,7 +290,7 @@ export default function UploadProofOfResidencyScreen() {
             <Path d="M8 7v5M8 5v1" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" />
           </Svg>
           <Text style={styles.tipText}>
-            Must be issued within the last 3 months. Ensure all text is legible.
+            Must be issued within the last 3 months. Ensure your full name and address are clearly visible.
           </Text>
         </View>
       </ScrollView>
@@ -210,12 +298,17 @@ export default function UploadProofOfResidencyScreen() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           style={[styles.continueBtn, !canContinue && styles.continueBtnDisabled]}
-          onPress={() => canContinue && router.push("/kyc/upload-id" as any)}
+          onPress={handleSubmit}
           activeOpacity={canContinue ? 0.88 : 1}
+          disabled={!canContinue}
         >
-          <Text style={styles.continueBtnText}>
-            {canContinue ? "Continue" : "Upload document to continue"}
-          </Text>
+          {processing ? (
+            <ActivityIndicator color={WHITE} />
+          ) : (
+            <Text style={styles.continueBtnText}>
+              {canContinue ? "Submit Verification" : "Upload document to continue"}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

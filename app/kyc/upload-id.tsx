@@ -167,6 +167,14 @@ export default function UploadIdScreen() {
           return;
         }
 
+        // Guard: if user is already PENDING or APPROVED, don't let them re-enter
+        // the upload flow — show the "under review" screen instead.
+        const currentStatus = user.kycStatus ?? "NOT_SUBMITTED";
+        if (currentStatus === "PENDING" || currentStatus === "APPROVED") {
+          router.replace("/kyc/under-review" as any);
+          return;
+        }
+
         // Try to resume an existing pending KYC session before starting a new one.
         // This prevents creating duplicate applications every time the user
         // re-enters the flow.
@@ -175,6 +183,11 @@ export default function UploadIdScreen() {
           const status = await kycApi.getStatus();
           // Reuse the session if it hasn't been fully processed yet
           if (status?.applicationId && !status.canProcess) {
+            // If the API says PENDING/APPROVED, also redirect
+            if (status.status === "PENDING" || status.status === "APPROVED") {
+              router.replace("/kyc/under-review" as any);
+              return;
+            }
             appId = status.applicationId;
           }
         } catch {
@@ -221,8 +234,12 @@ export default function UploadIdScreen() {
     setUploading(true);
 
     try {
-      const fileName = side === "front" ? "id_front.jpg" : "id_back.jpg";
-      await kycApi.uploadId(applicationId, asset.uri, fileName);
+      if (side === "front") {
+        await kycApi.uploadId(applicationId, asset.uri, "id_front.jpg");
+      } else {
+        // Back of ID goes to a separate endpoint → stored as NATIONAL_ID_BACK
+        await kycApi.uploadIdBack(applicationId, asset.uri);
+      }
     } catch (err: any) {
       setUri(null);
       const msg = typeof err?.message === 'string' ? err.message : 'Could not upload image. Please try again.';

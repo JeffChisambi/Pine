@@ -448,6 +448,17 @@ export const kycApi = {
     return requestFormData('/kyc/upload-id', formData);
   },
 
+  uploadIdBack: (applicationId: string, imageUri: string): Promise<{ documentId: string }> => {
+    const formData = new FormData();
+    formData.append('applicationId', applicationId);
+    formData.append('file', {
+      uri: imageUri,
+      name: 'id_back.jpg',
+      type: 'image/jpeg',
+    } as any);
+    return requestFormData('/kyc/upload-id-back', formData);
+  },
+
   uploadSelfie: (applicationId: string, imageUri: string): Promise<{ documentId: string }> => {
     const formData = new FormData();
     formData.append('applicationId', applicationId);
@@ -457,6 +468,27 @@ export const kycApi = {
       type: 'image/jpeg',
     } as any);
     return requestFormData('/kyc/upload-selfie', formData);
+  },
+
+  /**
+   * Upload proof of address (utility bill / bank statement).
+   * Accepts JPEG, PNG or PDF. Max 8 MB enforced on the mobile side;
+   * the backend enforces 10 MB as an additional safety net.
+   */
+  uploadProofOfResidence: (
+    applicationId: string,
+    fileUri: string,
+    fileName: string,
+    mimeType: string,
+  ): Promise<{ documentId: string }> => {
+    const formData = new FormData();
+    formData.append('applicationId', applicationId);
+    formData.append('file', {
+      uri: fileUri,
+      name: fileName,
+      type: mimeType,
+    } as any);
+    return requestFormData('/kyc/upload-proof-of-residency', formData);
   },
 
   process: (applicationId: string): Promise<{ decision: string; confidenceScore: number }> =>
@@ -477,6 +509,7 @@ export const kycApi = {
   }> =>
     request('/kyc/status'),
 };
+
 
 // ─── Stocks API (already existed, kept for backwards compat) ──────────────────
 
