@@ -61,9 +61,10 @@
     "babel-plugin-react-compiler": "^19.0.0-beta-e993439-20250117",
     "typescript": "~5.9.2"
   },
-  "pnpm.overrides": {
-    "tar": "^7.4.3",
-    "postcss": "^8.5.18",
-    "brace-expansion": "^5.0.8"
+  "pnpm": {
+    "overrides": {
+      "postcss": "^8.5.18",
+      "brace-expansion": "^5.0.8"
+    }
   }
 }

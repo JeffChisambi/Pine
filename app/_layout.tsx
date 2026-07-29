@@ -10,7 +10,8 @@ import {
   Lora_400Regular,
   Lora_600SemiBold,
 } from "@expo-google-fonts/lora";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "../services/query-client";
 import { Stack, router, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -42,15 +43,6 @@ if (!isExpoGo) {
   SplashScreen.preventAutoHideAsync().catch(() => {});
 }
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
-      gcTime: 10 * 60 * 1000,
-    },
-  },
-});
 
 /**
  * Route guard — redirects to login if not authenticated,

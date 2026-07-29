@@ -14,12 +14,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { kycApi } from "../../services/api";
-import { useAuth } from "../../services/auth-context";
 import { useColors } from "@/hooks/useColors";
 import { useTheme } from "@/contexts/theme-context";
 
 const TEAL    = "#164951";
-const GREEN   = "#45B369";
 const WHITE   = "#FFFFFF";
 const BRACKET = "#3BA8A0";
 
@@ -80,46 +78,47 @@ function ScanDots({ size }: { size: number }) {
 export default function SelfieCameraScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
-  const { refreshProfile } = useAuth();
   const params = useLocalSearchParams<{ applicationId: string }>();
   const applicationId = params.applicationId;
   const c = useColors();
   const { isDark } = useTheme();
 
-  const BG = c.background;
+  const BG   = c.background;
   const MUTED = c.mutedForeground;
 
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [uploading,  setUploading]  = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [progress,   setProgress]   = useState(0);
 
+  // Guard: applicationId must be present — navigating directly to this screen
+  // without going through upload-id would result in broken API calls.
   useEffect(() => {
-    if (!processing) { setProgress(0); return; }
-    setProgress(0);
-    const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 99) { clearInterval(interval); return 99; }
-        return p + Math.floor(Math.random() * 8) + 2;
-      });
-    }, 180);
-    return () => clearInterval(interval);
-  }, [processing]);
+    if (!applicationId) {
+      Alert.alert(
+        "Session Error",
+        "Verification session not found. Please start the process again.",
+        [{ text: "OK", onPress: () => guardedBack("/(tabs)/profile") }],
+      );
+    }
+  }, [applicationId]);
 
   const handleCapture = async () => {
-    if (!cameraRef.current || uploading || processing) return;
+    if (!cameraRef.current || uploading || processing || !applicationId) return;
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
       if (!photo?.uri) return;
 
       setUploading(true);
-      await kycApi.uploadSelfie(applicationId!, photo.uri);
+      await kycApi.uploadSelfie(applicationId, photo.uri);
       setUploading(false);
 
       setProcessing(true);
-      const result = await kycApi.process(applicationId!);
-      await refreshProfile();
+      const result = await kycApi.process(applicationId);
+
+      // Navigate immediately — verify-success calls refreshProfile() on Done,
+      // which is the right place to sync the KYC status after the user has seen
+      // the result screen.
       router.replace({
         pathname: "/kyc/verify-success",
         params: { decision: result.decision, confidenceScore: String(result.confidenceScore) },
@@ -161,10 +160,9 @@ export default function SelfieCameraScreen() {
     subtitle: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center", lineHeight: 22, marginTop: 28, paddingHorizontal: 40 },
     frameOuter: { flex: 1, alignItems: "center", justifyContent: "center" },
     frame: { borderRadius: 16, overflow: "hidden", position: "relative", alignItems: "center", justifyContent: "center" },
-    busyOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center" },
+    busyOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", gap: 12 },
     statusArea: { height: 64, alignItems: "center", justifyContent: "center", gap: 4 },
-    progressPct: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 28, color: c.text, letterSpacing: -0.5 },
-    progressLabel: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED },
+    statusLabel: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED },
     footer: { alignItems: "center", paddingTop: 8 },
     shutterRing: { width: 72, height: 72, borderRadius: 36, borderWidth: 4, borderColor: TEAL, alignItems: "center", justifyContent: "center" },
     shutterInner: { width: 52, height: 52, borderRadius: 26, backgroundColor: TEAL },
@@ -190,20 +188,22 @@ export default function SelfieCameraScreen() {
           {busy && (
             <View style={styles.busyOverlay}>
               <ActivityIndicator size="large" color={WHITE} />
+              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: WHITE }}>
+                {processing ? "Verifying…" : "Uploading…"}
+              </Text>
             </View>
           )}
         </View>
       </View>
 
+      {/* Status area — shows a plain label while busy, empty otherwise */}
       <View style={styles.statusArea}>
-        {processing ? (
-          <>
-            <Text style={styles.progressPct}>{Math.min(progress, 99)}%</Text>
-            <Text style={styles.progressLabel}>Verifying your face…</Text>
-          </>
-        ) : uploading ? (
-          <Text style={styles.progressLabel}>Uploading…</Text>
-        ) : null}
+        {processing && (
+          <Text style={styles.statusLabel}>Verifying your face…</Text>
+        )}
+        {uploading && !processing && (
+          <Text style={styles.statusLabel}>Uploading…</Text>
+        )}
       </View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 32 }]}>

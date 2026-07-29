@@ -1,2 +1,3 @@
 - [Dark mode implementation](dark-mode.md) — global ThemeContext toggle in Profile screen; all screens except login/signup/onboarding use `useColors()` for dynamic colors.
 - [Imported Expo dependencies](imported-expo-dependencies.md) — this import may lack node_modules; frozen pnpm install has a lockfile override mismatch and non-frozen install can hit the package firewall.
+- [KYC and user-isolation fixes](kyc-and-user-isolation-fixes.md) — queryClient must be cleared on logout; KYC session resumption via getStatus(); proof-of-residency upload endpoint pending on backend.

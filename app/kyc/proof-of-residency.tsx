@@ -159,7 +159,7 @@ export default function ProofOfResidencyScreen() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           style={styles.continueBtn}
-          onPress={() => router.push("/kyc/upload-id" as any)}
+          onPress={() => router.push({ pathname: "/kyc/upload-id", params: { docType: selected } } as any)}
           activeOpacity={0.88}
         >
           <Text style={styles.continueBtnText}>Continue</Text>

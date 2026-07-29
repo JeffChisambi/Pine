@@ -6,6 +6,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback, typ
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthStore } from './auth-store';
 import { authApi, type AuthTokens, type UserProfile, ApiError } from './api';
+import { queryClient } from './query-client';
+import { clearPendingDeposit } from './wallet-queries';
 
 interface AuthState {
   isLoading: boolean;
@@ -103,6 +105,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Best effort — clear local state regardless
     }
+    // Clear all user-specific cached data so the next user on this device
+    // never sees a previous user's wallet balance, portfolio, or watchlist.
+    queryClient.clear();
+    // Clear any pending deposit that belongs to the outgoing user.
+    await clearPendingDeposit();
     await AuthStore.clear();
     setUser(null);
     setIsLoggedIn(false);

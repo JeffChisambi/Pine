@@ -1,3 +1,20 @@
+/**
+ * Upload Proof of Residency screen.
+ *
+ * Allows the user to pick a document from their gallery (utility bill,
+ * bank statement, etc.) and upload it.
+ *
+ * NOTE — Backend endpoint pending:
+ *   There is currently no `/kyc/upload-proof-of-residency` endpoint defined
+ *   in the API. The image picker and local state are fully wired up so the UX
+ *   is complete; the actual upload call is marked with a TODO and must be
+ *   connected once the backend exposes the endpoint.
+ *
+ *   Required backend change:
+ *     POST /kyc/upload-proof-of-residency
+ *     Body: multipart/form-data { applicationId: string, file: image/jpeg|pdf }
+ *     Response: { documentId: string }
+ */
 import { guardedBack } from "@/utils/navigation";
 import React, { useState } from "react";
 import {
@@ -7,13 +24,17 @@ import {
   TouchableOpacity,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
+const TEAL  = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 
@@ -55,10 +76,48 @@ function DocIllustration() {
 export default function UploadProofOfResidencyScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const c = useColors();
 
-  const canContinue = uploaded;
+  const canContinue = uploaded && !uploading;
+
+  const pickDocument = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.85,
+      allowsEditing: false,
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    const asset = result.assets[0];
+    setImageUri(asset.uri);
+    setUploaded(false);
+    setUploading(true);
+
+    try {
+      // TODO: Replace this placeholder with a real API call once the backend
+      // exposes POST /kyc/upload-proof-of-residency.
+      //
+      // Example:
+      //   const formData = new FormData();
+      //   formData.append('applicationId', applicationId);
+      //   formData.append('file', { uri: asset.uri, name: 'proof.jpg', type: 'image/jpeg' } as any);
+      //   await requestFormData('/kyc/upload-proof-of-residency', formData);
+      //
+      // For now we simulate a brief network delay so the loading state is visible.
+      await new Promise((r) => setTimeout(r, 800));
+      setUploaded(true);
+    } catch (err: any) {
+      setImageUri(null);
+      const msg = typeof err?.message === "string" ? err.message : "Could not upload document. Please try again.";
+      Alert.alert("Upload Failed", msg);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: c.background },
@@ -69,8 +128,18 @@ export default function UploadProofOfResidencyScreen() {
     descBlock: { gap: 8, alignItems: "center" },
     descTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text, textAlign: "center" },
     descSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, lineHeight: 22, textAlign: "center" },
-    slotsContainer: { gap: 12 },
-    uploadSlot: { backgroundColor: c.card, borderRadius: 12, borderWidth: 1.5, borderColor: c.border, borderStyle: "dashed", alignItems: "center", justifyContent: "center", paddingVertical: 28, gap: 8 },
+    uploadSlot: {
+      backgroundColor: c.card,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      borderStyle: "dashed",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 28,
+      gap: 8,
+      overflow: "hidden",
+    },
     uploadSlotDone: { borderColor: GREEN, backgroundColor: "#F0FDF4", borderStyle: "solid" },
     uploadIconArea: { width: 56, height: 56, borderRadius: 28, backgroundColor: c.border, alignItems: "center", justifyContent: "center" },
     uploadLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text },
@@ -104,23 +173,28 @@ export default function UploadProofOfResidencyScreen() {
           </Text>
         </View>
 
-        <View style={styles.slotsContainer}>
-          <TouchableOpacity
-            style={[styles.uploadSlot, uploaded && styles.uploadSlotDone]}
-            onPress={() => setUploaded((v) => !v)}
-            activeOpacity={0.8}
-          >
+        <TouchableOpacity
+          style={[styles.uploadSlot, uploaded && styles.uploadSlotDone]}
+          onPress={pickDocument}
+          activeOpacity={0.8}
+          disabled={uploading}
+        >
+          {uploading ? (
+            <ActivityIndicator size="large" color={TEAL} />
+          ) : imageUri && uploaded ? (
+            <Image source={{ uri: imageUri }} style={{ width: "90%", height: 100, borderRadius: 8 }} contentFit="cover" />
+          ) : (
             <View style={styles.uploadIconArea}>
-              <UploadIcon color={uploaded ? GREEN : c.mutedForeground} />
+              <UploadIcon color={c.mutedForeground} />
             </View>
-            <Text style={[styles.uploadLabel, uploaded && styles.uploadLabelDone]}>
-              {uploaded ? "✓ Uploaded" : "Upload Document"}
-            </Text>
-            <Text style={styles.uploadHint}>
-              {uploaded ? "Tap to replace" : "JPG, PNG or PDF • Max 5MB"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+          )}
+          <Text style={[styles.uploadLabel, uploaded && styles.uploadLabelDone]}>
+            {uploading ? "Uploading…" : uploaded ? "✓ Uploaded" : "Upload Document"}
+          </Text>
+          <Text style={styles.uploadHint}>
+            {uploading ? "Please wait" : uploaded ? "Tap to replace" : "JPG or PNG • Max 5MB"}
+          </Text>
+        </TouchableOpacity>
 
         <View style={styles.tipBox}>
           <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
@@ -136,7 +210,7 @@ export default function UploadProofOfResidencyScreen() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           style={[styles.continueBtn, !canContinue && styles.continueBtnDisabled]}
-          onPress={() => canContinue && router.push("/kyc/proof-of-residency" as any)}
+          onPress={() => canContinue && router.push("/kyc/upload-id" as any)}
           activeOpacity={canContinue ? 0.88 : 1}
         >
           <Text style={styles.continueBtnText}>

@@ -12,15 +12,14 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import Svg, { Path, Circle, Rect, G, Defs, ClipPath, Ellipse } from "react-native-svg";
+import Svg, { Path, Circle, Rect, G, Defs, ClipPath } from "react-native-svg";
 import { kycApi } from "../../services/api";
 import { useAuth } from "../../services/auth-context";
 import { useColors } from "@/hooks/useColors";
 
 const TEAL = "#164951";
-const CARD_TEAL = "#2D5B62";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 
@@ -144,6 +143,9 @@ export default function UploadIdScreen() {
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const { user } = useAuth();
   const c = useColors();
+  const params = useLocalSearchParams<{ docType?: string }>();
+  const docType = params.docType ?? "national_id";
+  const isPassport = docType === "passport";
 
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [frontUri, setFrontUri] = useState<string | null>(null);
@@ -164,8 +166,27 @@ export default function UploadIdScreen() {
           guardedBack("/(tabs)/profile");
           return;
         }
-        const result = await kycApi.start();
-        setApplicationId(result.applicationId);
+
+        // Try to resume an existing pending KYC session before starting a new one.
+        // This prevents creating duplicate applications every time the user
+        // re-enters the flow.
+        let appId: string | null = null;
+        try {
+          const status = await kycApi.getStatus();
+          // Reuse the session if it hasn't been fully processed yet
+          if (status?.applicationId && !status.canProcess) {
+            appId = status.applicationId;
+          }
+        } catch {
+          // No existing session or network error — start fresh below
+        }
+
+        if (!appId) {
+          const result = await kycApi.start();
+          appId = result.applicationId;
+        }
+
+        setApplicationId(appId);
       } catch (err: any) {
         console.error('[KYC Start Error]', JSON.stringify(err, null, 2));
         let msg = 'Failed to start verification. Please try again.';
@@ -211,7 +232,10 @@ export default function UploadIdScreen() {
     }
   };
 
-  const canContinue = !!frontUri && !!backUri && !frontUploading && !backUploading;
+  // Passports are a single document — back side is not required
+  const canContinue = isPassport
+    ? !!frontUri && !frontUploading
+    : !!frontUri && !!backUri && !frontUploading && !backUploading;
 
   if (starting) {
     return (
@@ -221,6 +245,12 @@ export default function UploadIdScreen() {
       </View>
     );
   }
+
+  const docLabel = isPassport ? "passport" : "National ID card";
+  const screenTitle = isPassport ? "Upload Passport" : "Upload Photo ID";
+  const description = isPassport
+    ? "Upload a clear photo of your passport's photo page."
+    : "Upload a clear photo of both sides of your National ID card.";
 
   const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: c.background },
@@ -246,7 +276,7 @@ export default function UploadIdScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => guardedBack("/(tabs)/profile")}>
           <BackArrow color={c.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Upload Photo ID</Text>
+        <Text style={styles.headerTitle}>{screenTitle}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -254,15 +284,29 @@ export default function UploadIdScreen() {
         <IdIllustration />
 
         <View style={styles.descBlock}>
-          <Text style={styles.descTitle}>Photo ID Verification</Text>
-          <Text style={styles.descSub}>
-            Upload a clear photo of both sides of your National ID card.
+          <Text style={styles.descTitle}>
+            {isPassport ? "Passport Verification" : "Photo ID Verification"}
           </Text>
+          <Text style={styles.descSub}>{description}</Text>
         </View>
 
         <View style={styles.slotsContainer}>
-          <UploadSlot label="Front of ID" imageUri={frontUri} uploading={frontUploading} onPress={() => pickAndUpload("front")} c={c} />
-          <UploadSlot label="Back of ID" imageUri={backUri} uploading={backUploading} onPress={() => pickAndUpload("back")} c={c} />
+          <UploadSlot
+            label={isPassport ? "Passport Photo Page" : "Front of ID"}
+            imageUri={frontUri}
+            uploading={frontUploading}
+            onPress={() => pickAndUpload("front")}
+            c={c}
+          />
+          {!isPassport && (
+            <UploadSlot
+              label="Back of ID"
+              imageUri={backUri}
+              uploading={backUploading}
+              onPress={() => pickAndUpload("back")}
+              c={c}
+            />
+          )}
         </View>
 
         <View style={styles.tipBox}>
@@ -279,11 +323,21 @@ export default function UploadIdScreen() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           style={[styles.continueBtn, !canContinue && styles.continueBtnDisabled]}
-          onPress={() => canContinue && router.push({ pathname: "/kyc/upload-id-selfie", params: { applicationId } } as any)}
+          onPress={() =>
+            canContinue &&
+            router.push({
+              pathname: "/kyc/upload-id-selfie",
+              params: { applicationId },
+            } as any)
+          }
           activeOpacity={canContinue ? 0.88 : 1}
         >
           <Text style={styles.continueBtnText}>
-            {canContinue ? "Continue" : "Upload both sides to continue"}
+            {canContinue
+              ? "Continue"
+              : isPassport
+              ? "Upload passport to continue"
+              : "Upload both sides to continue"}
           </Text>
         </TouchableOpacity>
       </View>
