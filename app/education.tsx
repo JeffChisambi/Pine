@@ -116,8 +116,8 @@ export default function EducationScreen() {
           </View>
 
           {/* Title */}
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 26, color: WHITE, lineHeight: 33, marginBottom: 8 }}>
-            Market{"\n"}Fundamentals
+          <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 26, color: WHITE, lineHeight: 33, marginBottom: 8 }}>
+            Market Fundamentals
           </Text>
 
           {/* Subtitle */}
