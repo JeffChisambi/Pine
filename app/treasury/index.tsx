@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -9,14 +9,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import Svg, { Path } from "react-native-svg";
-import { guardedBack, guardedPush } from "@/utils/navigation";
+import { guardedBack } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
 import { TBILL_OPTIONS, type TBillOption } from "@/data/treasury";
 
-const TEAL = "#164951";
-const GREEN = "#45B369";
-const WHITE = "#FFFFFF";
-const MUTED = "#9CA3AF";
+const GREEN  = "#45B369";
+const WHITE  = "#FFFFFF";
+const MUTED  = "#9CA3AF";
 
 function BackIcon({ color }: { color: string }) {
   return (
@@ -26,21 +25,22 @@ function BackIcon({ color }: { color: string }) {
   );
 }
 
-function StatusBadge({ status }: { status: TBillOption["status"] }) {
-  const configs = {
-    open: { bg: GREEN + "22", text: GREEN, label: "Open" },
-    closing_soon: { bg: "#F59E0B22", text: "#F59E0B", label: "Closing Soon" },
-    closed: { bg: "#EF444422", text: "#EF4444", label: "Closed" },
-  };
-  const cfg = configs[status];
+function ChevronIcon({ color }: { color: string }) {
   return (
-    <View style={{ backgroundColor: cfg.bg, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 6 }}>
-      <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: cfg.text }}>{cfg.label}</Text>
-    </View>
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path d="M9 5l7 7-7 7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   );
 }
 
+const STATUS_CONFIG = {
+  open:         { bg: `${GREEN}22`,    text: GREEN,     label: "Open"         },
+  closing_soon: { bg: "#F59E0B22",     text: "#F59E0B", label: "Closing Soon" },
+  closed:       { bg: "#EF444422",     text: "#EF4444", label: "Closed"       },
+};
+
 function BillCard({ bill, c }: { bill: TBillOption; c: ReturnType<typeof useColors> }) {
+  const s = STATUS_CONFIG[bill.status];
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -50,31 +50,40 @@ function BillCard({ bill, c }: { bill: TBillOption; c: ReturnType<typeof useColo
         borderRadius: 16,
         borderWidth: 1,
         borderColor: c.border,
-        padding: 18,
-        marginBottom: 14,
+        paddingHorizontal: 18,
+        paddingVertical: 16,
+        marginBottom: 12,
+        flexDirection: "row",
+        alignItems: "center",
       }}
     >
-      {/* Top row */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>{bill.duration} Days</Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, marginTop: 3 }}>Treasury Bill</Text>
-        </View>
-        <StatusBadge status={bill.status} />
+      {/* Left: duration */}
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text, lineHeight: 26 }}>
+          {bill.duration} Days
+        </Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, marginTop: 2 }}>
+          Min MWK {bill.minInvestment.toLocaleString()}
+        </Text>
       </View>
 
-      {/* Stats row */}
-      <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
-        <View style={{ flex: 1, borderRadius: 10, padding: 12 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginBottom: 4 }}>Annual Yield</Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: GREEN }}>{bill.yieldPct}%</Text>
-        </View>
-        <View style={{ flex: 1, borderRadius: 10, padding: 12 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginBottom: 4 }}>Min Investment</Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: c.text }}>MWK {bill.minInvestment.toLocaleString()}</Text>
-        </View>
+      {/* Centre: yield */}
+      <View style={{ alignItems: "flex-end", marginRight: 14 }}>
+        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 22, color: GREEN, lineHeight: 28 }}>
+          {bill.yieldPct}%
+        </Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginTop: 2 }}>
+          Annual yield
+        </Text>
       </View>
 
+      {/* Right: status + chevron */}
+      <View style={{ alignItems: "flex-end", gap: 8 }}>
+        <View style={{ backgroundColor: s.bg, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 6 }}>
+          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: s.text }}>{s.label}</Text>
+        </View>
+        <ChevronIcon color={MUTED} />
+      </View>
     </TouchableOpacity>
   );
 }
@@ -86,43 +95,95 @@ export default function TreasuryLanding() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
-      {/* Header */}
-      <View style={{ backgroundColor: c.background, paddingTop: topPad + 8, paddingBottom: 0, paddingHorizontal: 16 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
-          <TouchableOpacity
-            onPress={() => guardedBack("/(tabs)")}
-            activeOpacity={0.7}
-            style={{ width: 40, height: 40, justifyContent: "center" }}
-          >
-            <BackIcon color={c.text} />
-          </TouchableOpacity>
-          <Text style={{ flex: 1, textAlign: "center", fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Treasury Bills</Text>
-          <View style={{ width: 40 }} />
-        </View>
 
-        {/* Hero section */}
-        <View style={{ paddingHorizontal: 8, paddingBottom: 32 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 26, color: c.text, lineHeight: 34, marginBottom: 8 }}>
-            Grow your money{"\n"}with government securities
-          </Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, lineHeight: 21 }}>
-            Treasury bills are short-term, low-risk investments backed by the Government of Malawi. Earn guaranteed returns on your savings.
+      {/* ── Nav header ── */}
+      <View style={{
+        paddingTop: topPad + 8,
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: c.background,
+      }}>
+        <TouchableOpacity
+          onPress={() => guardedBack("/(tabs)")}
+          activeOpacity={0.7}
+          style={{ width: 40, height: 40, alignItems: "flex-start", justifyContent: "center" }}
+        >
+          <BackIcon color={c.text} />
+        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: "center", paddingRight: 40 }}>
+          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>
+            Treasury Bills
           </Text>
         </View>
-
       </View>
 
-      {/* Body */}
-      <View style={{ flex: 1, backgroundColor: c.background, paddingTop: 12 }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text, marginBottom: 4 }}>Current Opportunities</Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, marginBottom: 20 }}>Select a bill to view details and invest</Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 48 }}
+      >
 
-          {TBILL_OPTIONS.map((bill) => (
-            <BillCard key={bill.id} bill={bill} c={c} />
-          ))}
-        </ScrollView>
-      </View>
+        {/* ── Hero card ── */}
+        <View style={{
+          backgroundColor: "#0D3540",
+          borderRadius: 20,
+          padding: 24,
+          marginBottom: 28,
+        }}>
+          {/* Badge */}
+          <View style={{
+            alignSelf: "flex-start",
+            backgroundColor: "rgba(69,179,105,0.18)",
+            borderRadius: 6,
+            paddingHorizontal: 9,
+            paddingVertical: 4,
+            marginBottom: 14,
+          }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 10, color: GREEN, letterSpacing: 1.4 }}>
+              GOVERNMENT SECURITIES
+            </Text>
+          </View>
+
+          {/* Title */}
+          <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 26, color: WHITE, lineHeight: 33, marginBottom: 8 }}>
+            Treasury Bills
+          </Text>
+
+          {/* Subtitle */}
+          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.52)", lineHeight: 19, marginBottom: 22 }}>
+            Short-term, government-backed investments with guaranteed returns.
+          </Text>
+
+          {/* Stats row */}
+          <View style={{ flexDirection: "row", gap: 24 }}>
+            {[
+              { label: "Yield",    value: "Up to 28.5%" },
+              { label: "Terms",    value: "91–364 days"  },
+              { label: "Risk",     value: "Very Low"     },
+            ].map((stat) => (
+              <View key={stat.label}>
+                <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 14, color: WHITE }}>{stat.value}</Text>
+                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.42)", marginTop: 2 }}>{stat.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* ── Section heading ── */}
+        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text, marginBottom: 4 }}>
+          Current Offerings
+        </Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, marginBottom: 16 }}>
+          Select a term to view details and invest
+        </Text>
+
+        {/* ── Bill cards ── */}
+        {TBILL_OPTIONS.map((bill) => (
+          <BillCard key={bill.id} bill={bill} c={c} />
+        ))}
+
+      </ScrollView>
     </View>
   );
 }
