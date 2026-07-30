@@ -9,7 +9,7 @@
  * NOTE: PDF support requires a custom dev client rebuild (expo-document-picker).
  * Until then, instruct users to photograph their document.
  *
- * Flow: upload-id → selfie-camera → HERE → verify-success
+ * Flow: upload-id -> selfie-camera -> HERE -> under-review
  */
 import { guardedBack } from "@/utils/navigation";
 import React, { useState } from "react";
@@ -34,7 +34,7 @@ import { kycApi } from "../../services/api";
 const TEAL  = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
-const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB
+const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB client guard
 
 function BackArrow({ color }: { color: string }) {
   return (
@@ -98,12 +98,11 @@ export default function UploadProofOfResidencyScreen() {
     if (uploading || processing) return;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      quality: 0.85,
+      quality: 0.4,   // Compress at pick time to reduce upload size.
       allowsEditing: false,
     });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
-    // Check file size if available
     if (asset.fileSize && asset.fileSize > MAX_SIZE_BYTES) {
       Alert.alert("File Too Large", "Image must be smaller than 8 MB. Please compress it and try again.");
       return;
@@ -119,7 +118,7 @@ export default function UploadProofOfResidencyScreen() {
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
-      quality: 0.85,
+      quality: 0.4,   // Compress at capture time to reduce upload size.
       allowsEditing: false,
     });
     if (result.canceled || !result.assets[0]) return;
@@ -144,7 +143,20 @@ export default function UploadProofOfResidencyScreen() {
     } catch (err: any) {
       setFileUri(null);
       setFileName(null);
-      const msg = typeof err?.message === "string" ? err.message : "Could not upload document. Please try again.";
+      // Map HTTP status codes to friendly messages
+      const status = err?.statusCode ?? err?.status;
+      let msg = "Could not upload your document. Please try again.";
+      if (status === 413) {
+        msg = "Your image is too large. Please take a new photo or choose a smaller image.";
+      } else if (status === 415) {
+        msg = "This file type is not supported. Please upload a JPG or PNG photo.";
+      } else if (status === 401 || status === 403) {
+        msg = "Your session has expired. Please log in again.";
+      } else if (status >= 500) {
+        msg = "Something went wrong on our end. Please try again in a moment.";
+      } else if (typeof err?.message === "string" && !err.message.includes("HTTP")) {
+        msg = err.message;
+      }
       Alert.alert("Upload Failed", msg);
     } finally {
       setUploading(false);
@@ -156,13 +168,20 @@ export default function UploadProofOfResidencyScreen() {
 
     setProcessing(true);
     try {
-      const result = await kycApi.process(applicationId);
-      router.replace({
-        pathname: "/kyc/verify-success",
-        params: { decision: result.decision, confidenceScore: String(result.confidenceScore) },
-      } as any);
+      // Trigger AI pipeline — but we always show "Under Review" to the user.
+      // The final APPROVED/REJECTED decision is made by a human broker in
+      // Kusata, not by the automated pipeline. This prevents users from
+      // seeing a confusing automatic rejection immediately after submitting.
+      await kycApi.process(applicationId);
+      router.replace("/kyc/under-review" as any);
     } catch (err: any) {
-      const msg = typeof err?.message === "string" ? err.message : "Submission failed. Please try again.";
+      const status = err?.statusCode ?? err?.status;
+      let msg = "Submission failed. Please try again.";
+      if (status >= 500) {
+        msg = "Something went wrong on our end. Your documents were saved — please try submitting again.";
+      } else if (typeof err?.message === "string" && !err.message.includes("HTTP")) {
+        msg = err.message;
+      }
       Alert.alert("Submission Failed", msg);
     } finally {
       setProcessing(false);

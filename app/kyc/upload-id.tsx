@@ -227,7 +227,7 @@ export default function UploadIdScreen() {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      quality: 0.8,
+      quality: 0.4,   // Compress at pick time to reduce upload size.
       allowsEditing: true,
       aspect: [16, 10],
     });
@@ -245,12 +245,19 @@ export default function UploadIdScreen() {
       if (side === "front") {
         await kycApi.uploadId(applicationId, asset.uri, "id_front.jpg");
       } else {
-        // Back of ID goes to a separate endpoint → stored as NATIONAL_ID_BACK
         await kycApi.uploadIdBack(applicationId, asset.uri);
       }
     } catch (err: any) {
       setUri(null);
-      const msg = typeof err?.message === 'string' ? err.message : 'Could not upload image. Please try again.';
+      const status = err?.statusCode ?? err?.status;
+      let msg = "Could not upload image. Please try again.";
+      if (status === 413) {
+        msg = "Your image is too large. Please choose a smaller photo.";
+      } else if (status >= 500) {
+        msg = "Something went wrong on our end. Please try again in a moment.";
+      } else if (typeof err?.message === "string" && !err.message.includes("HTTP")) {
+        msg = err.message;
+      }
       Alert.alert("Upload Failed", msg);
     } finally {
       setUploading(false);

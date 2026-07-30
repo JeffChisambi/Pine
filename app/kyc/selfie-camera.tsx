@@ -106,21 +106,28 @@ export default function SelfieCameraScreen() {
   const handleCapture = async () => {
     if (!cameraRef.current || uploading || processing || !applicationId) return;
     try {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
+      // Compress at capture time to reduce upload failures on mobile networks.
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.5 });
       if (!photo?.uri) return;
 
       setUploading(true);
       await kycApi.uploadSelfie(applicationId, photo.uri);
       setUploading(false);
 
-      // Navigate to proof-of-residence upload — processing happens after
-      // all documents (ID front, ID back, selfie, address doc) are uploaded.
       router.push({
         pathname: "/kyc/upload-proof-of-residency",
         params: { applicationId },
       } as any);
     } catch (err: any) {
-      const msg = typeof err?.message === "string" ? err.message : "Something went wrong. Please try again.";
+      const status = err?.statusCode ?? err?.status;
+      let msg = "Something went wrong. Please try again.";
+      if (status === 413) {
+        msg = "Your selfie photo is too large. Please retake the photo.";
+      } else if (status >= 500) {
+        msg = "Something went wrong on our end. Please try again in a moment.";
+      } else if (typeof err?.message === "string" && !err.message.includes("HTTP")) {
+        msg = err.message;
+      }
       Alert.alert("Verification Failed", msg);
     } finally {
       setUploading(false);

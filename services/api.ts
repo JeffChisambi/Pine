@@ -438,10 +438,26 @@ async function requestFormData<T>(path: string, formData: FormData): Promise<T> 
     }
   }
 
-  const json = await res.json();
   if (!res.ok) {
-    throw new ApiError(res.status, json?.error?.message ?? `KYC request failed (${res.status})`, json);
+    const errorText = await res.text().catch(() => '');
+    let errorBody: any = null;
+    if (errorText) {
+      try {
+        errorBody = JSON.parse(errorText);
+      } catch {
+        errorBody = errorText;
+      }
+    }
+    const rawMessage = errorBody?.error?.message ?? errorBody?.message;
+    const msg =
+      (Array.isArray(rawMessage) && rawMessage.length > 0 ? rawMessage.join('. ') : null) ??
+      (typeof rawMessage === 'string' && rawMessage.length > 0 ? rawMessage : null) ??
+      (typeof errorBody?.error === 'string' && errorBody.error.length > 0 ? errorBody.error : null) ??
+      `Upload failed (HTTP ${res.status})`;
+    throw new ApiError(res.status, msg, errorBody);
   }
+
+  const json = await res.json();
   return json?.data ?? json;
 }
 
