@@ -258,6 +258,18 @@ export const authApi = {
 
   getProfile: (): Promise<UserProfile> =>
     request<UserProfile>('/auth/me'),
+
+  changePassword: (currentPassword: string, newPassword: string): Promise<{ message: string }> =>
+    request('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+
+  changePin: (currentPin: string, newPin: string): Promise<{ message: string }> =>
+    request('/auth/pin/change', {
+      method: 'POST',
+      body: JSON.stringify({ currentPin, newPin }),
+    }),
 };
 
 // ─── Wallet API ───────────────────────────────────────────────────────────────

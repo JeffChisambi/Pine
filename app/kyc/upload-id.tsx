@@ -174,29 +174,27 @@ export default function UploadIdScreen() {
           return;
         }
 
-        // Guard: if user is already PENDING or APPROVED, don't let them re-enter
-        // the upload flow — show the "under review" screen instead.
-        // Read from `user` directly — this is always the current session's user
-        // because auth-context guarantees setUser(null) before setUser(newUser).
+        // Guard: redirect to under-review for PENDING/APPROVED.
+        // REJECTED users are allowed back into the upload flow to resubmit.
         const currentStatus = user.kycStatus ?? "NOT_SUBMITTED";
         if (currentStatus === "PENDING" || currentStatus === "APPROVED") {
           router.replace("/kyc/under-review" as any);
           return;
         }
 
-        // Try to resume an existing pending KYC session before starting a new one.
-        // This prevents creating duplicate applications every time the user
-        // re-enters the flow.
+        // Try to resume an existing in-progress KYC session.
+        // REJECTED applications are NOT resumed — start a fresh one so the
+        // user can resubmit all documents from scratch.
         let appId: string | null = null;
         try {
           const status = await kycApi.getStatus();
-          // Reuse the session if it hasn't been fully processed yet
-          if (status?.applicationId && !status.canProcess) {
-            // If the API says PENDING/APPROVED, also redirect
-            if (status.status === "PENDING" || status.status === "APPROVED") {
-              router.replace("/kyc/under-review" as any);
-              return;
-            }
+          // Server-side PENDING/APPROVED check (defence in depth)
+          if (status.status === "PENDING" || status.status === "APPROVED") {
+            router.replace("/kyc/under-review" as any);
+            return;
+          }
+          // Reuse an existing in-progress session (not rejected, not yet processed)
+          if (status?.applicationId && !status.canProcess && status.status !== "REJECTED") {
             appId = status.applicationId;
           }
         } catch {

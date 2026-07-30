@@ -1,5 +1,19 @@
+/**
+ * Security screen — production-grade password and PIN management.
+ *
+ * Password rules (enforced client + server):
+ *   - Minimum 8 characters
+ *   - Must contain uppercase, lowercase, digit, and special character
+ *
+ * PIN rules:
+ *   - 4–6 digits only
+ *
+ * API:
+ *   POST /auth/change-password  { currentPassword, newPassword }
+ *   POST /auth/pin/change       { currentPin, newPin }
+ */
 import { guardedBack } from "@/utils/navigation";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,17 +23,42 @@ import {
   Platform,
   KeyboardAvoidingView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
+import { authApi } from "../../services/api";
 
-const TEAL = "#164951";
+const TEAL  = "#164951";
+const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
-const RED = "#EF4770";
+const RED   = "#EF4770";
+const AMBER = "#F38744";
 
-// ── Icons ────────────────────────────────────────────────────────────────────
+// ── Validation ────────────────────────────────────────────────────────────────
+
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/;
+
+function getPasswordStrength(pw: string): number {
+  if (!pw) return 0;
+  let score = Math.floor(pw.length / 3);
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  return Math.min(score, 4);
+}
+
+function strengthLabel(s: number) {
+  return ["", "Weak", "Fair", "Good", "Strong"][s] ?? "";
+}
+
+function strengthColor(s: number) {
+  return s <= 1 ? RED : s === 2 ? AMBER : s === 3 ? "#F5C518" : GREEN;
+}
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
 
 function BackIcon({ color }: { color: string }) {
   return (
@@ -32,10 +71,8 @@ function BackIcon({ color }: { color: string }) {
 function ShieldIcon() {
   return (
     <Svg width={40} height={40} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M12 3L4 6.5V11C4 15.25 7.4 19.24 12 21C16.6 19.24 20 15.25 20 11V6.5L12 3Z"
-        stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"
-      />
+      <Path d="M12 3L4 6.5V11C4 15.25 7.4 19.24 12 21C16.6 19.24 20 15.25 20 11V6.5L12 3Z"
+        stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
       <Path d="M9 12l2 2 4-4" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
@@ -73,29 +110,39 @@ function PinIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
       <Circle cx={12} cy={12} r={9} stroke={TEAL} strokeWidth={1.5} />
-      <Path d="M9 9h.01M12 9h.01M15 9h.01M9 12h.01M12 12h.01M15 12h.01M9 15h.01M12 15h.01M15 15h.01" stroke={TEAL} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M9 9h.01M12 9h.01M15 9h.01M9 12h.01M12 12h.01M15 12h.01M9 15h.01M12 15h.01M15 15h.01"
+        stroke={TEAL} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path d="M20 6L9 17l-5-5" stroke={GREEN} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
 // ── Password field ────────────────────────────────────────────────────────────
 
-interface PasswordFieldProps {
+interface FieldProps {
   label: string;
   value: string;
   onChangeText: (t: string) => void;
   placeholder: string;
   numeric?: boolean;
   maxLength?: number;
+  error?: string;
   c: ReturnType<typeof useColors>;
 }
 
-function PasswordField({ label, value, onChangeText, placeholder, numeric = false, maxLength, c }: PasswordFieldProps) {
+function PasswordField({ label, value, onChangeText, placeholder, numeric = false, maxLength, error, c }: FieldProps) {
   const [focused, setFocused] = useState(false);
   const [visible, setVisible] = useState(false);
 
   return (
-    <View style={{ marginBottom: 20 }}>
+    <View style={{ marginBottom: error ? 8 : 20 }}>
       <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: c.text, marginBottom: 8 }}>
         {label}
       </Text>
@@ -103,7 +150,7 @@ function PasswordField({ label, value, onChangeText, placeholder, numeric = fals
         backgroundColor: focused ? c.background : c.card,
         borderRadius: 12,
         borderWidth: 1.5,
-        borderColor: focused ? TEAL : c.border,
+        borderColor: error ? RED : focused ? TEAL : c.border,
         height: 56,
         paddingHorizontal: 16,
         flexDirection: "row",
@@ -127,17 +174,36 @@ function PasswordField({ label, value, onChangeText, placeholder, numeric = fals
           <EyeIcon visible={visible} color={MUTED} />
         </TouchableOpacity>
       </View>
+      {error ? (
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: RED, marginTop: 6, marginLeft: 4 }}>
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }
-
-// ── Section header ────────────────────────────────────────────────────────────
 
 function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 16, marginTop: 8 }}>
       {icon}
       <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: TEAL }}>{title}</Text>
+    </View>
+  );
+}
+
+function SuccessBanner({ message }: { message: string }) {
+  return (
+    <View style={{
+      flexDirection: "row", alignItems: "center", gap: 8,
+      backgroundColor: "#F0FDF4", borderRadius: 10,
+      borderWidth: 1, borderColor: "#86EFAC",
+      padding: 12, marginBottom: 20,
+    }}>
+      <CheckIcon />
+      <Text style={{ flex: 1, fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: "#166534" }}>
+        {message}
+      </Text>
     </View>
   );
 }
@@ -151,58 +217,116 @@ export default function SecurityScreen() {
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const [newPassword,     setNewPassword]     = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwErrors,        setPwErrors]        = useState<Record<string, string>>({});
+  const [pwLoading,       setPwLoading]       = useState(false);
+  const [pwSuccess,       setPwSuccess]       = useState(false);
 
   // PIN state
-  const [currentPin, setCurrentPin] = useState("");
-  const [newPin, setNewPin] = useState("");
-  const [confirmPin, setConfirmPin] = useState("");
+  const [currentPin,  setCurrentPin]  = useState("");
+  const [newPin,      setNewPin]      = useState("");
+  const [confirmPin,  setConfirmPin]  = useState("");
+  const [pinErrors,   setPinErrors]   = useState<Record<string, string>>({});
+  const [pinLoading,  setPinLoading]  = useState(false);
+  const [pinSuccess,  setPinSuccess]  = useState(false);
 
-  const handleSave = () => {
-    const passwordChanged = currentPassword || newPassword || confirmPassword;
-    const pinChanged = currentPin || newPin || confirmPin;
+  const pwStrength = getPasswordStrength(newPassword);
 
-    if (passwordChanged) {
-      if (!currentPassword || !newPassword || !confirmPassword) {
-        Alert.alert("Incomplete", "Please fill in all password fields.");
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        Alert.alert("Mismatch", "New password and confirmation do not match.");
-        return;
-      }
-      if (newPassword.length < 8) {
-        Alert.alert("Too short", "New password must be at least 8 characters.");
-        return;
-      }
-    }
+  // ── Password requirements display ────────────────────────────────────────────
+  const pwRequirements = newPassword.length > 0 ? [
+    { met: newPassword.length >= 8,            label: "At least 8 characters" },
+    { met: /[A-Z]/.test(newPassword),          label: "One uppercase letter" },
+    { met: /[a-z]/.test(newPassword),          label: "One lowercase letter" },
+    { met: /\d/.test(newPassword),             label: "One number" },
+    { met: /[^A-Za-z0-9]/.test(newPassword),  label: "One special character" },
+  ] : [];
 
-    if (pinChanged) {
-      if (!currentPin || !newPin || !confirmPin) {
-        Alert.alert("Incomplete", "Please fill in all PIN fields.");
-        return;
-      }
-      if (newPin !== confirmPin) {
-        Alert.alert("Mismatch", "New PIN and confirmation do not match.");
-        return;
-      }
-      if (newPin.length < 4) {
-        Alert.alert("Too short", "PIN must be at least 4 digits.");
-        return;
-      }
-    }
+  // ── Change password ───────────────────────────────────────────────────────────
+  const handleChangePassword = useCallback(async () => {
+    const errors: Record<string, string> = {};
 
-    if (!passwordChanged && !pinChanged) {
-      guardedBack("/(tabs)/profile");
+    if (!currentPassword) errors.currentPassword = "Enter your current password";
+    if (!newPassword)     errors.newPassword     = "Enter a new password";
+    else if (!PASSWORD_REGEX.test(newPassword))
+      errors.newPassword = "Must have uppercase, lowercase, digit and special character";
+    if (!confirmPassword) errors.confirmPassword = "Confirm your new password";
+    else if (newPassword !== confirmPassword)
+      errors.confirmPassword = "Passwords do not match";
+    if (newPassword === currentPassword && newPassword)
+      errors.newPassword = "New password must be different from your current password";
+
+    if (Object.keys(errors).length > 0) {
+      setPwErrors(errors);
       return;
     }
 
-    // TODO: wire up API calls for password/PIN change
-    Alert.alert("Success", "Your security settings have been updated.", [
-      { text: "OK", onPress: () => guardedBack("/(tabs)/profile") },
-    ]);
-  };
+    setPwErrors({});
+    setPwLoading(true);
+    setPwSuccess(false);
+
+    try {
+      await authApi.changePassword(currentPassword, newPassword);
+      setPwSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      const msg = typeof err?.message === "string"
+        ? err.message
+        : "Failed to change password. Please check your current password and try again.";
+      // Show inline error if it's about current password
+      if (msg.toLowerCase().includes("incorrect") || msg.toLowerCase().includes("invalid") || msg.toLowerCase().includes("wrong")) {
+        setPwErrors({ currentPassword: "Incorrect current password" });
+      } else {
+        Alert.alert("Error", msg);
+      }
+    } finally {
+      setPwLoading(false);
+    }
+  }, [currentPassword, newPassword, confirmPassword]);
+
+  // ── Change PIN ────────────────────────────────────────────────────────────────
+  const handleChangePin = useCallback(async () => {
+    const errors: Record<string, string> = {};
+
+    if (!currentPin)                          errors.currentPin  = "Enter your current PIN";
+    if (!newPin)                              errors.newPin      = "Enter a new PIN";
+    else if (!/^\d{4,6}$/.test(newPin))      errors.newPin      = "PIN must be 4–6 digits";
+    if (!confirmPin)                          errors.confirmPin  = "Confirm your new PIN";
+    else if (newPin !== confirmPin)           errors.confirmPin  = "PINs do not match";
+    if (newPin === currentPin && newPin)      errors.newPin      = "New PIN must differ from current PIN";
+
+    if (Object.keys(errors).length > 0) {
+      setPinErrors(errors);
+      return;
+    }
+
+    setPinErrors({});
+    setPinLoading(true);
+    setPinSuccess(false);
+
+    try {
+      await authApi.changePin(currentPin, newPin);
+      setPinSuccess(true);
+      setCurrentPin("");
+      setNewPin("");
+      setConfirmPin("");
+    } catch (err: any) {
+      const msg = typeof err?.message === "string"
+        ? err.message
+        : "Failed to change PIN. Please check your current PIN and try again.";
+      if (msg.toLowerCase().includes("incorrect") || msg.toLowerCase().includes("invalid") || msg.toLowerCase().includes("wrong")) {
+        setPinErrors({ currentPin: "Incorrect current PIN" });
+      } else {
+        Alert.alert("Error", msg);
+      }
+    } finally {
+      setPinLoading(false);
+    }
+  }, [currentPin, newPin, confirmPin]);
+
+  const anyLoading = pwLoading || pinLoading;
 
   return (
     <KeyboardAvoidingView
@@ -214,6 +338,7 @@ export default function SecurityScreen() {
         <TouchableOpacity
           onPress={() => guardedBack("/(tabs)/profile")}
           style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}
+          disabled={anyLoading}
         >
           <BackIcon color={c.text} />
         </TouchableOpacity>
@@ -230,11 +355,7 @@ export default function SecurityScreen() {
       >
         {/* Shield illustration */}
         <View style={{ alignItems: "center", marginBottom: 32, marginTop: 8 }}>
-          <View style={{
-            width: 80, height: 80, borderRadius: 40,
-            backgroundColor: `${TEAL}12`,
-            alignItems: "center", justifyContent: "center",
-          }}>
+          <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: `${TEAL}12`, alignItems: "center", justifyContent: "center" }}>
             <ShieldIcon />
           </View>
           <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED, marginTop: 10, textAlign: "center" }}>
@@ -242,119 +363,143 @@ export default function SecurityScreen() {
           </Text>
         </View>
 
-        {/* Divider */}
         <View style={{ height: 1, backgroundColor: c.border, marginBottom: 28 }} />
 
-        {/* Password section */}
+        {/* ── Password section ──────────────────────────────────────────── */}
         <SectionHeader icon={<LockIcon />} title="Change Password" />
+
+        {pwSuccess && <SuccessBanner message="Password changed successfully!" />}
 
         <PasswordField
           label="Current Password"
           value={currentPassword}
-          onChangeText={setCurrentPassword}
+          onChangeText={t => { setCurrentPassword(t); setPwErrors(e => ({ ...e, currentPassword: "" })); setPwSuccess(false); }}
           placeholder="Enter current password"
+          error={pwErrors.currentPassword}
           c={c}
         />
         <PasswordField
           label="New Password"
           value={newPassword}
-          onChangeText={setNewPassword}
-          placeholder="At least 8 characters"
+          onChangeText={t => { setNewPassword(t); setPwErrors(e => ({ ...e, newPassword: "" })); setPwSuccess(false); }}
+          placeholder="Min 8 chars, uppercase, number, symbol"
+          error={pwErrors.newPassword}
           c={c}
         />
         <PasswordField
           label="Confirm New Password"
           value={confirmPassword}
-          onChangeText={setConfirmPassword}
+          onChangeText={t => { setConfirmPassword(t); setPwErrors(e => ({ ...e, confirmPassword: "" })); setPwSuccess(false); }}
           placeholder="Repeat new password"
+          error={pwErrors.confirmPassword}
           c={c}
         />
 
-        {/* Password strength hint */}
+        {/* Strength bar */}
         {newPassword.length > 0 && (
-          <View style={{ flexDirection: "row", gap: 6, marginTop: -8, marginBottom: 20 }}>
-            {[1, 2, 3, 4].map(level => {
-              const strength = Math.min(
-                Math.floor(newPassword.length / 3) +
-                (/[A-Z]/.test(newPassword) ? 1 : 0) +
-                (/[0-9]/.test(newPassword) ? 1 : 0) +
-                (/[^A-Za-z0-9]/.test(newPassword) ? 1 : 0),
-                4
-              );
-              const active = level <= strength;
-              const barColor = strength <= 1 ? RED : strength === 2 ? "#F38744" : strength === 3 ? "#F5C518" : "#45B369";
-              return (
-                <View
-                  key={level}
-                  style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: active ? barColor : c.border }}
-                />
-              );
-            })}
-            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, alignSelf: "center", marginLeft: 4 }}>
-              {(() => {
-                const s = Math.min(
-                  Math.floor(newPassword.length / 3) +
-                  (/[A-Z]/.test(newPassword) ? 1 : 0) +
-                  (/[0-9]/.test(newPassword) ? 1 : 0) +
-                  (/[^A-Za-z0-9]/.test(newPassword) ? 1 : 0),
-                  4
-                );
-                return ["Weak", "Weak", "Fair", "Good", "Strong"][s] ?? "";
-              })()}
-            </Text>
+          <View style={{ marginTop: -4, marginBottom: 16 }}>
+            <View style={{ flexDirection: "row", gap: 4, marginBottom: 8 }}>
+              {[1, 2, 3, 4].map(l => (
+                <View key={l} style={{
+                  flex: 1, height: 4, borderRadius: 2,
+                  backgroundColor: l <= pwStrength ? strengthColor(pwStrength) : c.border,
+                }} />
+              ))}
+              <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, alignSelf: "center", marginLeft: 6, width: 40 }}>
+                {strengthLabel(pwStrength)}
+              </Text>
+            </View>
+            {/* Requirements checklist */}
+            <View style={{ gap: 4 }}>
+              {pwRequirements.map(r => (
+                <View key={r.label} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <View style={{
+                    width: 14, height: 14, borderRadius: 7,
+                    backgroundColor: r.met ? "#F0FDF4" : c.card,
+                    borderWidth: 1, borderColor: r.met ? GREEN : c.border,
+                    alignItems: "center", justifyContent: "center",
+                  }}>
+                    {r.met && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: GREEN }} />}
+                  </View>
+                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: r.met ? GREEN : MUTED }}>
+                    {r.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
         )}
 
-        {/* Divider */}
+        <TouchableOpacity
+          style={{
+            backgroundColor: TEAL, borderRadius: 12, paddingVertical: 15,
+            alignItems: "center", marginBottom: 32,
+            opacity: pwLoading ? 0.7 : 1,
+          }}
+          onPress={handleChangePassword}
+          disabled={pwLoading || pinLoading}
+          activeOpacity={0.85}
+        >
+          {pwLoading
+            ? <ActivityIndicator color={WHITE} />
+            : <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: WHITE }}>Update Password</Text>
+          }
+        </TouchableOpacity>
+
         <View style={{ height: 1, backgroundColor: c.border, marginBottom: 28 }} />
 
-        {/* PIN section */}
+        {/* ── PIN section ───────────────────────────────────────────────── */}
         <SectionHeader icon={<PinIcon />} title="Change PIN" />
+
+        {pinSuccess && <SuccessBanner message="PIN changed successfully!" />}
 
         <PasswordField
           label="Current PIN"
           value={currentPin}
-          onChangeText={setCurrentPin}
+          onChangeText={t => { setCurrentPin(t); setPinErrors(e => ({ ...e, currentPin: "" })); setPinSuccess(false); }}
           placeholder="Enter current PIN"
           numeric
           maxLength={6}
+          error={pinErrors.currentPin}
           c={c}
         />
         <PasswordField
           label="New PIN"
           value={newPin}
-          onChangeText={setNewPin}
+          onChangeText={t => { setNewPin(t); setPinErrors(e => ({ ...e, newPin: "" })); setPinSuccess(false); }}
           placeholder="4–6 digits"
           numeric
           maxLength={6}
+          error={pinErrors.newPin}
           c={c}
         />
         <PasswordField
           label="Confirm New PIN"
           value={confirmPin}
-          onChangeText={setConfirmPin}
+          onChangeText={t => { setConfirmPin(t); setPinErrors(e => ({ ...e, confirmPin: "" })); setPinSuccess(false); }}
           placeholder="Repeat new PIN"
           numeric
           maxLength={6}
+          error={pinErrors.confirmPin}
           c={c}
         />
-      </ScrollView>
 
-      {/* Save button */}
-      <View style={{
-        paddingHorizontal: 24, paddingTop: 12,
-        paddingBottom: insets.bottom + 16,
-        borderTopWidth: 1, borderTopColor: c.border,
-        backgroundColor: c.background,
-      }}>
         <TouchableOpacity
-          style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, alignItems: "center" }}
-          onPress={handleSave}
+          style={{
+            backgroundColor: TEAL, borderRadius: 12, paddingVertical: 15,
+            alignItems: "center",
+            opacity: pinLoading ? 0.7 : 1,
+          }}
+          onPress={handleChangePin}
+          disabled={pinLoading || pwLoading}
           activeOpacity={0.85}
         >
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE }}>Save Changes</Text>
+          {pinLoading
+            ? <ActivityIndicator color={WHITE} />
+            : <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: WHITE }}>Update PIN</Text>
+          }
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
