@@ -2,9 +2,9 @@ import { Image } from "expo-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet } from "react-native";
 
-// Duration of the rendered logo animation (2.78 s) plus a short hold before
+// Duration of the rendered logo animation (2.6 s) plus a short hold before
 // the overlay fades out and hands off to the app.
-const ANIMATION_MS = 2900;
+const ANIMATION_MS = 2650;
 const FADE_MS = 350;
 
 /**
