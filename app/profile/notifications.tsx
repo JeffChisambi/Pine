@@ -1,4 +1,3 @@
-import { guardedBack } from "@/utils/navigation";
 import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
@@ -10,10 +9,10 @@ import {
   RefreshControl,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import Svg, { Path, Circle, Rect, G, Defs, ClipPath } from "react-native-svg";
 import { notificationsApi, type Notification } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
+import { guardedBack } from "@/utils/navigation";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";

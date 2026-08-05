@@ -407,22 +407,31 @@ export const tradingApi = {
 
 // ─── KYC API ──────────────────────────────────────────────────────────────────
 
-async function requestFormData<T>(path: string, formData: FormData): Promise<T> {
-  const url = `${API_BASE_URL}${path}`;
+/**
+ * Build a fresh Authorization header from the current token.
+ * FormData bodies can only be streamed once on some React Native implementations,
+ * so we delegate re-sending to the caller (which rebuilds the FormData).
+ */
+async function getAuthHeaders(): Promise<Record<string, string>> {
   const token = await AuthStore.getAccessToken();
   const headers: Record<string, string> = {};
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  // Do NOT set Content-Type — fetch auto-sets it with the boundary for FormData
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  // Do NOT set Content-Type — fetch auto-sets multipart/form-data with the correct boundary
+  return headers;
+}
 
-  let res = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
+/**
+ * POST multipart/form-data to the given path.
+ * `buildFormData` is a factory called each time so we can safely rebuild
+ * the body on a 401 retry (a consumed FormData cannot be re-sent).
+ */
+async function requestFormData<T>(path: string, buildFormData: () => FormData): Promise<T> {
+  const url = `${API_BASE_URL}${path}`;
+  let headers = await getAuthHeaders();
 
-  // Auto-refresh on 401
+  let res = await fetch(url, { method: 'POST', headers, body: buildFormData() });
+
+  // Auto-refresh on 401 — rebuild FormData so the body is fresh
   if (res.status === 401) {
     if (!isRefreshing) {
       isRefreshing = true;
@@ -430,11 +439,8 @@ async function requestFormData<T>(path: string, formData: FormData): Promise<T> 
     }
     const refreshed = await refreshPromise;
     if (refreshed) {
-      const newToken = await AuthStore.getAccessToken();
-      if (newToken) {
-        headers['Authorization'] = `Bearer ${newToken}`;
-      }
-      res = await fetch(url, { method: 'POST', headers, body: formData });
+      headers = await getAuthHeaders();
+      res = await fetch(url, { method: 'POST', headers, body: buildFormData() });
     }
   }
 
@@ -442,11 +448,7 @@ async function requestFormData<T>(path: string, formData: FormData): Promise<T> 
     const errorText = await res.text().catch(() => '');
     let errorBody: any = null;
     if (errorText) {
-      try {
-        errorBody = JSON.parse(errorText);
-      } catch {
-        errorBody = errorText;
-      }
+      try { errorBody = JSON.parse(errorText); } catch { errorBody = errorText; }
     }
     const rawMessage = errorBody?.error?.message ?? errorBody?.message;
     const msg =
@@ -461,41 +463,64 @@ async function requestFormData<T>(path: string, formData: FormData): Promise<T> 
   return json?.data ?? json;
 }
 
+/** Derive a safe filename+MIME from a URI when the caller doesn't supply one. */
+function inferFileInfo(uri: string, fallbackName: string, fallbackMime: string) {
+  const ext = uri.split('.').pop()?.toLowerCase();
+  // HEIC/HEIF from iOS gallery — map to jpeg so the server accepts it
+  if (ext === 'heic' || ext === 'heif') {
+    return { name: fallbackName.replace(/\.jpg$/, '.jpg'), mimeType: 'image/jpeg' };
+  }
+  if (ext === 'png') {
+    return { name: fallbackName.replace(/\.jpg$/, '.png'), mimeType: 'image/png' };
+  }
+  return { name: fallbackName, mimeType: fallbackMime };
+}
+
 export const kycApi = {
   start: (): Promise<{ applicationId: string }> =>
     request('/kyc/start', { method: 'POST', body: JSON.stringify({}) }),
 
-  uploadId: (applicationId: string, imageUri: string, fileName: string): Promise<{ documentId: string }> => {
-    const formData = new FormData();
-    formData.append('applicationId', applicationId);
-    formData.append('file', {
-      uri: imageUri,
-      name: fileName || 'id_front.jpg',
-      type: 'image/jpeg',
-    } as any);
-    return requestFormData('/kyc/upload-id', formData);
+  uploadId: (
+    applicationId: string,
+    imageUri: string,
+    fileName: string,
+    mimeType?: string,
+  ): Promise<{ documentId: string }> => {
+    const { name, mimeType: type } = inferFileInfo(imageUri, fileName || 'id_front.jpg', mimeType ?? 'image/jpeg');
+    return requestFormData('/kyc/upload-id', () => {
+      const fd = new FormData();
+      fd.append('applicationId', applicationId);
+      fd.append('file', { uri: imageUri, name, type } as any);
+      return fd;
+    });
   },
 
-  uploadIdBack: (applicationId: string, imageUri: string): Promise<{ documentId: string }> => {
-    const formData = new FormData();
-    formData.append('applicationId', applicationId);
-    formData.append('file', {
-      uri: imageUri,
-      name: 'id_back.jpg',
-      type: 'image/jpeg',
-    } as any);
-    return requestFormData('/kyc/upload-id-back', formData);
+  uploadIdBack: (
+    applicationId: string,
+    imageUri: string,
+    mimeType?: string,
+  ): Promise<{ documentId: string }> => {
+    const { name, mimeType: type } = inferFileInfo(imageUri, 'id_back.jpg', mimeType ?? 'image/jpeg');
+    return requestFormData('/kyc/upload-id-back', () => {
+      const fd = new FormData();
+      fd.append('applicationId', applicationId);
+      fd.append('file', { uri: imageUri, name, type } as any);
+      return fd;
+    });
   },
 
-  uploadSelfie: (applicationId: string, imageUri: string): Promise<{ documentId: string }> => {
-    const formData = new FormData();
-    formData.append('applicationId', applicationId);
-    formData.append('file', {
-      uri: imageUri,
-      name: 'selfie.jpg',
-      type: 'image/jpeg',
-    } as any);
-    return requestFormData('/kyc/upload-selfie', formData);
+  uploadSelfie: (
+    applicationId: string,
+    imageUri: string,
+    mimeType?: string,
+  ): Promise<{ documentId: string }> => {
+    const { name, mimeType: type } = inferFileInfo(imageUri, 'selfie.jpg', mimeType ?? 'image/jpeg');
+    return requestFormData('/kyc/upload-selfie', () => {
+      const fd = new FormData();
+      fd.append('applicationId', applicationId);
+      fd.append('file', { uri: imageUri, name, type } as any);
+      return fd;
+    });
   },
 
   /**
@@ -508,16 +533,13 @@ export const kycApi = {
     fileUri: string,
     fileName: string,
     mimeType: string,
-  ): Promise<{ documentId: string }> => {
-    const formData = new FormData();
-    formData.append('applicationId', applicationId);
-    formData.append('file', {
-      uri: fileUri,
-      name: fileName,
-      type: mimeType,
-    } as any);
-    return requestFormData('/kyc/upload-proof-of-residency', formData);
-  },
+  ): Promise<{ documentId: string }> =>
+    requestFormData('/kyc/upload-proof-of-residency', () => {
+      const fd = new FormData();
+      fd.append('applicationId', applicationId);
+      fd.append('file', { uri: fileUri, name: fileName, type: mimeType } as any);
+      return fd;
+    }),
 
   process: (applicationId: string): Promise<{ decision: string; confidenceScore: number }> =>
     request('/kyc/process', {
@@ -636,6 +658,28 @@ export const notificationsApi = {
 
   updatePreference: (category: string, prefs: { push?: boolean; email?: boolean; sms?: boolean }): Promise<{ success: boolean }> =>
     request('/notifications/preferences', { method: 'PUT', body: JSON.stringify({ category, ...prefs }) }),
+
+  /**
+   * Register this device's Expo push token with the backend so it can receive
+   * remote push notifications. Idempotent — safe to call on every app launch
+   * and whenever the token rotates. Backend endpoint: see BACKEND_API.md.
+   */
+  registerDevice: (
+    token: string,
+    platform: 'ios' | 'android' | 'web',
+    meta?: { deviceName?: string; appVersion?: string },
+  ): Promise<{ success: boolean }> =>
+    request('/notifications/devices', {
+      method: 'POST',
+      body: JSON.stringify({ token, platform, ...meta }),
+    }),
+
+  /** Remove this device's push token (e.g. on logout or when push is disabled). */
+  unregisterDevice: (token: string): Promise<{ success: boolean }> =>
+    request('/notifications/devices', {
+      method: 'DELETE',
+      body: JSON.stringify({ token }),
+    }),
 };
 
 // ─── Payments API ─────────────────────────────────────────────────────────────

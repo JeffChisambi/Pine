@@ -227,25 +227,39 @@ export default function UploadIdScreen() {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      quality: 0.4,   // Compress at pick time to reduce upload size.
-      allowsEditing: true,
-      aspect: [16, 10],
+      quality: 0.5,   // Balance between quality and upload size.
+      allowsEditing: false,  // Let users submit the full ID frame — cropping can cut off corners.
     });
 
     if (result.canceled || !result.assets[0]) return;
 
     const asset = result.assets[0];
+
+    // Guard against files that are still too large after compression (e.g. 20 MP RAW).
+    // The backend limit is 10 MB; we reject anything over 8 MB client-side to give
+    // a fast, friendly error instead of an opaque 413 from the server.
+    if (asset.fileSize && asset.fileSize > 8 * 1024 * 1024) {
+      Alert.alert(
+        "Image Too Large",
+        "Please choose a smaller photo or take a new one. Maximum size is 8 MB."
+      );
+      return;
+    }
+
     const setUri = side === "front" ? setFrontUri : setBackUri;
     const setUploading = side === "front" ? setFrontUploading : setBackUploading;
 
     setUri(asset.uri);
     setUploading(true);
 
+    // Use the real MIME type from the picker so HEIC/PNG are correctly labelled.
+    const mimeType = asset.mimeType ?? 'image/jpeg';
+
     try {
       if (side === "front") {
-        await kycApi.uploadId(applicationId, asset.uri, "id_front.jpg");
+        await kycApi.uploadId(applicationId, asset.uri, "id_front.jpg", mimeType);
       } else {
-        await kycApi.uploadIdBack(applicationId, asset.uri);
+        await kycApi.uploadIdBack(applicationId, asset.uri, mimeType);
       }
     } catch (err: any) {
       setUri(null);

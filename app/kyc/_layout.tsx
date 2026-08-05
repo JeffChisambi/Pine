@@ -12,10 +12,9 @@ export default function KycLayout() {
         headerShown: false,
         animation: isDark ? "none" : "slide_from_right",
         contentStyle: { backgroundColor: c.background },
-        navigationBarColor: c.background,
         statusBarStyle: isDark ? "light" : "dark",
-        navigationBarTranslucent: isDark ? false : undefined,
-        statusBarTranslucent: isDark ? false : true,
+        // navigationBarColor / navigationBarTranslucent / statusBarTranslucent
+        // omitted — ignored (and warned about) under edge-to-edge (SDK 54).
       }}
     />
   );

@@ -16,9 +16,9 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import Svg, { Path, Circle, G, Rect, Defs, ClipPath } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
+import { guardedBack } from "@/utils/navigation";
 
 const TEAL = "#164951";
 const AMBER = "#B45309";
@@ -84,6 +84,19 @@ export default function UnderReviewScreen() {
       backgroundColor: c.background,
       paddingTop: topPad,
     },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingTop: 4,
+      paddingBottom: 4,
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     content: {
       flex: 1,
       paddingHorizontal: 28,
@@ -135,27 +148,24 @@ export default function UnderReviewScreen() {
       color: c.text,
       marginBottom: 12,
     },
-    footer: {
-      paddingHorizontal: 24,
-      paddingTop: 12,
-      paddingBottom: insets.bottom + 24,
-      gap: 12,
-    },
-    primaryBtn: {
-      backgroundColor: TEAL,
-      borderRadius: 12,
-      paddingVertical: 18,
-      alignItems: "center",
-    },
-    primaryBtnText: {
-      fontFamily: "PlusJakartaSans_600SemiBold",
-      fontSize: 16,
-      color: "#FFFFFF",
-    },
   });
 
   return (
     <View style={styles.root}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => guardedBack("/(tabs)/profile")}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+            <Path d="M15 19l-7-7 7-7" stroke={c.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.content}>
         <ClockIllustration />
 
@@ -179,16 +189,6 @@ export default function UnderReviewScreen() {
           <ChecklistItem text="Your address document is reviewed." />
           <ChecklistItem text="You'll receive a notification with the outcome — usually within 24 hours." />
         </View>
-      </View>
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.primaryBtn}
-          onPress={() => router.replace("/(tabs)/profile" as any)}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.primaryBtnText}>Back to Home</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );

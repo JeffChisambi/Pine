@@ -17,7 +17,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Platform, View } from "react-native";
+import { View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -29,6 +29,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "../services/auth-context";
 import { ThemeProvider, useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
+import { configurePushNotifications } from "../services/push";
 
 // Suppress non-actionable native warnings that appear in Expo Go on iOS.
 LogBox.ignoreLogs([
@@ -125,6 +126,26 @@ function RootLayoutNav() {
     SystemUI.setBackgroundColorAsync(c.background).catch(() => {});
   }, [c.background]);
 
+  useEffect(() => {
+    // Set up foreground presentation + the Android notification channel once.
+    // Guarded internally; a no-op when the native push module is absent.
+    configurePushNotifications().catch(() => {});
+  }, []);
+
+  // Drill-in "section" screens (notifications, profile sub-pages, treasury,
+  // trade, stock, education, wallet, etc.) share one transition: the native
+  // iOS-style right-edge push. The incoming screen slides in from the right
+  // while the current screen stays visible beneath it until it is covered —
+  // the behaviour we want — and it renders through react-native-screens'
+  // normal card path, so there is no transparent-modal header-repaint bug.
+  // Enabled in BOTH light and dark; any surface briefly exposed during the
+  // slide is painted with c.background (see contentStyle + SystemUI above).
+  const section = {
+    headerShown: false,
+    animation: "slide_from_right",
+    animationDuration: 300,
+  } as const;
+
   return (
     <AuthGate>
       <StatusBar
@@ -140,12 +161,11 @@ function RootLayoutNav() {
           // which crash in the Expo Go build of react-native-screens 4.x.
           presentation: "card",
           contentStyle: { backgroundColor: c.background },
-          navigationBarColor: c.background,
           statusBarStyle: isDark ? "light" : "dark",
-          navigationBarTranslucent: isDark ? false : undefined,
-          // statusBarTranslucent is Android-only. Passing it on iOS with
-          // the new architecture (Fabric) crashes RNSModalScreenShadowNode.
-          ...(Platform.OS === "android" ? { statusBarTranslucent: !isDark } : {}),
+          // NOTE: navigationBarColor / navigationBarTranslucent / statusBarTranslucent
+          // are intentionally omitted — this app runs edge-to-edge (SDK 54 default),
+          // where react-native-screens ignores them and warns. The system bars are
+          // handled by the edge-to-edge config + per-screen safe-area padding.
           // Dark-mode transitions expose the native window surface on some
           // devices, so use an instantaneous transition there. Keep the
           // existing light-mode motion unchanged.
@@ -166,10 +186,10 @@ function RootLayoutNav() {
           name="signup"
           options={{ headerShown: false, gestureEnabled: false, animation: isDark ? "none" : "fade", animationDuration: 240 }}
         />
-        <Stack.Screen name="phone-number" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="verify-code" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="forgot-password" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="create-pin" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="phone-number" options={{ headerShown: false, animation: "none" }} />
+        <Stack.Screen name="verify-code" options={{ headerShown: false, animation: "none" }} />
+        <Stack.Screen name="forgot-password" options={{ headerShown: false, animation: "none" }} />
+        <Stack.Screen name="create-pin" options={{ headerShown: false, animation: "none" }} />
 
         {/* Tabs — fade so the jump from auth feels instant, not jarring */}
         <Stack.Screen
@@ -177,36 +197,18 @@ function RootLayoutNav() {
           options={{ headerShown: false, gestureEnabled: false, animation: isDark ? "none" : "fade", animationDuration: 300 }}
         />
 
-        {/* Discovery screens — slide in from right */}
-        <Stack.Screen name="stock-search" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="stock/[ticker]" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="education" options={{ headerShown: false, animationDuration: 260 }} />
+        {/* Discovery screens — native slide-from-right (see `section`) */}
+        <Stack.Screen name="stock-search" options={section} />
+        <Stack.Screen name="stock/[ticker]" options={section} />
+        <Stack.Screen name="education" options={section} />
 
-        {/* Trade flow */}
-        <Stack.Screen
-          name="trade/buy"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 340 }}
-        />
-        <Stack.Screen
-          name="trade/sell"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 340 }}
-        />
-        <Stack.Screen
-          name="trade/exchange"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 340 }}
-        />
-        <Stack.Screen
-          name="trade/payment"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 320 }}
-        />
-        <Stack.Screen
-          name="trade/confirm"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 320 }}
-        />
-        <Stack.Screen
-          name="trade/payment-webview"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 320 }}
-        />
+        {/* Trade flow — native slide-from-right (see `section`) */}
+        <Stack.Screen name="trade/buy" options={section} />
+        <Stack.Screen name="trade/sell" options={section} />
+        <Stack.Screen name="trade/exchange" options={section} />
+        <Stack.Screen name="trade/payment" options={section} />
+        <Stack.Screen name="trade/confirm" options={section} />
+        <Stack.Screen name="trade/payment-webview" options={section} />
         <Stack.Screen
           name="trade/success"
           options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300 }}
@@ -215,7 +217,7 @@ function RootLayoutNav() {
           name="trade/card-success"
           options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300, gestureEnabled: false }}
         />
-        <Stack.Screen name="trade/history" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="trade/history" options={section} />
 
         {/* Payment screens */}
         <Stack.Screen
@@ -223,20 +225,25 @@ function RootLayoutNav() {
           options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 340 }}
         />
 
-        {/* Profile sub-screens */}
-        <Stack.Screen name="profile/notifications" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="profile/personal-data" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="profile/push-notifications" options={{ headerShown: false, animationDuration: 260 }} />
+        {/* Wallet — native slide-from-right (see `section`) */}
+        <Stack.Screen name="deposit" options={section} />
+        <Stack.Screen name="withdraw" options={section} />
 
-        {/* Treasury Bill flow */}
-        <Stack.Screen name="treasury/index" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="treasury/details" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="treasury/calculator" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="treasury/review" options={{ headerShown: false, animation: isDark ? "none" : "slide_from_right", animationDuration: 320 }} />
+        {/* Profile sub-screens — native slide-from-right (see `section`) */}
+        <Stack.Screen name="profile/notifications" options={section} />
+        <Stack.Screen name="profile/personal-data" options={section} />
+        <Stack.Screen name="profile/security" options={section} />
+        <Stack.Screen name="profile/push-notifications" options={section} />
+
+        {/* Treasury Bill flow — native slide-from-right (see `section`) */}
+        <Stack.Screen name="treasury/index" options={section} />
+        <Stack.Screen name="treasury/details" options={section} />
+        <Stack.Screen name="treasury/calculator" options={section} />
+        <Stack.Screen name="treasury/review" options={section} />
         <Stack.Screen name="treasury/processing" options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300, gestureEnabled: false }} />
         <Stack.Screen name="treasury/success" options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300, gestureEnabled: false }} />
-        <Stack.Screen name="treasury/my-investments" options={{ headerShown: false, animationDuration: 260 }} />
-        <Stack.Screen name="treasury/investment-detail" options={{ headerShown: false, animationDuration: 260 }} />
+        <Stack.Screen name="treasury/my-investments" options={section} />
+        <Stack.Screen name="treasury/investment-detail" options={section} />
       </Stack>
     </AuthGate>
   );

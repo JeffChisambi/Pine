@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
+  Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
@@ -15,6 +16,14 @@ import { useAuth } from "../../services/auth-context";
 import { useWalletBalance } from "../../services/wallet-queries";
 import { useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
+import { NotificationsPanel, PersonalDataPanel, PushNotificationsPanel } from "@/components/ProfilePanels";
+import {
+  getBiometricInfo,
+  authenticate,
+  isBiometricEnabled,
+  setBiometricEnabled,
+  type BiometricInfo,
+} from "../../services/biometrics";
 
 // ─── Static brand / semantic tokens (unchanged across themes) ─────────────────
 const TEAL = "#164951";
@@ -153,6 +162,58 @@ export default function ProfileScreen() {
   // Auth state
   const { user, logout, refreshProfile } = useAuth();
   const [fingerprintEnabled, setFingerprintEnabled] = useState(false);
+  const [biometricInfo, setBiometricInfo] = useState<BiometricInfo>({ available: false, enrolled: false, label: "Biometrics" });
+  const [biometricBusy, setBiometricBusy] = useState(false);
+  const [activePanel, setActivePanel] = useState<'notifications' | 'personal-data' | 'push-notifications' | null>(null);
+
+  // Load the saved biometric preference and device capability on mount.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const [enabled, info] = await Promise.all([isBiometricEnabled(), getBiometricInfo()]);
+      if (!active) return;
+      setBiometricInfo(info);
+      // Only honour a stored "on" if the device can still actually do it.
+      setFingerprintEnabled(enabled && info.available && info.enrolled);
+    })();
+    return () => { active = false; };
+  }, []);
+
+  const handleToggleFingerprint = useCallback(async () => {
+    if (biometricBusy) return;
+
+    // Turning OFF — just clear the preference.
+    if (fingerprintEnabled) {
+      setFingerprintEnabled(false);
+      await setBiometricEnabled(false);
+      return;
+    }
+
+    // Turning ON — validate the device can do it, then verify identity.
+    if (!biometricInfo.available) {
+      Alert.alert("Not available", "This device doesn't support biometric authentication.");
+      return;
+    }
+    if (!biometricInfo.enrolled) {
+      Alert.alert(
+        `Set up ${biometricInfo.label}`,
+        `No ${biometricInfo.label.toLowerCase()} is enrolled on this device yet. Add one in your device settings, then try again.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Open Settings", onPress: () => Linking.openSettings().catch(() => {}) },
+        ],
+      );
+      return;
+    }
+
+    setBiometricBusy(true);
+    const ok = await authenticate(`Enable ${biometricInfo.label} for Pine`);
+    setBiometricBusy(false);
+    if (!ok) return; // cancelled or failed — leave the toggle off
+
+    setFingerprintEnabled(true);
+    await setBiometricEnabled(true);
+  }, [biometricBusy, fingerprintEnabled, biometricInfo]);
 
   // Derive display values directly from `user` — no local copy.
   // This eliminates the race window where useState holds a previous
@@ -187,14 +248,15 @@ export default function ProfileScreen() {
   const textColor = c.text;
 
   const SETTINGS_GROUP_1 = [
-    { icon: <CalendarIcon color={iconColor} />, label: "Personal Data", sub: "Name, address, email", route: "/profile/personal-data" },
-    { icon: <SealCheckIcon color={iconColor} />, label: "Identity Verification", sub: "KYC — verify your identity", route: "/kyc/upload-id" },
-    { icon: <LockIcon color={iconColor} />, label: "Security", sub: "Password & PIN", route: "/profile/security" },
+    { icon: <CalendarIcon color={iconColor} />, label: "Personal Data", sub: "Name, address, email", onPress: () => setActivePanel('personal-data') },
+    { icon: <SealCheckIcon color={iconColor} />, label: "Identity Verification", sub: "KYC — verify your identity", onPress: () => router.push("/kyc/upload-id" as any) },
+    { icon: <LockIcon color={iconColor} />, label: "Security", sub: "Password & PIN", onPress: () => router.push("/profile/security" as any) },
   ];
 
   const SETTINGS_GROUP_2 = [
-    { icon: <FingerprintIcon color={iconColor} />, label: "Fingerprint", sub: "Biometric authentication", route: null, toggle: true, toggleValue: fingerprintEnabled, onToggle: () => setFingerprintEnabled(v => !v) },
-    { icon: <MoonIcon color={iconColor} />, label: "Dark Mode", sub: "Switch app appearance", route: null, toggle: true, toggleValue: isDark, onToggle: toggleTheme },
+    { icon: <FingerprintIcon color={iconColor} />, label: biometricInfo.label === "Biometrics" ? "Fingerprint" : biometricInfo.label, sub: biometricInfo.available ? "Biometric authentication" : "Not available on this device", onPress: null, toggle: true, toggleValue: fingerprintEnabled, onToggle: handleToggleFingerprint },
+    { icon: <MoonIcon color={iconColor} />, label: "Dark Mode", sub: "Switch app appearance", onPress: null, toggle: true, toggleValue: isDark, onToggle: toggleTheme },
+    { icon: <CalendarIcon color={iconColor} />, label: "Notifications", sub: "Manage notification preferences", onPress: () => setActivePanel('push-notifications'), toggle: false },
   ];
 
   const styles = StyleSheet.create({
@@ -321,12 +383,17 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
+      {/* Overlay panels — same pattern as news DetailModal */}
+      {activePanel === 'notifications'      && <NotificationsPanel    onClose={() => setActivePanel(null)} />}
+      {activePanel === 'personal-data'      && <PersonalDataPanel     onClose={() => setActivePanel(null)} />}
+      {activePanel === 'push-notifications' && <PushNotificationsPanel onClose={() => setActivePanel(null)} />}
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Account</Text>
         <TouchableOpacity
           style={styles.editBtn}
-          onPress={() => router.push("/profile/personal-data" as any)}
+          onPress={() => setActivePanel('personal-data')}
         >
           <EditIcon color={textColor} />
         </TouchableOpacity>
@@ -382,7 +449,7 @@ export default function ProfileScreen() {
             <View key={item.label}>
               <TouchableOpacity
                 style={styles.settingsRow}
-                onPress={() => item.route && router.push(item.route as any)}
+                onPress={item.onPress ?? undefined}
                 activeOpacity={0.7}
               >
                 <View style={styles.rowIconWrap}>{item.icon}</View>
@@ -405,7 +472,7 @@ export default function ProfileScreen() {
                 style={styles.settingsRow}
                 onPress={() => {
                   if (item.toggle) item.onToggle?.();
-                  else if (item.route) router.push(item.route as any);
+                  else item.onPress?.();
                 }}
                 activeOpacity={0.7}
               >

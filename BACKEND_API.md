@@ -976,6 +976,64 @@ Trigger OCR processing and identity verification for the completed application. 
 
 ---
 
+### `POST /notifications/devices`
+
+Register (or refresh) a device's Expo push token so the backend can deliver
+remote push notifications. **Must be idempotent** — the client calls this on
+every launch for users who have granted OS permission, and whenever the token
+rotates. Upsert on `token` (unique per device); associate it with the
+authenticated user.
+
+**Auth required:** Yes
+
+**Request body:**
+
+```json
+{
+  "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+  "platform": "android",
+  "deviceName": "Pixel 8",
+  "appVersion": "1.0.0"
+}
+```
+
+- `platform`: `"ios" | "android" | "web"`.
+- `deviceName`, `appVersion`: optional metadata.
+
+**Response `data`:**
+
+```json
+{ "success": true }
+```
+
+> Delivery: send to these Expo push tokens via the Expo Push API
+> (`https://exp.host/--/api/v2/push/send`), gated by the user's
+> `/notifications/preferences` `push` flag per category. Prune tokens that Expo
+> reports as `DeviceNotRegistered`.
+
+---
+
+### `DELETE /notifications/devices`
+
+Remove a device's push token (called on logout and when the user disables push).
+Idempotent — deleting an unknown token still returns success.
+
+**Auth required:** Yes
+
+**Request body:**
+
+```json
+{ "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]" }
+```
+
+**Response `data`:**
+
+```json
+{ "success": true }
+```
+
+---
+
 ## Payments API — PayChangu
 
 Used for mobile money deposits.

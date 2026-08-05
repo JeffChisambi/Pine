@@ -47,6 +47,19 @@
       "expo-font",
       "expo-web-browser",
       [
+        "expo-notifications",
+        {
+          "icon": "./assets/pine_assets/icons/rounded/icon (1).png",
+          "color": "#164951"
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Pine to use Face ID to sign in and authorize sensitive actions."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#ffffff",

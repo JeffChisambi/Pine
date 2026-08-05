@@ -36,6 +36,7 @@ import { AuthStore } from './auth-store';
 import { authApi, type AuthTokens, type UserProfile, ApiError } from './api';
 import { queryClient } from './query-client';
 import { clearPendingDeposit } from './wallet-queries';
+import { registerForPushNotificationsAsync, unregisterPushDevice } from './push';
 
 interface AuthState {
   isLoading: boolean;
@@ -123,6 +124,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
+  // ── Push token sync ──────────────────────────────────────────────────────
+  // Once authenticated, silently (re)register this device's push token if the
+  // user has already granted OS permission. `promptIfNeeded = false` means we
+  // never nag here — users opt in from the Notification Settings screen. The
+  // call is fully guarded and a no-op when the native push module is absent.
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    registerForPushNotificationsAsync(false).catch(() => {});
+  }, [isLoggedIn]);
+
   // ── handleAuthResponse ─────────────────────────────────────────────────────
   // Shared by login() and register(). Atomically swaps from any previous user
   // to the new user — no stale data can flash through between the two states.
@@ -164,6 +175,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── logout ─────────────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
+    // Detach this device's push token first so a logged-out phone stops
+    // receiving this user's notifications. Best-effort; never blocks logout.
+    await unregisterPushDevice();
+
     try {
       await authApi.logout();
     } catch {
