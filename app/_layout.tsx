@@ -309,13 +309,15 @@ export default function RootLayout() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Fallback: if the animation asset somehow never decodes, still reveal the
+  // app once fonts are ready rather than sitting on the native splash.
   useEffect(() => {
     if (!isExpoGo && (fontsLoaded || fontError || fontTimeout)) {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError, fontTimeout]);
 
-  if (!fontsLoaded && !fontError && !fontTimeout) return null;
+  const appReady = fontsLoaded || fontError || fontTimeout;
 
   return (
     <ThemeProvider>
@@ -325,11 +327,22 @@ export default function RootLayout() {
             <QueryClientProvider client={queryClient}>
               <AuthProvider>
                 <GestureHandlerRootView style={{ flex: 1 }}>
-                  <KeyboardProvider>
-                    <RootLayoutNav />
-                  </KeyboardProvider>
+                  {/* The animated splash covers everything, so the app tree can
+                      wait for fonts underneath it without delaying the intro. */}
+                  {appReady ? (
+                    <KeyboardProvider>
+                      <RootLayoutNav />
+                    </KeyboardProvider>
+                  ) : (
+                    <View style={{ flex: 1, backgroundColor: "#ffffff" }} />
+                  )}
                   {!animatedSplashDone && (
-                    <AnimatedSplash onFinish={() => setAnimatedSplashDone(true)} />
+                    <AnimatedSplash
+                      onFinish={() => setAnimatedSplashDone(true)}
+                      onReady={() => {
+                        if (!isExpoGo) SplashScreen.hideAsync().catch(() => {});
+                      }}
+                    />
                   )}
                 </GestureHandlerRootView>
               </AuthProvider>

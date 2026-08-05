@@ -2,17 +2,24 @@ import { Image } from "expo-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet } from "react-native";
 
-// Duration of the rendered logo animation (192 frames @ 60fps) plus a short
-// hold before the overlay fades out and hands off to the app.
-const ANIMATION_MS = 3300;
+// Duration of the rendered logo animation (2.78 s) plus a short hold before
+// the overlay fades out and hands off to the app.
+const ANIMATION_MS = 2900;
 const FADE_MS = 350;
 
 /**
  * Full-screen overlay that plays the Blender-rendered Pine logo build
- * animation once, then fades away. Shown immediately after the (plain white)
- * native splash hides, so the handoff is seamless white-to-white.
+ * animation once, then fades away. `onReady` fires when the first frame has
+ * decoded — the caller uses it to hide the (plain white) native splash so the
+ * handoff is seamless white-to-white with no blank gap.
  */
-export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
+export function AnimatedSplash({
+  onFinish,
+  onReady,
+}: {
+  onFinish: () => void;
+  onReady?: () => void;
+}) {
   const opacity = useRef(new Animated.Value(1)).current;
   const finishedRef = useRef(false);
   const [loaded, setLoaded] = useState(false);
@@ -49,7 +56,12 @@ export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
         style={{ width: width * 0.82, aspectRatio: 4 / 3 }}
         contentFit="contain"
         cachePolicy="memory"
-        onLoad={() => setLoaded(true)}
+        priority="high"
+        transition={0}
+        onLoad={() => {
+          setLoaded(true);
+          onReady?.();
+        }}
       />
     </Animated.View>
   );
