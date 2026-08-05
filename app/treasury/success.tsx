@@ -5,7 +5,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
-import { TBILL_OPTIONS, calculateReturns } from "@/data/treasury";
+import { calculateReturns, EMPTY_TBILL } from "@/data/treasury";
+import { useTreasuryProduct } from "@/hooks/useTreasury";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";
@@ -38,9 +39,10 @@ export default function TreasurySuccess() {
   const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16);
   const c = useColors();
-  const { id, amount } = useLocalSearchParams<{ id: string; amount: string }>();
+  const { id, amount, ref } = useLocalSearchParams<{ id: string; amount: string; ref: string }>();
 
-  const bill = TBILL_OPTIONS.find((b) => b.id === id) ?? TBILL_OPTIONS[0];
+  const { data: billData } = useTreasuryProduct(id);
+  const bill = billData ?? EMPTY_TBILL;
   const numericAmount = Number(amount) || 0;
   const { earnings, maturityValue } = calculateReturns(numericAmount, bill.yieldPct, bill.duration);
 

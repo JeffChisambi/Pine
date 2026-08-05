@@ -10,8 +10,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import Svg, { Path } from "react-native-svg";
 import { guardedBack } from "@/utils/navigation";
+import { ActivityIndicator } from "react-native";
 import { useColors } from "@/hooks/useColors";
-import { TBILL_OPTIONS, type TBillOption } from "@/data/treasury";
+import { type TBillOption } from "@/data/treasury";
+import { useTreasuryProducts } from "@/hooks/useTreasury";
 
 const GREEN  = "#45B369";
 const WHITE  = "#FFFFFF";
@@ -89,6 +91,7 @@ function BillCard({ bill, c }: { bill: TBillOption; c: ReturnType<typeof useColo
 }
 
 export default function TreasuryLanding() {
+  const { data: products = [], isLoading } = useTreasuryProducts();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
   const c = useColors();
@@ -178,10 +181,20 @@ export default function TreasuryLanding() {
           Select a term to view details and invest
         </Text>
 
-        {/* ── Bill cards ── */}
-        {TBILL_OPTIONS.map((bill) => (
-          <BillCard key={bill.id} bill={bill} c={c} />
-        ))}
+        {/* ── Bill cards (DB-driven) ── */}
+        {isLoading ? (
+          <View style={{ paddingTop: 40, alignItems: "center" }}>
+            <ActivityIndicator color={c.text} />
+          </View>
+        ) : products.length === 0 ? (
+          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, textAlign: "center", paddingTop: 24 }}>
+            No treasury bills available right now.
+          </Text>
+        ) : (
+          products.map((bill) => (
+            <BillCard key={bill.id} bill={bill as TBillOption} c={c} />
+          ))
+        )}
 
       </ScrollView>
     </View>

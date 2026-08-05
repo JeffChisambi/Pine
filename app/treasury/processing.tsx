@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Platform, Animated, Easing } from "react-native";
+import { View, Text, Platform, Animated, Easing, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
-import { TBILL_OPTIONS, calculateReturns } from "@/data/treasury";
+import { calculateReturns, EMPTY_TBILL } from "@/data/treasury";
+import { useTreasuryProduct, useInvest } from "@/hooks/useTreasury";
+import { getErrorMessage } from "@/services/api";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";
@@ -23,7 +25,8 @@ export default function TreasuryProcessing() {
   const insets = useSafeAreaInsets();
   const c = useColors();
   const { id, amount } = useLocalSearchParams<{ id: string; amount: string }>();
-  const bill = TBILL_OPTIONS.find((b) => b.id === id) ?? TBILL_OPTIONS[0];
+  const { data: billData } = useTreasuryProduct(id);
+  const bill = billData ?? EMPTY_TBILL;
   const numericAmount = Number(amount) || 0;
   const { earnings, maturityValue } = calculateReturns(numericAmount, bill.yieldPct, bill.duration);
 
@@ -31,6 +34,28 @@ export default function TreasuryProcessing() {
   const [done, setDone] = useState(false);
   const spinAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Fire the REAL investment order once on mount. The animation below only
+  // navigates to the success screen after the server confirms; a failure
+  // surfaces an alert and returns the user to the review step.
+  const invest = useInvest();
+  const firedRef = useRef(false);
+  const investIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (firedRef.current || !id || numericAmount <= 0) return;
+    firedRef.current = true;
+    invest.mutate(
+      { productId: id, amount: numericAmount },
+      {
+        onSuccess: (res) => { investIdRef.current = res.investmentId; },
+        onError: (e) => {
+          Alert.alert("Investment failed", getErrorMessage(e), [
+            { text: "OK", onPress: () => router.back() },
+          ]);
+        },
+      },
+    );
+  }, [id, numericAmount]);
 
   // Spinner animation
   useEffect(() => {
@@ -59,15 +84,19 @@ export default function TreasuryProcessing() {
         });
       } else {
         clearInterval(interval);
-        setTimeout(() => {
+        // Only advance to success once the server has confirmed the order.
+        const finish = () => {
+          if (invest.isError) return; // onError already handled navigation
+          if (!invest.isSuccess) { setTimeout(finish, 300); return; }
           setDone(true);
           setTimeout(() => {
             router.replace({
               pathname: "/treasury/success" as any,
-              params: { id: bill.id, amount: String(numericAmount) },
+              params: { id: bill.id, amount: String(numericAmount), ref: investIdRef.current ?? "" },
             });
           }, 700);
-        }, 400);
+        };
+        setTimeout(finish, 400);
       }
     }, 900);
     return () => clearInterval(interval);

@@ -14,7 +14,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Rect } from "react-native-svg";
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
-import { TBILL_OPTIONS, calculateReturns } from "@/data/treasury";
+import { calculateReturns, EMPTY_TBILL } from "@/data/treasury";
+import { useTreasuryProduct } from "@/hooks/useTreasury";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";
@@ -43,7 +44,8 @@ export default function TreasuryCalculator() {
   const c = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const bill = TBILL_OPTIONS.find((b) => b.id === id) ?? TBILL_OPTIONS[0];
+  const { data: billData } = useTreasuryProduct(id);
+  const bill = billData ?? EMPTY_TBILL;
 
   const [rawAmount, setRawAmount] = useState("");
 

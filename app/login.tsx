@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AnimatedEyeButton from "../components/AnimatedEyeButton";
 import { useAuth } from "../services/auth-context";
 import { getErrorMessage, logHandledError } from "../services/api";
+import { formatMalawiNational, malawiNationalDigits, isValidMalawiNational } from "@/utils/phone";
 
 const TEAL = "#164951";
 const WHITE = "#FFFFFF";
@@ -220,6 +221,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const isMalawi = selectedCountry.dial === "+265";
   const identifier = selectedCountry.dial + phoneNumber.trim();
   const canSubmit = phoneNumber.trim().length > 0 && password.length > 0 && !loading;
 
@@ -376,15 +378,23 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             {/* Phone number input */}
-            <View style={styles.phoneInput}>
+            <View style={[
+              styles.phoneInput,
+              isMalawi && isValidMalawiNational(phoneNumber) && { borderWidth: 1, borderColor: "#22C55E" },
+            ]}>
               <TextInput
                 style={styles.input}
-                placeholder="Phone Number"
+                placeholder={isMalawi ? "991 234 567" : "Phone Number"}
                 placeholderTextColor={MUTED}
                 keyboardType="phone-pad"
                 autoCapitalize="none"
-                value={phoneNumber}
-                onChangeText={(t) => { setPhoneNumber(t.replace(/[^0-9]/g, "")); setErrorMsg(""); }}
+                // Malawi numbers get live 3-3-3 spacing; raw digits are kept in state.
+                value={isMalawi ? formatMalawiNational(phoneNumber) : phoneNumber}
+                onChangeText={(t) => {
+                  setPhoneNumber(isMalawi ? malawiNationalDigits(t) : t.replace(/[^0-9]/g, ""));
+                  setErrorMsg("");
+                }}
+                maxLength={isMalawi ? 11 : undefined}
               />
             </View>
           </View>

@@ -59,7 +59,7 @@ if (!isExpoGo) {
  * screen and needs to be handled like any other route.
  */
 function AuthGate({ children }: { children: React.ReactNode }) {
-  const { isLoading, isLoggedIn } = useAuth();
+  const { isLoading, isLoggedIn, user } = useAuth();
   const segments = useSegments();
   const [hasOnboarded, setHasOnboarded] = React.useState<boolean | null>(null);
 
@@ -92,6 +92,22 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       seg === "signup" ||
       seg === "forgot-password";
 
+    // ── Mandatory transaction PIN ──────────────────────────────────────────
+    // A trading PIN is required for every trade, so it is non-negotiable at
+    // setup. Any logged-in user without a PIN is forced to /create-pin — this
+    // catches users who reached the app before setting one (e.g. the gate
+    // previously bounced freshly-registered users straight to the tabs). The
+    // pre-PIN funnel screens are allowed so the flow can complete.
+    const PRE_PIN_ALLOWED = [
+      "signup", "create-pin", "verify-email", "phone-number", "verify-code",
+    ];
+    if (isLoggedIn && user && user.hasPinSet === false) {
+      if (!PRE_PIN_ALLOWED.includes(seg)) {
+        router.replace("/create-pin");
+      }
+      return; // don't run the tabs-bounce below until a PIN exists
+    }
+
     // Fast path — Telegram-style: as soon as the cached session restore says
     // the user is logged in (a purely local check, no network), bounce them
     // off auth/onboarding screens. Waiting for the full `isLoading` (which
@@ -123,7 +139,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
     // Fresh install (!isLoggedIn && seg === "" && !hasOnboarded):
     // → stay on the onboarding carousel; no redirect needed.
-  }, [isLoading, isLoggedIn, segments, hasOnboarded]);
+  }, [isLoading, isLoggedIn, user?.hasPinSet, segments, hasOnboarded]);
 
   return <>{children}</>;
 }

@@ -5,7 +5,9 @@ import { router } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
-import { MOCK_INVESTMENTS, TBILL_OPTIONS, type TBillInvestment } from "@/data/treasury";
+import { type TBillInvestment } from "@/data/treasury";
+import { useMyInvestments } from "@/hooks/useTreasury";
+import { mapInvestment } from "@/utils/treasury-map";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";
@@ -40,7 +42,6 @@ function StatusPill({ status }: { status: TBillInvestment["status"] }) {
 }
 
 function InvestmentCard({ inv, c }: { inv: TBillInvestment; c: ReturnType<typeof useColors> }) {
-  const bill = TBILL_OPTIONS.find((b) => b.id === inv.billId);
   const daysRemaining = (() => {
     const maturity = new Date(inv.maturityDate.replace(" ", " "));
     const today = new Date();
@@ -132,7 +133,9 @@ export default function MyInvestments() {
   const c = useColors();
   const [activeTab, setActiveTab] = useState<TabType>("Active");
 
-  const filteredInvestments = MOCK_INVESTMENTS.filter((inv) => inv.status === activeTab.toLowerCase());
+  const { data: apiInvestments = [] } = useMyInvestments();
+  const investments: TBillInvestment[] = apiInvestments.map(mapInvestment);
+  const filteredInvestments = investments.filter((inv) => inv.status === activeTab.toLowerCase());
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>

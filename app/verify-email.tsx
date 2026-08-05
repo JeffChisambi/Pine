@@ -67,10 +67,9 @@ export default function VerifyEmailScreen() {
     return () => clearInterval(t);
   }, [cooldown > 0]);
 
-  // No email on the account (shouldn't happen — signup requires it now).
-  // Don't strand the user: continue to PIN setup.
+  // No email on the account → nothing to verify; go straight to the app.
   useEffect(() => {
-    if (user && !user.email) router.replace("/create-pin");
+    if (user && !user.email) router.replace("/(tabs)");
   }, [user]);
 
   const handleChange = (text: string, index: number) => {
@@ -108,7 +107,7 @@ export default function VerifyEmailScreen() {
     setErrorMsg("");
     try {
       await authApi.verifyOtp(email, "email_verification", code.join(""));
-      router.push("/create-pin");
+      router.replace("/(tabs)");
     } catch (err) {
       logHandledError("Email OTP verify", err);
       setErrorMsg(getErrorMessage(err));
@@ -205,6 +204,18 @@ export default function VerifyEmailScreen() {
               disabled={!isComplete || loading}
             >
               <Text style={styles.continueBtnText}>{loading ? "Verifying..." : "Continue"}</Text>
+            </TouchableOpacity>
+
+            {/* Email delivery can lag — allow entering the app and verifying
+                later from the profile. (The PIN is already set by this point.) */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.replace("/(tabs)")}
+              style={{ paddingVertical: 14, alignItems: "center" }}
+            >
+              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: MUTED }}>
+                Skip for now
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

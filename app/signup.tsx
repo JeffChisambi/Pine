@@ -18,6 +18,7 @@ import Svg, { Path } from "react-native-svg";
 import AnimatedEyeButton from "../components/AnimatedEyeButton";
 import { useAuth } from "../services/auth-context";
 import { ApiError } from "../services/api";
+import { formatMalawiNational, isValidMalawiNational, malawiE164 } from "@/utils/phone";
 
 const TEAL        = "#164951";
 const WHITE       = "#FFFFFF";
@@ -69,8 +70,9 @@ interface FloatFieldProps {
   children: React.ReactNode;
   error?: boolean;
   focused?: boolean;
+  valid?: boolean;
 }
-function FloatField({ label, children, error, focused }: FloatFieldProps) {
+function FloatField({ label, children, error, focused, valid }: FloatFieldProps) {
   return (
     <View style={styles.floatWrap}>
       <View
@@ -78,6 +80,7 @@ function FloatField({ label, children, error, focused }: FloatFieldProps) {
           styles.inputRow,
           styles.inputRowBordered,
           focused && styles.inputRowFocused,
+          valid && styles.inputRowValid,
           error  && styles.inputRowError,
         ]}
       >
@@ -121,7 +124,7 @@ export default function SignupScreen() {
   const [gender,     setGender]     = useState<"Male" | "Female" | "">("");
 
   // Account
-  const [phone,           setPhone]           = useState("+265");
+  const [phone,           setPhone]           = useState("");
   const [email,           setEmail]           = useState("");
   const [password,        setPassword]        = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -159,7 +162,7 @@ export default function SignupScreen() {
     lastName.trim()   !== "" &&
     dob.length >= 8   &&
     gender     !== "" &&
-    phone.length >= 13 &&
+    isValidMalawiNational(phone) &&
     emailValid &&
     passwordValid &&
     password   === confirmPassword &&
@@ -179,7 +182,7 @@ export default function SignupScreen() {
           : undefined;
 
       await auth.register({
-        phone: phone.trim(),
+        phone: malawiE164(phone),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         password,
@@ -187,7 +190,10 @@ export default function SignupScreen() {
         dateOfBirth: dobIso,
         gender: gender === "Male" ? "M" : gender === "Female" ? "F" : undefined,
       });
-      router.push("/phone-number");
+      // A transaction PIN is mandatory (required for every trade), so it comes
+      // first. Email verification follows (skippable). The AuthGate also
+      // enforces PIN, so this can never be bypassed.
+      router.push("/create-pin");
     } catch (err) {
       const msg = err instanceof ApiError
         ? err.message
@@ -315,18 +321,20 @@ export default function SignupScreen() {
         {/* ════════ Account Details ════════ */}
         <View style={styles.sectionWrap}>
 
-          {/* Phone Number (required) */}
-          <FloatField label="Phone Number" focused={phoneFocused}>
+          {/* Phone Number (required) — live 3-3-3 formatting, green when valid */}
+          <FloatField label="Phone Number" focused={phoneFocused} valid={isValidMalawiNational(phone)}>
             <View style={styles.iconWrap}><PhoneIcon /></View>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: DARK, marginRight: 6 }}>+265</Text>
             <TextInput
               style={styles.input}
-              placeholder="+265..."
+              placeholder="991 234 567"
               placeholderTextColor={MUTED}
               keyboardType="phone-pad"
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(t) => setPhone(formatMalawiNational(t))}
               onFocus={() => setPhoneFocused(true)}
               onBlur={() => setPhoneFocused(false)}
+              maxLength={11}
             />
           </FloatField>
 
@@ -541,6 +549,9 @@ const styles = StyleSheet.create({
   },
   inputRowFocused: {
     borderColor: TEAL,
+  },
+  inputRowValid: {
+    borderColor: "#22C55E",
   },
   inputRowError: {
     borderColor: "#EF4444",

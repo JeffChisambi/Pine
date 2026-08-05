@@ -5,7 +5,9 @@ import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
-import { MOCK_INVESTMENTS, TBILL_OPTIONS } from "@/data/treasury";
+import { type TBillInvestment } from "@/data/treasury";
+import { useMyInvestments } from "@/hooks/useTreasury";
+import { mapInvestment, investmentYield, EMPTY_INVESTMENT } from "@/utils/treasury-map";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";
@@ -48,8 +50,11 @@ export default function InvestmentDetail() {
   const c = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const investment = MOCK_INVESTMENTS.find((i) => i.id === id) ?? MOCK_INVESTMENTS[0];
-  const bill = TBILL_OPTIONS.find((b) => b.id === investment.billId) ?? TBILL_OPTIONS[0];
+  const { data: apiInvestments = [] } = useMyInvestments();
+  const apiInv = apiInvestments.find((i) => i.investmentId === id);
+  const investment: TBillInvestment = apiInv ? mapInvestment(apiInv) : EMPTY_INVESTMENT;
+  const yieldPct = apiInv ? investmentYield(apiInv) : 0;
+  const bill = { yieldPct };
 
   const stageIndex = TIMELINE_STAGES.findIndex((s) => s.key === investment.stage);
 

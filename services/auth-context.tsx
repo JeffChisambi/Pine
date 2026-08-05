@@ -46,6 +46,7 @@ interface AuthState {
   register:      (data: { phone: string; firstName: string; lastName: string; password: string; email?: string; dateOfBirth?: string; gender?: string }) => Promise<void>;
   logout:        () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  markPinCreated: () => void;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -218,8 +219,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // ── markPinCreated ───────────────────────────────────────────────────────────
+  // After the user sets their transaction PIN, flip hasPinSet locally so the
+  // mandatory-PIN gate lets them into the app without waiting for a refetch.
+  const markPinCreated = useCallback(() => {
+    setUser((current) => (current ? { ...current, hasPinSet: true } : current));
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ isLoading, isLoggedIn, user, login, register, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ isLoading, isLoggedIn, user, login, register, logout, refreshProfile, markPinCreated }}>
       {children}
     </AuthContext.Provider>
   );

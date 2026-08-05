@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import { useAuth } from "../services/auth-context";
 
 const TEAL = "#164951";
 const WHITE = "#FFFFFF";
@@ -40,6 +41,7 @@ export default function CreatePinScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
+  const { markPinCreated } = useAuth();
 
   const [pin, setPin] = useState<string[]>(Array(PIN_LENGTH).fill(""));
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
@@ -83,7 +85,9 @@ export default function CreatePinScreen() {
     try {
       const { authApi } = require("../services/api");
       await authApi.createPin(pin.join(""));
-      router.replace("/(tabs)");
+      markPinCreated(); // flip hasPinSet so the mandatory-PIN gate lets us through
+      // Email verification is the last (skippable) onboarding step.
+      router.replace("/verify-email");
     } catch (err: any) {
       setErrorMsg(err?.message || "Failed to create PIN. Try again.");
     } finally {
@@ -170,13 +174,10 @@ export default function CreatePinScreen() {
               <Text style={{ color: "#EF4444", fontSize: 13, textAlign: "center", marginTop: 8 }}>{errorMsg}</Text>
             ) : null}
 
-            <TouchableOpacity
-              style={styles.laterBtn}
-              activeOpacity={0.7}
-              onPress={() => router.replace("/(tabs)")}
-            >
-              <Text style={styles.laterBtnText}>Maybe later</Text>
-            </TouchableOpacity>
+            {/* PIN is mandatory (required for trades) — no skip option. */}
+            <Text style={{ color: MUTED, fontSize: 12, textAlign: "center", marginTop: 12 }}>
+              Your PIN is required to authorise trades and withdrawals.
+            </Text>
           </View>
 
         </View>

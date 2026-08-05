@@ -101,3 +101,17 @@ export function calculateReturns(amount: number, yieldPct: number, days: number)
   const maturityValue = amount + earnings;
   return { earnings, maturityValue };
 }
+
+/** Safe placeholder used while a DB-backed product is still loading. */
+export const EMPTY_TBILL: TBillOption = {
+  id: "",
+  duration: 91,
+  yieldPct: 0,
+  minInvestment: 0,
+  riskLevel: "Low",
+  nextAuction: "",
+  auctionDate: "",
+  issueDate: "",
+  maturityDate: "",
+  status: "closed",
+};

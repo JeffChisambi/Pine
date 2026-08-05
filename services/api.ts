@@ -707,6 +707,54 @@ export const newsApi = {
     request<string[]>('/news/categories'),
 };
 
+// ─── Treasury API ─────────────────────────────────────────────────────────────
+
+/** T-bill product as returned by the backend — matches the mobile TBillOption. */
+export type ApiTBillProduct = {
+  id: string;
+  label: string;
+  duration: number;         // tenor days (91 | 182 | 364)
+  yieldPct: number;
+  minInvestment: number;
+  maxInvestment: number | null;
+  riskLevel: string;        // "Very Low" | "Low"
+  nextAuction: string;      // "28 Jul 2026"
+  auctionDate: string;
+  issueDate: string;
+  maturityDate: string;
+  status: string;           // "open" | "closing_soon" | "closed"
+  currency: string;
+};
+
+export type ApiTBillInvestment = {
+  investmentId: string;
+  status: string;
+  amount: string;
+  yieldPercent: number;
+  earnings: string;
+  maturityValue: string;
+  maturityDate: string;
+  createdAt: string;
+  product?: ApiTBillProduct;
+};
+
+export const treasuryApi = {
+  products: (): Promise<ApiTBillProduct[]> =>
+    request<ApiTBillProduct[]>('/treasury/products'),
+
+  investments: (): Promise<ApiTBillInvestment[]> =>
+    request<ApiTBillInvestment[]>('/treasury/investments'),
+
+  invest: (data: { productId: string; amount: number }): Promise<ApiTBillInvestment> =>
+    request<ApiTBillInvestment>('/treasury/invest', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  investment: (id: string): Promise<ApiTBillInvestment> =>
+    request<ApiTBillInvestment>(`/treasury/investments/${encodeURIComponent(id)}`),
+};
+
 // ─── Notifications API ────────────────────────────────────────────────────────
 
 export interface Notification {
