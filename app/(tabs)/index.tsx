@@ -46,6 +46,7 @@ import { SvgXml } from "react-native-svg";
 import { EDUCATION_ICON_SVG } from "@/constants/EducationIconSvg";
 import { LinearGradient } from "expo-linear-gradient";
 import { useColors } from "@/hooks/useColors";
+import { useUnreadCount } from "@/hooks/useNotifications";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
 const TEAL = "#164951";
@@ -59,16 +60,31 @@ const RED = "#EF4770";
 type Colors = ReturnType<typeof useColors>;
 
 // ─── Notification bell ─────────────────────────────────────────────────────────
+// Shows the REAL unread count (was a hardcoded, always-on red dot).
 function NotificationIcon() {
   const c = useColors();
+  const { data: unread = 0 } = useUnreadCount();
   return (
     <View style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
       <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
         <Path d="M12.02 2.91C8.71 2.91 6.02 5.6 6.02 8.91V11.8C6.02 12.41 5.76 13.34 5.45 13.86L4.3 15.77C3.59 16.95 4.08 18.26 5.38 18.7C9.69 20.14 14.34 20.14 18.65 18.7C19.86 18.3 20.39 16.87 19.73 15.77L18.58 13.86C18.28 13.34 18.02 12.41 18.02 11.8V8.91C18.02 5.61 15.32 2.91 12.02 2.91Z" stroke={c.text} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" />
         <Path d="M13.87 3.2C13.56 3.11 13.24 3.04 12.91 3C11.95 2.88 11.03 2.95 10.17 3.2C10.46 2.46 11.18 1.94 12.02 1.94C12.86 1.94 13.58 2.46 13.87 3.2Z" stroke={c.text} strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
         <Path d="M15.02 19.06C15.02 20.71 13.67 22.06 12.02 22.06C11.2 22.06 10.44 21.72 9.9 21.18C9.36 20.64 9.02 19.88 9.02 19.06" stroke={c.text} strokeWidth={1.5} strokeMiterlimit={10} />
-        <Circle cx={18} cy={5} r={3} fill={RED} stroke={c.background} strokeWidth={1.5} />
       </Svg>
+      {unread > 0 && (
+        <View
+          style={{
+            position: "absolute", top: 4, right: 2,
+            minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 3,
+            backgroundColor: RED, borderWidth: 1.5, borderColor: c.background,
+            alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 9, color: "#FFFFFF" }}>
+            {unread > 99 ? "99+" : unread}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

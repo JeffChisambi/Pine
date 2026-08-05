@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { guardedPush } from "@/utils/navigation";
 import {
   View,
@@ -136,14 +136,16 @@ export default function PortfolioScreen() {
   const c = useColors();
   const [balanceHidden, setBalanceHidden] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [period, setPeriod] = useState("1D");
-  const [month, setMonth] = useState("November");
+
+  // Dividends mode — the pill (formerly a dead "November" label) toggles the
+  // main card between portfolio balance and total dividends received.
+  const [dividendMode, setDividendMode] = useState(false);
+  const [dividendsTotal, setDividendsTotal] = useState<number | null>(null);
 
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [totalValue, setTotalValue] = useState<string | null>(null);
   const [totalGain, setTotalGain] = useState<string | null>(null);
   const [gainPositive, setGainPositive] = useState(true);
-  const { data: walletBalance } = useWalletBalance();
 
   useEffect(() => {
     portfolioApi.getSummary()
@@ -157,6 +159,10 @@ export default function PortfolioScreen() {
         setTotalValue("K 0");
         setTotalGain("K 0 (0%)");
       });
+
+    portfolioApi.getDividends()
+      .then((d) => setDividendsTotal(Number(d.totalDividends) || 0))
+      .catch(() => setDividendsTotal(0));
 
     portfolioApi.getHoldings()
       .then((h) => {
@@ -182,7 +188,7 @@ export default function PortfolioScreen() {
       a.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const styles = StyleSheet.create({
+  const styles = useMemo(() => StyleSheet.create({
     root: { flex: 1, backgroundColor: c.background },
     header: { backgroundColor: c.background, paddingHorizontal: 24, paddingBottom: 48, minHeight: 200, position: "relative" },
     whiteSheet: { flex: 1, backgroundColor: c.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -24, overflow: "hidden" },
@@ -249,7 +255,7 @@ export default function PortfolioScreen() {
     emptyState: { paddingVertical: 48, alignItems: "center" },
     emptyText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: c.text, marginBottom: 6 },
     emptySubText: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: c.mutedForeground },
-  });
+  }), [c]);
 
   return (
     <View style={styles.root}>
@@ -264,31 +270,48 @@ export default function PortfolioScreen() {
 
         {/* "Portfolio Balance" + eye */}
         <View style={styles.titleRow}>
-          <Text style={styles.titleLabel}>Portfolio Balance</Text>
+          <Text style={styles.titleLabel}>{dividendMode ? "Dividends" : "Portfolio Balance"}</Text>
           <TouchableOpacity onPress={() => setBalanceHidden((v) => !v)} style={styles.eyeBtn}>
             <EyeIcon hidden={balanceHidden} color={c.mutedForeground} />
           </TouchableOpacity>
         </View>
 
-        {/* Balance + month pill */}
+        {/* Balance / Dividends toggle card */}
         <View style={styles.balanceRow}>
-          <View style={styles.balanceBlock}>
+          <TouchableOpacity
+            style={styles.balanceBlock}
+            activeOpacity={dividendMode ? 0.7 : 1}
+            onPress={() => { if (dividendMode) setDividendMode(false); }}
+          >
             {balanceHidden ? (
               <Text style={styles.balanceHidden} adjustsFontSizeToFit numberOfLines={1}>K  ••••••</Text>
             ) : (
               <Text style={styles.balanceAmount} adjustsFontSizeToFit numberOfLines={1}>
-                {totalValue ?? "—"}
+                {dividendMode
+                  ? `K ${(dividendsTotal ?? 0).toLocaleString()}`
+                  : (totalValue ?? "—")}
               </Text>
             )}
-            {totalGain !== null && (
+            {dividendMode ? (
               <View style={styles.changeChip}>
-                {gainPositive ? <ArrowUpIcon color={GREEN} /> : <ArrowDownIcon color={RED} />}
-                <Text style={styles.changeText}>{totalGain}</Text>
+                <ArrowUpIcon color={GREEN} />
+                <Text style={styles.changeText}>Dividends received · tap to go back</Text>
               </View>
+            ) : (
+              totalGain !== null && (
+                <View style={styles.changeChip}>
+                  {gainPositive ? <ArrowUpIcon color={GREEN} /> : <ArrowDownIcon color={RED} />}
+                  <Text style={styles.changeText}>{totalGain}</Text>
+                </View>
+              )
             )}
-          </View>
-          <TouchableOpacity style={styles.monthPill}>
-            <Text style={styles.monthText}>{month}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.monthPill}
+            activeOpacity={0.75}
+            onPress={() => setDividendMode((v) => !v)}
+          >
+            <Text style={styles.monthText}>{dividendMode ? "Balance" : "Dividends"}</Text>
           </TouchableOpacity>
         </View>
       </View>

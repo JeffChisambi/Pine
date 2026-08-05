@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   Platform,
-  Image,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
+// expo-image: disk+memory caching, fast decode, graceful transitions — fixes
+// slow/flaky remote news images that the plain RN Image had no cache for.
+import { Image } from "expo-image";
 import ReAnimated, {
   useSharedValue,
   useAnimatedStyle,
@@ -106,7 +108,9 @@ function FeaturedCard({ item, onPress, c }: { item: NewsItem; onPress: () => voi
       <Image
         source={imgSrc(item.image)}
         style={{ width: "100%", height: 192, backgroundColor: c.border }}
-        resizeMode="cover"
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={150}
       />
 
       {/* Content */}
@@ -160,7 +164,9 @@ function NewsCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c
       <Image
         source={imgSrc(item.image)}
         style={{ width: 76, height: 76, borderRadius: 12, backgroundColor: c.border, flexShrink: 0 }}
-        resizeMode="cover"
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={150}
       />
 
       {/* Content */}
@@ -243,7 +249,9 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
           <Image
             source={imgSrc(item.image)}
             style={{ width: "100%", height: 220, borderRadius: 16, backgroundColor: c.card }}
-            resizeMode="cover"
+            contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={150}
           />
         </View>
 
@@ -293,10 +301,10 @@ export default function NewsScreen() {
   // DB-driven: news comes from the backend (filtered server-side by category).
   const { data, isLoading, isError, refetch, isFetching } = useNews(activeCategory);
 
-  const filtered: NewsItem[] = (data ?? []).map((n) => ({
-    ...n,
-    summary: n.summary ?? "",
-  }));
+  const filtered: NewsItem[] = useMemo(
+    () => (data ?? []).map((n) => ({ ...n, summary: n.summary ?? "" })),
+    [data],
+  );
 
   const featured = filtered[0];
   const rest = filtered.slice(1);

@@ -22,6 +22,7 @@ import { useTheme } from "@/contexts/theme-context";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
 const TEAL = "#164951";
+const LOGO_COLORS = ["#164951", "#1A3A6B", "#166534", "#7C3AED", "#B45309", "#BE185D"];
 const GREEN = "#45B369";
 const RED = "#EF4770";
 const WHITE = "#FFFFFF";
@@ -64,7 +65,7 @@ function StockLogo({ symbol, c }: { symbol: string; c: Colors }) {
       </View>
     );
   }
-  const colors = ["#164951", "#1A3A6B", "#166534", "#7C3AED", "#B45309", "#BE185D"];
+  const colors = LOGO_COLORS;
   const bg = colors[symbol.charCodeAt(0) % colors.length];
   return (
     <View style={[logoCircleStyle(c), { backgroundColor: bg }]}>
@@ -347,7 +348,15 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
               const pct = getSectorChange(sector.key);
               const positive = pct !== null && pct >= 0;
               return (
-                <TouchableOpacity key={sector.key} activeOpacity={0.75} style={{ width: "33.33%", alignItems: "center", paddingBottom: 28 }}>
+                <TouchableOpacity
+                  key={sector.key}
+                  activeOpacity={0.75}
+                  style={{ width: "33.33%", alignItems: "center", paddingBottom: 28 }}
+                  onPress={() => {
+                    onClose();
+                    guardedPush(() => router.push({ pathname: "/stock-search" as any, params: { sector: sector.key } }));
+                  }}
+                >
                   <View style={{ width: 64, height: 64, borderRadius: 16, backgroundColor: SECTOR_ICON_BG, alignItems: "center", justifyContent: "center", marginBottom: 10 }}>{sector.icon(iconColor)}</View>
                   <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: c.text, textAlign: "center", marginBottom: 3 }}>{sector.label}</Text>
                   <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, textAlign: "center", color: pct === null ? MUTED : positive ? GREEN : RED }}>
@@ -373,7 +382,7 @@ function StockLogoSmall({ symbol, c }: { symbol: string; c: Colors }) {
       </View>
     );
   }
-  const colors = ["#164951", "#1A3A6B", "#166534", "#7C3AED", "#B45309", "#BE185D"];
+  const colors = LOGO_COLORS;
   const bg = colors[symbol.charCodeAt(0) % colors.length];
   return (
     <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: bg, justifyContent: "center", alignItems: "center" }}>
@@ -546,7 +555,12 @@ export default function MarketScreen() {
           const pct = getSectorChange(sector.key);
           const positive = pct !== null && pct >= 0;
           return (
-            <TouchableOpacity key={sector.key} style={{ alignItems: "center", width: 80 }} activeOpacity={0.75}>
+            <TouchableOpacity
+              key={sector.key}
+              style={{ alignItems: "center", width: 80 }}
+              activeOpacity={0.75}
+              onPress={() => guardedPush(() => router.push({ pathname: "/stock-search" as any, params: { sector: sector.key } }))}
+            >
               <View style={{ width: 60, height: 60, borderRadius: 14, backgroundColor: SECTOR_ICON_BG, alignItems: "center", justifyContent: "center", marginBottom: 8 }}>{sector.icon(iconColor)}</View>
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: c.text, textAlign: "center", marginBottom: 2 }}>{sector.label}</Text>
               <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, textAlign: "center", color: pct === null ? MUTED : positive ? GREEN : RED }}>

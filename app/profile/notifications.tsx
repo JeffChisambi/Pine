@@ -13,6 +13,7 @@ import Svg, { Path, Circle, Rect, G, Defs, ClipPath } from "react-native-svg";
 import { notificationsApi, type Notification } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
 import { guardedBack } from "@/utils/navigation";
+import { useInvalidateNotifications } from "@/hooks/useNotifications";
 
 const TEAL = "#164951";
 const GREEN = "#45B369";
@@ -157,6 +158,7 @@ function formatRelativeTime(dateStr: string): string {
 
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
+  const invalidateNotifications = useInvalidateNotifications();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const c = useColors();
 
@@ -185,13 +187,13 @@ export default function NotificationsScreen() {
   const markRead = async (id: string) => {
     setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, isRead: true } : n));
     setUnreadCount((c) => Math.max(0, c - 1));
-    try { await notificationsApi.markRead(id); } catch { fetchNotifications(); }
+    try { await notificationsApi.markRead(id); invalidateNotifications(); } catch { fetchNotifications(); }
   };
 
   const markAllRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     setUnreadCount(0);
-    try { await notificationsApi.markAllRead(); } catch { fetchNotifications(); }
+    try { await notificationsApi.markAllRead(); invalidateNotifications(); } catch { fetchNotifications(); }
   };
 
   const deleteNotification = async (id: string) => {
@@ -200,7 +202,7 @@ export default function NotificationsScreen() {
       const wasUnread = notifications.find((n) => n.id === id && !n.isRead);
       return wasUnread ? Math.max(0, c - 1) : c;
     });
-    try { await notificationsApi.delete(id); } catch { fetchNotifications(); }
+    try { await notificationsApi.delete(id); invalidateNotifications(); } catch { fetchNotifications(); }
   };
 
   return (

@@ -73,9 +73,11 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Wait until the router has initialised and given us at least one segment.
     // Do NOT skip when segments[0] === "" — that is the onboarding index route.
-    if (segments.length === 0) return;
+    if ((segments.length as number) === 0) return;
 
-    const seg = segments[0];
+    // Widened to string: at runtime the index route yields "" which the typed
+    // route union doesn't include, making === "" comparisons type errors.
+    const seg: string = segments[0];
 
     // Screens that belong to the unauthenticated / onboarding funnel.
     // "" is the segment for app/index.tsx (route "/").

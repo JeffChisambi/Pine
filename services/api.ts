@@ -407,6 +407,10 @@ export const portfolioApi = {
 
   getAllocation: (): Promise<any> =>
     request('/portfolio/allocation'),
+
+  /** Total dividends received + recent payouts (Dividends card). */
+  getDividends: (): Promise<DividendsSummary> =>
+    request<DividendsSummary>('/portfolio/dividends'),
 };
 
 // ─── Trading API ──────────────────────────────────────────────────────────────
@@ -648,6 +652,9 @@ export interface ApiStockDetail extends ApiStock {
   lowPrice: string;
   listedShares: string | null;
   period: string;
+  /** Optional analytics the backend may include on the detail payload. */
+  turnover?: string | null;
+  marketCap?: string | null;
   priceHistory: Array<{
     date: string;
     close: number;
@@ -675,6 +682,20 @@ export const stocksApi = {
 
   sectors: (): Promise<string[]> =>
     request<string[]>('/stocks/sectors'),
+};
+
+// ─── Dividends (portfolio) ────────────────────────────────────────────────────
+
+export type DividendsSummary = {
+  totalDividends: number;
+  count: number;
+  recent: Array<{
+    id: string;
+    type: string;
+    amount: number;
+    description: string | null;
+    createdAt: string;
+  }>;
 };
 
 // ─── News API ─────────────────────────────────────────────────────────────────

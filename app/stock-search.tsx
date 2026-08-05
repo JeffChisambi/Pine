@@ -10,7 +10,7 @@ import {
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { getStockLogo } from "../utils/stock-logos";
 import { useStocks, useStockSearch } from "../hooks/useStocks";
@@ -42,11 +42,18 @@ export default function StockSearchScreen() {
   const c = useColors();
   const [query, setQuery] = useState("");
 
+  // Optional sector filter — the market screen's sector tiles navigate here
+  // with ?sector=<name> to show that sector's stocks.
+  const { sector } = useLocalSearchParams<{ sector?: string }>();
+
   const { data: allStocks = [], isLoading: allLoading } = useStocks();
   const { data: searchResults = [], isLoading: searching } = useStockSearch(query);
 
   const isQuerying = query.trim().length > 0;
-  const displayList = isQuerying ? searchResults : allStocks;
+  const baseList = isQuerying ? searchResults : allStocks;
+  const displayList = sector
+    ? baseList.filter((s) => (s.sector ?? "").toLowerCase() === String(sector).toLowerCase())
+    : baseList;
   const isLoading = isQuerying ? searching : allLoading;
 
   return (
