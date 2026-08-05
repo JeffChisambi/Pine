@@ -151,12 +151,16 @@ export default function SignupScreen() {
   };
   const passwordValid = Object.values(passwordRules).every(Boolean);
 
+  // Email is required — account creation includes email verification.
+  const emailValid = /^\S+@\S+\.\S+$/.test(email.trim());
+
   const canContinue =
     firstName.trim()  !== "" &&
     lastName.trim()   !== "" &&
     dob.length >= 8   &&
     gender     !== "" &&
     phone.length >= 13 &&
+    emailValid &&
     passwordValid &&
     password   === confirmPassword &&
     !loading;
@@ -166,12 +170,22 @@ export default function SignupScreen() {
     setLoading(true);
     setErrorMsg("");
     try {
+      // DOB is entered as "DD / MM / YYYY" — convert to ISO (YYYY-MM-DD) for
+      // the API so the backend can reconcile it against OCR/MRZ later.
+      const dobDigits = dob.replace(/\D/g, "");
+      const dobIso =
+        dobDigits.length === 8
+          ? `${dobDigits.slice(4)}-${dobDigits.slice(2, 4)}-${dobDigits.slice(0, 2)}`
+          : undefined;
+
       await auth.register({
         phone: phone.trim(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         password,
-        email: email.trim() || undefined,
+        email: email.trim().toLowerCase(),
+        dateOfBirth: dobIso,
+        gender: gender === "Male" ? "M" : gender === "Female" ? "F" : undefined,
       });
       router.push("/phone-number");
     } catch (err) {

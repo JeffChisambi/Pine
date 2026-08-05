@@ -1,5 +1,5 @@
 import { guardedBack } from "@/utils/navigation";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,20 +8,46 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  useWindowDimensions,
 } from "react-native";
-import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useCameraFormat,
+  useFrameProcessor,
+  runAtTargetFps,
+} from "react-native-vision-camera";
+import { useFaceDetector, type Face } from "react-native-vision-camera-face-detector";
+import { Worklets } from "react-native-worklets-core";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
-import Svg, { Path, Circle } from "react-native-svg";
-import { kycApi } from "../../services/api";
+import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
+import Svg, { Path, Ellipse } from "react-native-svg";
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withRepeat,
+  withTiming,
+  cancelAnimation,
+  Easing,
+  type SharedValue,
+} from "react-native-reanimated";
+import { kycApi, getErrorMessage, logHandledError } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
-import { useTheme } from "@/contexts/theme-context";
 
-const TEAL    = "#164951";
-const WHITE   = "#FFFFFF";
-const BRACKET = "#3BA8A0";
+const GREEN = "#45B369";
+const TEAL  = "#164951";
+const WHITE = "#FFFFFF";
+const DIM   = "rgba(9,14,18,0.74)";
 
-const FRAME_SIZE = 300;
+// ─── Tuning knobs (verify on device) ──────────────────────────────────────────
+const CENTER_YAW_MAX = 12;   // |yawAngle| below this = looking straight
+const TURN_YAW_MIN   = 20;   // |yawAngle| above this = a deliberate head turn
+const EYE_OPEN_MIN   = 0.4;  // require at least one eye open (basic anti-photo)
+const DETECT_FPS     = 4;    // run face detection this many times / second
+
+type Phase = "center" | "left" | "right" | "capturing";
+const STEP_ORDER: Phase[] = ["center", "left", "right"];
 
 function BackArrow({ color }: { color: string }) {
   return (
@@ -31,121 +57,181 @@ function BackArrow({ color }: { color: string }) {
   );
 }
 
-const BRACKET_LEN = 28;
-const BRACKET_W   = 3;
-const BRACKET_R   = 6;
+// ─── Directional frequency-wave indicator ─────────────────────────────────────
+// A vertical column of small horizontal sine-squiggles that hug the oval's edge
+// and shimmer (travelling phase), on the side the user must turn toward.
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+const WAVE_COUNT = 11;   // number of squiggles down the edge
+const WAVE_SPAN  = 0.6;  // fraction of the oval's vertical radius they cover
+const WAVE_W     = 22;   // squiggle width
+const WAVE_GAP   = 7;    // gap from the oval edge
 
-function CornerBrackets({ size }: { size: number }) {
-  const l = BRACKET_LEN;
-  const w = BRACKET_W;
-  const r = BRACKET_R;
-
-  const corner = (pos: "tl" | "tr" | "bl" | "br") => {
-    const base: any = { position: "absolute", width: l, height: l, borderColor: BRACKET, borderRadius: r };
-    if (pos === "tl") return { ...base, top: 0,    left: 0,    borderTopWidth: w,    borderLeftWidth: w  };
-    if (pos === "tr") return { ...base, top: 0,    right: 0,   borderTopWidth: w,    borderRightWidth: w };
-    if (pos === "bl") return { ...base, bottom: 0, left: 0,    borderBottomWidth: w, borderLeftWidth: w  };
-    return               { ...base, bottom: 0, right: 0,   borderBottomWidth: w, borderRightWidth: w };
-  };
-
-  return (
-    <View style={{ position: "absolute", width: size, height: size }} pointerEvents="none">
-      <View style={corner("tl")} />
-      <View style={corner("tr")} />
-      <View style={corner("bl")} />
-      <View style={corner("br")} />
-    </View>
-  );
+function Squiggle({ ax, ay, offset, clock }: { ax: number; ay: number; offset: number; clock: SharedValue<number> }) {
+  const animatedProps = useAnimatedProps(() => {
+    const w = WAVE_W, amp = 4, cycles = 2, STEPS = 10;
+    const phase = clock.value * Math.PI * 2 + offset;
+    let d = "";
+    for (let s = 0; s <= STEPS; s++) {
+      const t = s / STEPS;
+      const x = ax + t * w;
+      const y = ay + amp * Math.sin(t * cycles * Math.PI * 2 + phase);
+      d += (s === 0 ? "M" : "L") + x.toFixed(1) + " " + y.toFixed(1) + " ";
+    }
+    return { d };
+  });
+  return <AnimatedPath animatedProps={animatedProps} stroke={GREEN} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />;
 }
 
-const DOTS = [
-  { cx: 0.38, cy: 0.33, r: 4 }, { cx: 0.46, cy: 0.31, r: 3 }, { cx: 0.54, cy: 0.31, r: 3 },
-  { cx: 0.62, cy: 0.33, r: 4 }, { cx: 0.50, cy: 0.44, r: 3 }, { cx: 0.42, cy: 0.58, r: 3 },
-  { cx: 0.58, cy: 0.58, r: 3 }, { cx: 0.50, cy: 0.68, r: 4 }, { cx: 0.32, cy: 0.48, r: 3 },
-  { cx: 0.68, cy: 0.48, r: 3 },
-];
-
-function ScanDots({ size }: { size: number }) {
-  return (
-    <Svg width={size} height={size} style={{ position: "absolute" }} pointerEvents="none">
-      {DOTS.map((d, i) => (
-        <Circle key={i} cx={d.cx * size} cy={d.cy * size} r={d.r} fill={WHITE} opacity={0.9} />
-      ))}
-    </Svg>
-  );
+function FrequencyWaves({ side, cx, cy, rx, ry }: { side: "left" | "right"; cx: number; cy: number; rx: number; ry: number }) {
+  const clock = useSharedValue(0);
+  useEffect(() => {
+    clock.value = withRepeat(withTiming(1, { duration: 950, easing: Easing.linear }), -1, false);
+    return () => cancelAnimation(clock);
+  }, []);
+  const squiggles = [];
+  for (let i = 0; i < WAVE_COUNT; i++) {
+    const f = (i + 0.5) / WAVE_COUNT;                         // 0..1 down the span
+    const ay = cy + (f * 2 - 1) * ry * WAVE_SPAN;             // y along the oval
+    const dx = rx * Math.sqrt(Math.max(0, 1 - Math.pow((ay - cy) / ry, 2))); // oval x-offset at ay
+    const edgeX = side === "left" ? cx - dx : cx + dx;
+    const ax = side === "left" ? edgeX - WAVE_GAP - WAVE_W : edgeX + WAVE_GAP;
+    squiggles.push(<Squiggle key={i} ax={ax} ay={ay} offset={i * 0.5} clock={clock} />);
+  }
+  return <Svg style={StyleSheet.absoluteFill} pointerEvents="none">{squiggles}</Svg>;
 }
 
 export default function SelfieCameraScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const { width: W, height: H } = useWindowDimensions();
   const params = useLocalSearchParams<{ applicationId: string }>();
   const applicationId = params.applicationId;
   const c = useColors();
-  const { isDark } = useTheme();
 
-  const BG   = c.background;
-  const MUTED = c.mutedForeground;
+  const device = useCameraDevice("front");
+  const { hasPermission, requestPermission } = useCameraPermission();
+  // Capture at a modest resolution so the uploaded JPEG stays small (avoids the
+  // backend's HTTP 413 "payload too large") while keeping enough facial detail
+  // for the server-side match. Detection uses preview frames, so it's unaffected.
+  const format = useCameraFormat(device, [{ photoResolution: { width: 1280, height: 720 } }]);
+  const camera = useRef<Camera>(null);
 
-  const cameraRef = useRef<CameraView>(null);
-  const [permission, requestPermission] = useCameraPermissions();
-  const [uploading,  setUploading]  = useState(false);
-  const [processing, setProcessing] = useState(false);
+  const [active, setActive] = useState(true);
+  const [phase, setPhase] = useState<Phase>("center");
+  const [uploading, setUploading] = useState(false);
+  const [hint, setHint] = useState("");
+  const [showManual, setShowManual] = useState(false);
 
-  // Guard: applicationId must be present — navigating directly to this screen
-  // without going through upload-id would result in broken API calls.
+  const phaseRef = useRef<Phase>("center");
+  phaseRef.current = phase;
+  const busyRef = useRef(false);
+  busyRef.current = uploading || phase === "capturing";
+  const firstTurnSignRef = useRef<0 | 1 | -1>(0);
+
+  // Only run the camera while focused and not mid-upload.
+  useFocusEffect(useCallback(() => {
+    setActive(true);
+    return () => setActive(false);
+  }, []));
+
+  useEffect(() => { if (!hasPermission) requestPermission(); }, [hasPermission]);
+
   useEffect(() => {
     if (!applicationId) {
-      Alert.alert(
-        "Session Error",
-        "Verification session not found. Please start the process again.",
-        [{ text: "OK", onPress: () => guardedBack("/(tabs)/profile") }],
-      );
+      Alert.alert("Session Error", "Verification session not found. Please start again.",
+        [{ text: "OK", onPress: () => guardedBack("/(tabs)/profile") }]);
     }
   }, [applicationId]);
 
-  const handleCapture = async () => {
-    if (!cameraRef.current || uploading || processing || !applicationId) return;
+  // Reveal a manual capture if detection can't complete (bad light, etc.).
+  useEffect(() => {
+    if (uploading) return;
+    const t = setTimeout(() => setShowManual(true), 18000);
+    return () => clearTimeout(t);
+  }, [uploading]);
+
+  // ── Oval geometry ─────────────────────────────────────────────────────────────
+  const cx = W / 2, cy = H * 0.42;
+  const ovalRx = Math.min(W * 0.34, 150);
+  const ovalRy = ovalRx * 1.34;
+  const stepIndex = STEP_ORDER.indexOf(phase);
+
+  // ── Upload + final capture ───────────────────────────────────────────────────
+  const uploadSelfie = useCallback(async (uri: string) => {
+    setUploading(true);
     try {
-      // Compress at capture time to reduce upload failures on mobile networks.
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.5 });
-      if (!photo?.uri) return;
-
-      setUploading(true);
-      await kycApi.uploadSelfie(applicationId, photo.uri);
+      await kycApi.uploadSelfie(applicationId, uri);
+      router.push({ pathname: "/kyc/upload-proof-of-residency", params: { applicationId } } as any);
+    } catch (err) {
+      logHandledError("KYC Selfie", err);
       setUploading(false);
-
-      router.push({
-        pathname: "/kyc/upload-proof-of-residency",
-        params: { applicationId },
-      } as any);
-    } catch (err: any) {
-      const status = err?.statusCode ?? err?.status;
-      let msg = "Something went wrong. Please try again.";
-      if (status === 413) {
-        msg = "Your selfie photo is too large. Please retake the photo.";
-      } else if (status >= 500) {
-        msg = "Something went wrong on our end. Please try again in a moment.";
-      } else if (typeof err?.message === "string" && !err.message.includes("HTTP")) {
-        msg = err.message;
-      }
-      Alert.alert("Verification Failed", msg);
-    } finally {
-      setUploading(false);
-      setProcessing(false);
+      setPhase("center");
+      firstTurnSignRef.current = 0;
+      Alert.alert("Couldn't submit your selfie", getErrorMessage(err));
     }
-  };
+  }, [applicationId]);
 
+  const captureFinal = useCallback(async () => {
+    if (!camera.current) return;
+    try {
+      const photo = await camera.current.takePhoto({ flash: "off" });
+      await uploadSelfie(`file://${photo.path}`);
+    } catch (err) {
+      logHandledError("KYC Selfie capture", err);
+      setUploading(false);
+      setPhase("center");
+      Alert.alert("Camera error", getErrorMessage(err));
+    }
+  }, [uploadSelfie]);
 
-  if (!permission) {
-    return <View style={{ flex: 1, backgroundColor: BG }} />;
-  }
+  useEffect(() => { if (phase === "capturing") captureFinal(); }, [phase, captureFinal]);
 
-  if (!permission.granted) {
+  // ── Face evaluation (JS thread, reads refs so it never goes stale) ────────────
+  const handleFaces = useCallback((faces: Face[]) => {
+    if (busyRef.current) return;
+    if (faces.length === 0) { setHint("Position your face in the frame"); return; }
+    if (faces.length > 1) { setHint("Only your face should be visible"); return; }
+    const f = faces[0];
+    const yaw = f.yawAngle ?? 0;
+    const eyesOpen = (f.leftEyeOpenProbability ?? 1) > EYE_OPEN_MIN || (f.rightEyeOpenProbability ?? 1) > EYE_OPEN_MIN;
+    const cur = phaseRef.current;
+
+    if (cur === "center") {
+      if (Math.abs(yaw) <= CENTER_YAW_MAX && eyesOpen) { setHint(""); setPhase("left"); }
+      else setHint("Look straight at the camera");
+      return;
+    }
+    if (cur === "left" || cur === "right") {
+      if (Math.abs(yaw) < TURN_YAW_MIN) {
+        setHint(cur === "left" ? "Slowly turn your head left" : "Now turn your head right");
+        return;
+      }
+      const sign = yaw > 0 ? 1 : -1;
+      if (cur === "left") { firstTurnSignRef.current = sign; setHint(""); setPhase("right"); }
+      else if (sign !== firstTurnSignRef.current) { setHint(""); setPhase("capturing"); }
+      else setHint("Turn your head the other way");
+    }
+  }, []);
+
+  const { detectFaces } = useFaceDetector({ performanceMode: "fast", classificationMode: "all", landmarkMode: "none" });
+  const runOnJsFaces = useMemo(() => Worklets.createRunOnJS(handleFaces), [handleFaces]);
+
+  const frameProcessor = useFrameProcessor((frame) => {
+    "worklet";
+    runAtTargetFps(DETECT_FPS, () => {
+      "worklet";
+      const faces = detectFaces(frame);
+      runOnJsFaces(faces);
+    });
+  }, [detectFaces, runOnJsFaces]);
+
+  // ── Gates ────────────────────────────────────────────────────────────────────
+  if (!hasPermission) {
     return (
-      <View style={{ flex: 1, backgroundColor: BG, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, gap: 16, paddingTop: topPad }}>
+      <View style={{ flex: 1, backgroundColor: c.background, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, gap: 16, paddingTop: topPad }}>
         <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 18, color: c.text, textAlign: "center" }}>Camera access needed</Text>
-        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center", lineHeight: 22 }}>
-          Pine needs access to your camera to take your verification selfie.
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, textAlign: "center", lineHeight: 22 }}>
+          Pine needs your camera to take a verification selfie.
         </Text>
         <TouchableOpacity style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 40, marginTop: 8 }} onPress={requestPermission} activeOpacity={0.85}>
           <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE }}>Allow Camera</Text>
@@ -154,67 +240,97 @@ export default function SelfieCameraScreen() {
     );
   }
 
-  const busy = uploading || processing;
+  if (!device) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.background, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, gap: 12, paddingTop: topPad }}>
+        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text, textAlign: "center" }}>Front camera unavailable</Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, textAlign: "center", lineHeight: 21 }}>
+          We couldn't access a front-facing camera on this device.
+        </Text>
+      </View>
+    );
+  }
 
-  const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: BG },
-    header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 4 },
-    backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
-    headerTitle: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text },
-    subtitle: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center", lineHeight: 22, marginTop: 28, paddingHorizontal: 40 },
-    frameOuter: { flex: 1, alignItems: "center", justifyContent: "center" },
-    frame: { borderRadius: 16, overflow: "hidden", position: "relative", alignItems: "center", justifyContent: "center" },
-    busyOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", gap: 12 },
-    statusArea: { height: 64, alignItems: "center", justifyContent: "center", gap: 4 },
-    statusLabel: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED },
-    footer: { alignItems: "center", paddingTop: 8 },
-    shutterRing: { width: 72, height: 72, borderRadius: 36, borderWidth: 4, borderColor: TEAL, alignItems: "center", justifyContent: "center" },
-    shutterInner: { width: 52, height: 52, borderRadius: 26, backgroundColor: TEAL },
-  });
+  const title =
+    uploading ? "Verifying…"
+    : phase === "center" ? "Center your face"
+    : phase === "left" ? "Turn your head left"
+    : phase === "right" ? "Turn your head right"
+    : "Hold still…";
+  const sub = hint || (
+    phase === "center" ? "Fit your face inside the oval and look straight"
+    : phase === "left" ? "Slowly rotate your head to the left"
+    : phase === "right" ? "Now slowly rotate to the right"
+    : "Capturing your selfie");
+  const ovalColor = uploading ? GREEN : phase === "center" ? WHITE : GREEN;
 
   return (
-    <View style={[styles.root, { paddingTop: topPad }]}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => guardedBack("/(tabs)/profile")} activeOpacity={0.7} disabled={busy}>
-          <BackArrow color={c.text} />
+    <View style={{ flex: 1, backgroundColor: "#000" }}>
+      <Camera
+        ref={camera}
+        style={StyleSheet.absoluteFill}
+        device={device}
+        format={format}
+        isActive={active && !uploading}
+        photo={true}
+        frameProcessor={frameProcessor}
+      />
+
+      {/* Dim spotlight + oval face guide */}
+      <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Path
+          d={
+            `M0 0 H${W} V${H} H0 Z ` +
+            `M${cx - ovalRx} ${cy} ` +
+            `a ${ovalRx} ${ovalRy} 0 1 0 ${ovalRx * 2} 0 ` +
+            `a ${ovalRx} ${ovalRy} 0 1 0 ${-ovalRx * 2} 0 Z`
+          }
+          fill={DIM} fillRule="evenodd"
+        />
+        <Ellipse cx={cx} cy={cy} rx={ovalRx} ry={ovalRy} stroke={ovalColor} strokeWidth={3} fill="none" opacity={0.9} />
+      </Svg>
+
+      {/* Directional frequency waves — shimmer on the side to turn toward */}
+      {!uploading && phase === "left" && <FrequencyWaves side="left" cx={cx} cy={cy} rx={ovalRx} ry={ovalRy} />}
+      {!uploading && phase === "right" && <FrequencyWaves side="right" cx={cx} cy={cy} rx={ovalRx} ry={ovalRy} />}
+
+      {/* Header */}
+      <View style={{ position: "absolute", top: topPad, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: 16 }}>
+        <TouchableOpacity onPress={() => guardedBack("/(tabs)/profile")} activeOpacity={0.7} disabled={uploading} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 20, backgroundColor: "rgba(0,0,0,0.35)" }}>
+          <BackArrow color={WHITE} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Face recognition</Text>
+        <Text style={{ flex: 1, textAlign: "center", fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE }}>Face verification</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <Text style={styles.subtitle}>Please look into the camera and hold still</Text>
-
-      <View style={styles.frameOuter}>
-        <View style={[styles.frame, { width: FRAME_SIZE, height: FRAME_SIZE }]}>
-          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={"front" as CameraType} />
-          {!busy && <ScanDots size={FRAME_SIZE} />}
-          <CornerBrackets size={FRAME_SIZE} />
-          {busy && (
-            <View style={styles.busyOverlay}>
-              <ActivityIndicator size="large" color={WHITE} />
-              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: WHITE }}>
-                {processing ? "Verifying…" : "Uploading…"}
-              </Text>
-            </View>
-          )}
+      {/* Coaching + step dots */}
+      <View style={{ position: "absolute", top: cy + ovalRy + 34, left: 0, right: 0, alignItems: "center", paddingHorizontal: 32 }}>
+        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: WHITE, textAlign: "center" }}>{title}</Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: "rgba(255,255,255,0.75)", textAlign: "center", marginTop: 8, lineHeight: 20 }}>{sub}</Text>
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 18 }}>
+          {STEP_ORDER.map((s, i) => {
+            const done = phase === "capturing" || i < Math.max(0, stepIndex);
+            const current = s === phase;
+            return <View key={s} style={{ width: current ? 22 : 8, height: 8, borderRadius: 4, backgroundColor: done ? GREEN : current ? WHITE : "rgba(255,255,255,0.35)" }} />;
+          })}
         </View>
       </View>
 
-      {/* Status area — shows a plain label while busy, empty otherwise */}
-      <View style={styles.statusArea}>
-        {processing && (
-          <Text style={styles.statusLabel}>Verifying your face…</Text>
-        )}
-        {uploading && !processing && (
-          <Text style={styles.statusLabel}>Uploading…</Text>
-        )}
-      </View>
+      {uploading && (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.55)", alignItems: "center", justifyContent: "center", gap: 14 }]}>
+          <ActivityIndicator size="large" color={WHITE} />
+          <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 15, color: WHITE }}>Submitting your selfie…</Text>
+        </View>
+      )}
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 32 }]}>
-        <TouchableOpacity style={[styles.shutterRing, busy && { opacity: 0.5 }]} onPress={handleCapture} activeOpacity={0.8} disabled={busy}>
-          <View style={styles.shutterInner} />
-        </TouchableOpacity>
-      </View>
+      {showManual && !uploading && (
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: insets.bottom + 28, alignItems: "center" }}>
+          <TouchableOpacity onPress={captureFinal} activeOpacity={0.85} style={{ width: 74, height: 74, borderRadius: 37, borderWidth: 4, borderColor: WHITE, alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: WHITE }} />
+          </TouchableOpacity>
+          <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, marginTop: 10, fontFamily: "PlusJakartaSans_400Regular" }}>Trouble detecting? Tap to capture</Text>
+        </View>
+      )}
     </View>
   );
 }

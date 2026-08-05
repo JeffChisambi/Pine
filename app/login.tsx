@@ -17,7 +17,7 @@ import Svg, { Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AnimatedEyeButton from "../components/AnimatedEyeButton";
 import { useAuth } from "../services/auth-context";
-import { ApiError } from "../services/api";
+import { getErrorMessage, logHandledError } from "../services/api";
 
 const TEAL = "#164951";
 const WHITE = "#FFFFFF";
@@ -236,17 +236,11 @@ export default function LoginScreen() {
     try {
       await auth.login({ phone: identifier.trim(), password });
       router.replace("/(tabs)");
-    } catch (err: any) {
-      console.error("[Login Error]", JSON.stringify({ status: err?.status, message: err?.message, body: err?.body }, null, 2));
-      let msg = "Something went wrong. Please try again.";
-      if (err instanceof ApiError) {
-        msg = err.message || `Request failed (HTTP ${err.status})`;
-      } else if (err instanceof Error) {
-        msg = err.message || "Network error. Please check your connection.";
-      } else if (typeof err === "string") {
-        msg = err;
-      }
-      setErrorMsg(msg);
+    } catch (err) {
+      // Expected outcome (e.g. wrong credentials) — show a clear message, and
+      // log quietly for devs without the red "crash" overlay.
+      logHandledError("Login", err);
+      setErrorMsg(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

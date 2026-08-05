@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Platform,
+  BackHandler,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import Svg, { Path, Circle, Rect, G, Defs, ClipPath } from "react-native-svg";
 import { useAuth } from "../../services/auth-context";
 import { useColors } from "@/hooks/useColors";
@@ -77,6 +78,17 @@ export default function VerifySuccessScreen() {
   const params = useLocalSearchParams<{ decision: string; confidenceScore: string }>();
   const { refreshProfile } = useAuth();
   const c = useColors();
+
+  // KYC is done — hardware back leaves to Profile instead of the upload flow.
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        router.replace("/(tabs)/profile" as any);
+        return true;
+      });
+      return () => sub.remove();
+    }, []),
+  );
 
   const decision = params.decision ?? "MANUAL_REVIEW";
   const isApproved = decision === "APPROVED";

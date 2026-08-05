@@ -16,6 +16,12 @@ export default function KycLayout() {
         // navigationBarColor / navigationBarTranslucent / statusBarTranslucent
         // omitted — ignored (and warned about) under edge-to-edge (SDK 54).
       }}
-    />
+    >
+      {/* Terminal KYC screens: KYC is finished, so a swipe-back must not slip
+          into the completed upload screens. Back is handled explicitly (button
+          + hardware) to return to Profile. */}
+      <Stack.Screen name="under-review" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="verify-success" options={{ gestureEnabled: false }} />
+    </Stack>
   );
 }

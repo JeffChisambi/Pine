@@ -53,6 +53,60 @@ export class ApiError extends Error {
   }
 }
 
+// ─── User-facing error helpers ────────────────────────────────────────────────
+
+/** Friendly fallback copy when the server didn't send a usable message. */
+function statusFallbackMessage(status: number): string {
+  if (!status || status === 0) return "Can't reach the server. Check your internet connection and try again.";
+  if (status === 400) return 'Some of the details are invalid. Please check them and try again.';
+  if (status === 401) return "Your details are incorrect or your session has expired. Please try again.";
+  if (status === 403) return "You don't have permission to do that.";
+  if (status === 404) return "We couldn't find what you were looking for.";
+  if (status === 408) return 'The request timed out. Please try again.';
+  if (status === 409) return 'That conflicts with the current state. Please refresh and try again.';
+  if (status === 429) return 'Too many attempts. Please wait a moment and try again.';
+  if (status >= 500) return 'Something went wrong on our end. Please try again shortly.';
+  return 'Something went wrong. Please try again.';
+}
+
+/**
+ * Turn any thrown value into a clear, human-readable message safe to show a
+ * user. Prefers the backend's own message; otherwise falls back to friendly,
+ * status-aware copy. Never returns raw stack traces or "[object Object]".
+ */
+export function getErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    const backendMsg = err.body?.error?.message ?? err.message;
+    // Use the backend message unless it's our generic "Request failed (HTTP n)".
+    if (typeof backendMsg === 'string' && backendMsg.trim() && !/^request failed \(http/i.test(backendMsg)) {
+      return backendMsg;
+    }
+    return statusFallbackMessage(err.status);
+  }
+  if (err instanceof Error) {
+    if (/network|failed to fetch|timeout|timed out|abort/i.test(err.message)) {
+      return "Can't reach the server. Check your internet connection and try again.";
+    }
+    return err.message?.trim() || 'Something went wrong. Please try again.';
+  }
+  if (typeof err === 'string' && err.trim()) return err;
+  return 'Something went wrong. Please try again.';
+}
+
+/**
+ * Log a handled/expected error for developers WITHOUT the red LogBox overlay
+ * that console.error triggers in Expo dev (which makes an ordinary, handled
+ * error look like a crash). No-op in production. Use this in catch blocks that
+ * already show the user a friendly message.
+ */
+export function logHandledError(context: string, err: unknown): void {
+  if (typeof __DEV__ !== 'undefined' && __DEV__) {
+    const detail = err instanceof ApiError ? { status: err.status, message: err.message } : err;
+    // console.log (not warn/error) → no LogBox notification.
+    console.log(`[${context}]`, detail);
+  }
+}
+
 // ─── Core fetch wrapper with auth ─────────────────────────────────────────────
 
 let isRefreshing = false;
@@ -185,6 +239,10 @@ export const authApi = {
     lastName: string;
     password: string;
     email?: string;
+    /** ISO 8601 date (YYYY-MM-DD). */
+    dateOfBirth?: string;
+    /** 'M' | 'F'. */
+    gender?: string;
     platform?: string;
   }): Promise<AuthTokens> =>
     request<AuthTokens>('/auth/register', {
@@ -368,28 +426,34 @@ export interface TradeOrder {
 }
 
 export const tradingApi = {
-  buy: (data: {
+  buy: ({ pinToken, ...data }: {
     stockSymbol: string;
     quantity: number;
     orderType: 'MARKET' | 'LIMIT';
     limitPrice?: number;
     idempotencyKey?: string;
+    /** Short-lived token from POST /auth/pin/verify — required by PinGuard. */
+    pinToken: string;
   }): Promise<TradeOrder> =>
     request<TradeOrder>('/trading/buy', {
       method: 'POST',
       body: JSON.stringify(data),
+      headers: { 'x-pin-token': pinToken },
     }),
 
-  sell: (data: {
+  sell: ({ pinToken, ...data }: {
     stockSymbol: string;
     quantity: number;
     orderType: 'MARKET' | 'LIMIT';
     limitPrice?: number;
     idempotencyKey?: string;
+    /** Short-lived token from POST /auth/pin/verify — required by PinGuard. */
+    pinToken: string;
   }): Promise<TradeOrder> =>
     request<TradeOrder>('/trading/sell', {
       method: 'POST',
       body: JSON.stringify(data),
+      headers: { 'x-pin-token': pinToken },
     }),
 
   getOrders: (status?: string): Promise<{ orders: TradeOrder[]; count: number }> =>

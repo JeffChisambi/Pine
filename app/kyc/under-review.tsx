@@ -7,18 +7,26 @@
  * Users are redirected here instead of the upload flow while their
  * kycStatus === "PENDING".
  */
-import React from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Platform,
+  BackHandler,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router, useFocusEffect } from "expo-router";
 import Svg, { Path, Circle, G, Rect, Defs, ClipPath } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
-import { guardedBack } from "@/utils/navigation";
+
+// KYC is a completed step by the time this screen shows — leaving it must return
+// straight to Profile, NOT step back through the (already-submitted) upload
+// screens still sitting in the stack. This exits the whole KYC group at once.
+function exitToProfile() {
+  router.replace("/(tabs)/profile" as any);
+}
 
 const TEAL = "#164951";
 const AMBER = "#B45309";
@@ -77,6 +85,18 @@ export default function UnderReviewScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const c = useColors();
+
+  // Android hardware back should also leave KYC entirely, not pop into the
+  // upload screens below this one.
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        exitToProfile();
+        return true;
+      });
+      return () => sub.remove();
+    }, []),
+  );
 
   const styles = StyleSheet.create({
     root: {
@@ -155,7 +175,7 @@ export default function UnderReviewScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => guardedBack("/(tabs)/profile")}
+          onPress={exitToProfile}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel="Go back"

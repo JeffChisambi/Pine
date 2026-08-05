@@ -71,8 +71,6 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Wait for auth loading and onboarding flag to resolve.
-    if (isLoading || hasOnboarded === null) return;
     // Wait until the router has initialised and given us at least one segment.
     // Do NOT skip when segments[0] === "" — that is the onboarding index route.
     if (segments.length === 0) return;
@@ -81,22 +79,36 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
     // Screens that belong to the unauthenticated / onboarding funnel.
     // "" is the segment for app/index.tsx (route "/").
+    //
+    // NOTE: phone-number / verify-code / verify-email / create-pin are NOT in
+    // this list — they run AFTER registration (the user is already logged in),
+    // so listing them here bounced freshly-registered users straight to the
+    // tabs and silently skipped phone verification.
     const isOnAuthOrOnboardingScreen =
       seg === "" ||
       seg === "onboarding-2" ||
       seg === "onboarding-3" ||
       seg === "login" ||
       seg === "signup" ||
-      seg === "phone-number" ||
-      seg === "verify-code" ||
       seg === "forgot-password";
+
+    // Fast path — Telegram-style: as soon as the cached session restore says
+    // the user is logged in (a purely local check, no network), bounce them
+    // off auth/onboarding screens. Waiting for the full `isLoading` (which
+    // includes a server profile refresh) made the onboarding carousel visible
+    // to returning users on slow networks.
+    if (isLoggedIn && isOnAuthOrOnboardingScreen) {
+      router.replace("/(tabs)");
+      return;
+    }
+
+    // The remaining decisions concern logged-out users — for those, wait for
+    // the auth restore and the onboarding flag to fully resolve.
+    if (isLoading || hasOnboarded === null) return;
 
     const isOnProtectedScreen = !isOnAuthOrOnboardingScreen;
 
-    if (isLoggedIn && isOnAuthOrOnboardingScreen) {
-      // Already logged in — go straight to home.
-      router.replace("/(tabs)");
-    } else if (!isLoggedIn && isOnProtectedScreen) {
+    if (!isLoggedIn && isOnProtectedScreen) {
       // Unauthenticated user tried to access a protected route → login.
       router.replace("/login");
     } else if (
@@ -188,6 +200,7 @@ function RootLayoutNav() {
         />
         <Stack.Screen name="phone-number" options={{ headerShown: false, animation: "none" }} />
         <Stack.Screen name="verify-code" options={{ headerShown: false, animation: "none" }} />
+        <Stack.Screen name="verify-email" options={{ headerShown: false, animation: "none", gestureEnabled: false }} />
         <Stack.Screen name="forgot-password" options={{ headerShown: false, animation: "none" }} />
         <Stack.Screen name="create-pin" options={{ headerShown: false, animation: "none" }} />
 

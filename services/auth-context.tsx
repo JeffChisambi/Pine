@@ -43,7 +43,7 @@ interface AuthState {
   isLoggedIn: boolean;
   user: UserProfile | null;
   login:         (data: { phone?: string; email?: string; password: string }) => Promise<void>;
-  register:      (data: { phone: string; firstName: string; lastName: string; password: string; email?: string }) => Promise<void>;
+  register:      (data: { phone: string; firstName: string; lastName: string; password: string; email?: string; dateOfBirth?: string; gender?: string }) => Promise<void>;
   logout:        () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -158,16 +158,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── login ──────────────────────────────────────────────────────────────────
   const login = useCallback(async (data: { phone?: string; email?: string; password: string }) => {
-    console.log('[Auth] login called with:', { phone: data.phone, email: data.email });
     const result = await authApi.login(data);
-    console.log('[Auth] login API response received, user:', result?.user?.id);
     await handleAuthResponse(result);
-    console.log('[Auth] handleAuthResponse complete, isLoggedIn should be true');
   }, [handleAuthResponse]);
 
   // ── register ───────────────────────────────────────────────────────────────
   const register = useCallback(async (data: {
-    phone: string; firstName: string; lastName: string; password: string; email?: string;
+    phone: string; firstName: string; lastName: string; password: string; email?: string; dateOfBirth?: string; gender?: string;
   }) => {
     const result = await authApi.register(data);
     await handleAuthResponse(result);

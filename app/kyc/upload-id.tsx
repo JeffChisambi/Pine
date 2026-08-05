@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import Svg, { Path, Circle, Rect, G, Defs, ClipPath } from "react-native-svg";
-import { kycApi } from "../../services/api";
+import { kycApi, getErrorMessage, logHandledError } from "../../services/api";
 import { useAuth } from "../../services/auth-context";
 import { useColors } from "@/hooks/useColors";
 
@@ -207,13 +207,9 @@ export default function UploadIdScreen() {
         }
 
         setApplicationId(appId);
-      } catch (err: any) {
-        console.error('[KYC Start Error]', JSON.stringify(err, null, 2));
-        let msg = 'Failed to start verification. Please try again.';
-        if (typeof err === 'string') msg = err;
-        else if (typeof err?.message === 'string') msg = err.message;
-        else if (err?.body?.error?.message) msg = String(err.body.error.message);
-        Alert.alert("Error", msg);
+      } catch (err) {
+        logHandledError("KYC Start", err);
+        Alert.alert("Couldn't start verification", getErrorMessage(err));
         guardedBack("/(tabs)/profile");
       } finally {
         setStarting(false);

@@ -16,7 +16,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@tanstack/react-query": "^5.90.21",
     "expo": "~54.0.36",
-    "expo-camera": "~17.0.10",
+    "expo-build-properties": "~1.0.10",
     "expo-constants": "~18.0.11",
     "expo-dev-client": "~6.0.21",
     "expo-device": "~8.0.10",
@@ -43,9 +43,12 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
+    "react-native-vision-camera": "^4.7.3",
+    "react-native-vision-camera-face-detector": "^1.10.2",
     "react-native-web": "^0.21.0",
     "react-native-webview": "^13.15.0",
-    "react-native-worklets": "0.5.1"
+    "react-native-worklets": "0.5.1",
+    "react-native-worklets-core": "^1.6.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

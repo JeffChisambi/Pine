@@ -13,9 +13,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path } from "react-native-svg";
-import { tradingApi, ApiError } from "../../services/api";
+import { tradingApi, ApiError, getErrorMessage, logHandledError } from "../../services/api";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
+import PinVerifyModal from "../../components/PinVerifyModal";
 
 const TEAL  = "#164951";
 const WHITE = "#FFFFFF";
@@ -62,16 +63,26 @@ export default function ConfirmScreen() {
   const fmt = (n: number) =>
     `MWK ${n.toLocaleString("en-MW", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  const handleConfirmOrder = async () => {
+  // Orders are PIN-protected server-side: Confirm opens the PIN modal, the
+  // modal exchanges the PIN for a short-lived pinToken, and the order request
+  // carries it in the x-pin-token header.
+  const [showPinModal, setShowPinModal] = useState(false);
+
+  const handleConfirmOrder = () => {
     if (!params.stockId || symbol === "—") return;
+    setShowPinModal(true);
+  };
+
+  const submitOrder = async (pinToken: string) => {
+    setShowPinModal(false);
     setLoading(true);
     try {
       const idempotencyKey = `${params.stockId}-${Date.now()}`;
       let result: any;
       if (isBuy) {
-        result = await tradingApi.buy({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey });
+        result = await tradingApi.buy({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey, pinToken });
       } else {
-        result = await tradingApi.sell({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey });
+        result = await tradingApi.sell({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey, pinToken });
       }
       router.push({
         pathname: "/trade/success" as any,
@@ -86,7 +97,16 @@ export default function ConfirmScreen() {
         },
       });
     } catch (err) {
-      Alert.alert("Trade Error", err instanceof ApiError ? err.message : "Trade failed. Please try again.");
+      logHandledError("Trade confirm", err);
+      const code = err instanceof ApiError ? (err.body?.error?.code as string) : null;
+      if (code === "AUTH_PIN_INVALID" || code === "AUTH_PIN_NOT_SET") {
+        // pinToken expired between verification and submission — re-verify.
+        Alert.alert("PIN expired", "Please enter your PIN again to confirm the order.", [
+          { text: "OK", onPress: () => setShowPinModal(true) },
+        ]);
+      } else {
+        Alert.alert("Trade Error", getErrorMessage(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -171,6 +191,15 @@ export default function ConfirmScreen() {
           }
         </TouchableOpacity>
       </View>
+
+      {/* Transaction-PIN verification — required by the backend for orders */}
+      <PinVerifyModal
+        visible={showPinModal}
+        title="Confirm with your PIN"
+        subtitle={`Enter your 4-digit PIN to ${isBuy ? "buy" : "sell"} ${quantity} ${symbol} shares`}
+        onVerified={submitOrder}
+        onCancel={() => setShowPinModal(false)}
+      />
     </View>
   );
 }

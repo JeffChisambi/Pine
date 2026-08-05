@@ -247,9 +247,22 @@ export default function ProfileScreen() {
   const iconColor = c.mutedForeground;
   const textColor = c.text;
 
-  const SETTINGS_GROUP_1 = [
+  const isVerified = kycStatus === "APPROVED";
+
+  const SETTINGS_GROUP_1: Array<{
+    icon: React.ReactNode; label: string; sub: string;
+    onPress: (() => void) | null; badge?: "verified";
+  }> = [
     { icon: <CalendarIcon color={iconColor} />, label: "Personal Data", sub: "Name, address, email", onPress: () => setActivePanel('personal-data') },
-    { icon: <SealCheckIcon color={iconColor} />, label: "Identity Verification", sub: "KYC — verify your identity", onPress: () => router.push("/kyc/upload-id" as any) },
+    {
+      icon: <SealCheckIcon color={isVerified ? "#45B369" : iconColor} />,
+      label: "Identity Verification",
+      sub: isVerified ? "Your identity is verified" : "KYC — verify your identity",
+      // Once approved there is nothing left to do in the KYC flow — the row
+      // becomes informational (badge instead of chevron, no navigation).
+      onPress: isVerified ? null : () => router.push("/kyc/upload-id" as any),
+      badge: isVerified ? "verified" : undefined,
+    },
     { icon: <LockIcon color={iconColor} />, label: "Security", sub: "Password & PIN", onPress: () => router.push("/profile/security" as any) },
   ];
 
@@ -429,6 +442,11 @@ export default function ProfileScreen() {
                   <Text style={[styles.unverifiedText, { color: "#1E40AF" }]}>⏳ Under Review</Text>
                 </View>
               )}
+              {kycStatus === "APPROVED" && (
+                <View style={[styles.unverifiedChip, { backgroundColor: "#F0FDF4", borderColor: "#86EFAC" }]}>
+                  <Text style={[styles.unverifiedText, { color: "#166534" }]}>✓ Verified</Text>
+                </View>
+              )}
               {kycStatus === "REJECTED" && (
                 <TouchableOpacity
                   style={[styles.unverifiedChip, { backgroundColor: "#FEF2F2", borderColor: "#FCA5A5" }]}
@@ -450,14 +468,28 @@ export default function ProfileScreen() {
               <TouchableOpacity
                 style={styles.settingsRow}
                 onPress={item.onPress ?? undefined}
-                activeOpacity={0.7}
+                activeOpacity={item.onPress ? 0.7 : 1}
+                disabled={!item.onPress}
               >
                 <View style={styles.rowIconWrap}>{item.icon}</View>
                 <View style={styles.rowTextBlock}>
                   <Text style={styles.rowLabel}>{item.label}</Text>
                   <Text style={styles.rowSub}>{item.sub}</Text>
                 </View>
-                <ChevronRight color={c.mutedForeground} />
+                {item.badge === "verified" ? (
+                  <View style={{
+                    flexDirection: "row", alignItems: "center", gap: 4,
+                    backgroundColor: "#F0FDF4", borderWidth: 1, borderColor: "#86EFAC",
+                    borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4,
+                  }}>
+                    <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
+                      <Path d="M2.5 7l3 3 6-6" stroke="#166534" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+                    </Svg>
+                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: "#166534" }}>Verified</Text>
+                  </View>
+                ) : (
+                  <ChevronRight color={c.mutedForeground} />
+                )}
               </TouchableOpacity>
               {i < SETTINGS_GROUP_1.length - 1 && <View style={styles.rowDivider} />}
             </View>

@@ -20,7 +20,7 @@ const DARK = "#111827";
 const MUTED = "#9CA3AF";
 const BG_INPUT = "#F9FAFB";
 
-const CODE_LENGTH = 5;
+const CODE_LENGTH = 6; // matches backend OTP_LENGTH
 
 function BackArrow() {
   return (
@@ -85,7 +85,8 @@ export default function VerifyCodeScreen() {
     try {
       const { authApi } = require("../services/api");
       await authApi.verifyOtp(phone, "phone_verification", code.join(""));
-      router.push("/create-pin");
+      // Phone verified — next verify the account email before PIN setup.
+      router.push("/verify-email" as any);
     } catch (err: any) {
       setErrorMsg(err?.message || "Invalid code. Try again.");
     } finally {
@@ -120,7 +121,7 @@ export default function VerifyCodeScreen() {
           <View style={styles.headerSection}>
             <Text style={styles.headline}>Enter Verification Code</Text>
             <Text style={styles.subtitle}>
-              Enter the 5-digit code we sent to your phone number.
+              Enter the {CODE_LENGTH}-digit code we sent to your phone number.
             </Text>
           </View>
 
