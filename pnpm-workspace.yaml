@@ -1,0 +1,10 @@
+# pnpm 10 reads dependency overrides from here (no longer from package.json's
+# "pnpm" field). See https://pnpm.io/settings
+overrides:
+  # Security bump; harmless for React Native.
+  postcss: ^8.5.18
+  # Patched brace-expansion (CVE fix) that STILL exports the callable `expand`
+  # function. Must NOT be v5 — v5's export shape breaks the old minimatch@3 that
+  # @react-native/codegen's glob@7 relies on ("expand is not a function" during
+  # generateCodegenSchemaFromJavaScript). ^2.0.2 satisfies both.
+  brace-expansion: ^2.0.2
