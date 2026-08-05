@@ -25,6 +25,7 @@ import * as SystemUI from "expo-system-ui";
 import Constants from "expo-constants";
 
 import { LogBox } from "react-native";
+import { AnimatedSplash } from "@/components/AnimatedSplash";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "../services/auth-context";
 import { ThemeProvider, useTheme } from "@/contexts/theme-context";
@@ -298,8 +299,9 @@ export default function RootLayout() {
   });
 
   const [fontTimeout, setFontTimeout] = React.useState(false);
-  // Track whether the minimum splash duration (3.5 s) has elapsed
-  const [minSplashElapsed, setMinSplashElapsed] = React.useState(false);
+  // The animated splash overlay owns the splash duration now; the plain white
+  // native splash hides as soon as the JS tree can render beneath the overlay.
+  const [animatedSplashDone, setAnimatedSplashDone] = React.useState(false);
 
   useEffect(() => {
     // Fallback: hide splash even if fonts never load (after 3.5 s)
@@ -307,17 +309,11 @@ export default function RootLayout() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Enforce a minimum 3.5-second splash duration
   useEffect(() => {
-    const timer = setTimeout(() => setMinSplashElapsed(true), 3500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!isExpoGo && minSplashElapsed && (fontsLoaded || fontError || fontTimeout)) {
+    if (!isExpoGo && (fontsLoaded || fontError || fontTimeout)) {
       SplashScreen.hideAsync().catch(() => {});
     }
-  }, [fontsLoaded, fontError, fontTimeout, minSplashElapsed]);
+  }, [fontsLoaded, fontError, fontTimeout]);
 
   if (!fontsLoaded && !fontError && !fontTimeout) return null;
 
@@ -332,6 +328,9 @@ export default function RootLayout() {
                   <KeyboardProvider>
                     <RootLayoutNav />
                   </KeyboardProvider>
+                  {!animatedSplashDone && (
+                    <AnimatedSplash onFinish={() => setAnimatedSplashDone(true)} />
+                  )}
                 </GestureHandlerRootView>
               </AuthProvider>
             </QueryClientProvider>

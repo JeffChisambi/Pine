@@ -9,8 +9,6 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/pine_assets/logos/g8 1.png",
-      "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
@@ -77,10 +75,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#ffffff",
-          "image": "./assets/pine_assets/logos/g8 1.png",
-          "imageWidth": 200,
-          "resizeMode": "contain"
+          "backgroundColor": "#ffffff"
         }
       ]
     ],

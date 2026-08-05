@@ -1,0 +1,67 @@
+import { Image } from "expo-image";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Animated, Dimensions, StyleSheet } from "react-native";
+
+// Duration of the rendered logo animation (192 frames @ 60fps) plus a short
+// hold before the overlay fades out and hands off to the app.
+const ANIMATION_MS = 3300;
+const FADE_MS = 350;
+
+/**
+ * Full-screen overlay that plays the Blender-rendered Pine logo build
+ * animation once, then fades away. Shown immediately after the (plain white)
+ * native splash hides, so the handoff is seamless white-to-white.
+ */
+export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
+  const opacity = useRef(new Animated.Value(1)).current;
+  const finishedRef = useRef(false);
+  const [loaded, setLoaded] = useState(false);
+
+  const finish = useCallback(() => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    Animated.timing(opacity, {
+      toValue: 0,
+      duration: FADE_MS,
+      useNativeDriver: true,
+    }).start(() => onFinish());
+  }, [onFinish, opacity]);
+
+  // Start the countdown once the first frame has decoded so slow devices
+  // don't cut the animation short; hard fallback in case onLoad never fires.
+  useEffect(() => {
+    if (!loaded) return;
+    const t = setTimeout(finish, ANIMATION_MS);
+    return () => clearTimeout(t);
+  }, [loaded, finish]);
+
+  useEffect(() => {
+    const fallback = setTimeout(finish, ANIMATION_MS + 2000);
+    return () => clearTimeout(fallback);
+  }, [finish]);
+
+  const width = Dimensions.get("window").width;
+
+  return (
+    <Animated.View style={[styles.wrap, { opacity }]} pointerEvents="none">
+      <Image
+        source={require("../assets/pine_assets/animations/splash-animation.webp")}
+        style={{ width: width * 0.82, aspectRatio: 4 / 3 }}
+        contentFit="contain"
+        cachePolicy="memory"
+        onLoad={() => setLoaded(true)}
+      />
+    </Animated.View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+    elevation: 9999,
+  },
+});
