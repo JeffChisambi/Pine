@@ -677,6 +677,36 @@ export const stocksApi = {
     request<string[]>('/stocks/sectors'),
 };
 
+// ─── News API ─────────────────────────────────────────────────────────────────
+
+/** News item as returned by the backend — matches the mobile NewsItem shape. */
+export type ApiNewsItem = {
+  id: string;
+  category: string;
+  title: string;
+  summary: string | null;
+  body: string[];
+  /** Pre-formatted display string, e.g. "30 Mar 2026". */
+  time: string;
+  source: string;
+  /** Hero image URL (or null). */
+  image: string | null;
+  featured: boolean;
+};
+
+export const newsApi = {
+  list: (category?: string): Promise<ApiNewsItem[]> => {
+    const qs = category && category !== 'All' ? `?category=${encodeURIComponent(category)}` : '';
+    return request<ApiNewsItem[]>(`/news${qs}`);
+  },
+
+  detail: (id: string): Promise<ApiNewsItem> =>
+    request<ApiNewsItem>(`/news/${encodeURIComponent(id)}`),
+
+  categories: (): Promise<string[]> =>
+    request<string[]>('/news/categories'),
+};
+
 // ─── Notifications API ────────────────────────────────────────────────────────
 
 export interface Notification {
