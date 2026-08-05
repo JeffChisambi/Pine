@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Platform,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -106,7 +107,11 @@ export default function SuccessScreen() {
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: c.background, paddingTop: topPad, alignItems: "center" }}>
+    <View style={{ flex: 1, backgroundColor: c.background }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1, alignItems: "center", paddingTop: topPad }}
+      >
       <SuccessIllustration queued={isQueued} />
 
       <View style={{ alignItems: "center", paddingHorizontal: 32, marginTop: -8, marginBottom: 24 }}>
@@ -151,6 +156,7 @@ export default function SuccessScreen() {
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE }}>Back to Home</Text>
         </TouchableOpacity>
       </View>
+      </ScrollView>
     </View>
   );
 }
