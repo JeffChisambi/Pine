@@ -251,11 +251,8 @@ function RootLayoutNav() {
         />
         <Stack.Screen name="trade/history" options={section} />
 
-        {/* Payment screens */}
-        <Stack.Screen
-          name="payment-card"
-          options={{ headerShown: false, animation: isDark ? "none" : "slide_from_bottom", animationDuration: 340 }}
-        />
+        {/* Payment screens — same drill-in slide-from-right as every section */}
+        <Stack.Screen name="payment-card" options={section} />
 
         {/* Wallet — native slide-from-right (see `section`) */}
         <Stack.Screen name="deposit" options={section} />

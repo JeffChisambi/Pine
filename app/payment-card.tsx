@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  ImageBackground,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -25,6 +26,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+// Studio-rendered card faces (Blender: designs/pine_card_faces.blend)
+const CARD_FACE_FRONT = require("../assets/images/card-face-front.png");
+const CARD_FACE_BACK  = require("../assets/images/card-face-back.png");
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -139,24 +144,15 @@ function CardPreview({ cardNumber, cardHolder, expiry, cvv, isCvvFocused, flipAn
   const backRotate   = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["180deg", "360deg"] });
 
   const displayNum = formatDisplayNumber(cardNumber || "");
-  const maskedNum  = displayNum.replace(/\d(?=.{5})/g, "•");
   const displayNum4Chars = displayNum.padEnd(19, "•").substring(0, 19);
 
   return (
     <View style={styles.cardPreviewWrapper}>
-      {/* Front */}
+      {/* Front — studio-rendered face with live details overlaid */}
       <Animated.View style={[styles.cardFace, { opacity: frontOpacity, transform: [{ rotateY: frontRotate }] }]}>
-        <View style={styles.cardGradient}>
+        <ImageBackground source={CARD_FACE_FRONT} style={styles.cardArt} imageStyle={styles.cardArtImg} resizeMode="cover">
           <View style={styles.cardTopRow}>
-            <View style={styles.cardChip}>
-              <Svg width={32} height={24} viewBox="0 0 32 24">
-                <Rect width={32} height={24} rx={4} fill="#D4AF37" fillOpacity={0.9} />
-                <Rect x={10} y={0} width={1.5} height={24} fill="#B8962E" fillOpacity={0.5} />
-                <Rect x={20.5} y={0} width={1.5} height={24} fill="#B8962E" fillOpacity={0.5} />
-                <Rect x={0} y={8} width={32} height={1.5} fill="#B8962E" fillOpacity={0.5} />
-                <Rect x={0} y={14.5} width={32} height={1.5} fill="#B8962E" fillOpacity={0.5} />
-              </Svg>
-            </View>
+            <View />
             <CardBrandIcon type={cardType} />
           </View>
 
@@ -165,7 +161,7 @@ function CardPreview({ cardNumber, cardHolder, expiry, cvv, isCvvFocused, flipAn
           </Text>
 
           <View style={styles.cardBottomRow}>
-            <View>
+            <View style={{ flex: 1, paddingRight: 12 }}>
               <Text style={styles.cardLabel}>CARD HOLDER</Text>
               <Text style={styles.cardValue} numberOfLines={1}>
                 {cardHolder.toUpperCase() || "YOUR NAME"}
@@ -176,23 +172,17 @@ function CardPreview({ cardNumber, cardHolder, expiry, cvv, isCvvFocused, flipAn
               <Text style={styles.cardValue}>{expiry || "MM/YY"}</Text>
             </View>
           </View>
-        </View>
+        </ImageBackground>
       </Animated.View>
 
-      {/* Back */}
+      {/* Back — rendered face; CVV sits in the artwork's window */}
       <Animated.View style={[styles.cardFace, styles.cardBack, { opacity: backOpacity, transform: [{ rotateY: backRotate }] }]}>
-        <View style={styles.cardGradient}>
-          <View style={styles.magneticStripe} />
-          <View style={styles.cvvStripe}>
-            <View style={styles.cvvWhiteBar}>
-              <Text style={styles.cvvText}>{cvv || "•••"}</Text>
-            </View>
-            <Text style={styles.cvvLabel}>CVV</Text>
+        <ImageBackground source={CARD_FACE_BACK} style={styles.cardArt} imageStyle={styles.cardArtImg} resizeMode="cover">
+          <View style={styles.cvvOverlayRow}>
+            <Text style={[styles.cvvText, isCvvFocused && { color: "#0F172A" }]}>{cvv || "•••"}</Text>
           </View>
-          <View style={styles.cardBackBottom}>
-            <CardBrandIcon type={cardType} />
-          </View>
-        </View>
+          <Text style={styles.cvvLabel}>CVV</Text>
+        </ImageBackground>
       </Animated.View>
     </View>
   );
@@ -596,7 +586,8 @@ const styles = StyleSheet.create({
   cardPreviewWrapper: {
     width: "100%",
     maxWidth: 340,
-    height: 196,
+    // Matches the rendered artwork's credit-card proportions (85.6 : 54 mm)
+    aspectRatio: 8.56 / 5.4,
   },
   cardFace: {
     position: "absolute",
@@ -612,28 +603,35 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   cardBack: {},
-  cardGradient: {
+
+  // Studio-rendered face artwork; live details are absolutely positioned to
+  // the artwork's reserved zones.
+  cardArt: {
     flex: 1,
-    backgroundColor: TEAL_LT,
-    borderRadius: 18,
     padding: 20,
-    // subtle pattern via border
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
+    justifyContent: "flex-end",
+  },
+  cardArtImg: {
+    borderRadius: 18,
   },
   cardTopRow: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    left: 16,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
   },
-  cardChip: {},
   cardNumberDisplay: {
     fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 20,
     color: WHITE,
     letterSpacing: 3,
-    marginBottom: 20,
+    marginBottom: 16,
+    textShadowColor: "rgba(0,0,0,0.35)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   cardBottomRow: {
     flexDirection: "row",
@@ -643,7 +641,7 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 9,
-    color: "rgba(255,255,255,0.55)",
+    color: "rgba(255,255,255,0.6)",
     letterSpacing: 1.5,
     marginBottom: 3,
   },
@@ -651,46 +649,37 @@ const styles = StyleSheet.create({
     fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 14,
     color: WHITE,
-    maxWidth: 160,
+    maxWidth: 170,
+    textShadowColor: "rgba(0,0,0,0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 
-  // Back of card
-  magneticStripe: {
-    height: 40,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    marginHorizontal: -20,
-    marginTop: 10,
-    marginBottom: 16,
-  },
-  cvvStripe: {
-    flexDirection: "row",
+  // Back of card — the CVV sits inside the artwork's white window
+  // (window geometry from the render: centre 64.9–79.5% x, 47–58.5% y).
+  cvvOverlayRow: {
+    position: "absolute",
+    left: "64.9%",
+    top: "47%",
+    width: "14.6%",
+    height: "11.5%",
     alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 4,
-  },
-  cvvWhiteBar: {
-    flex: 1,
-    backgroundColor: WHITE,
-    borderRadius: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    alignItems: "flex-end",
+    justifyContent: "center",
   },
   cvvText: {
     fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 16,
+    fontSize: 15,
     color: DARK,
-    letterSpacing: 4,
+    letterSpacing: 3,
   },
   cvvLabel: {
-    fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 13,
-    color: "rgba(255,255,255,0.7)",
-  },
-  cardBackBottom: {
     position: "absolute",
-    bottom: 20,
-    right: 20,
+    left: "65.3%",
+    top: "60%",
+    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontSize: 9,
+    letterSpacing: 1,
+    color: "rgba(255,255,255,0.75)",
   },
 
   // ── Amount banner ────────────────────────────────────────────────────────────
