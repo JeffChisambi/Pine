@@ -94,10 +94,13 @@ export default function SuccessScreen() {
   const quantity   = params.quantity ?? "—";
   const total      = params.total ?? "—";
 
-  const title    = isQueued ? "Order Queued!" : "Order Placed!";
-  const subtitle = isQueued
-    ? `Your ${side === "BUY" ? "buy" : "sell"} order for ${symbol} has been queued and will be executed when the market opens.`
-    : `Your ${side === "BUY" ? "buy" : "sell"} order for ${symbol} has been placed and is being processed.`;
+  const title = isQueued ? "Order Submitted!" : "Order Placed!";
+  // Prefer the server's message — it knows whether the market is open
+  // ("being processed by the broker") or closed ("executed when the market
+  // opens"), so the user is never told to wait for open during hours.
+  const subtitle = params.message
+    ? String(params.message)
+    : `Your ${side === "BUY" ? "buy" : "sell"} order for ${symbol} has been submitted and is being processed.`;
 
   const stats = [
     { label: "Stock",      value: `${symbol} · ${stockName}` },

@@ -16,6 +16,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useWalletBalance } from "../../services/wallet-queries";
+import { useHoldingQuantity } from "../../hooks/usePortfolio";
 import { useStocks } from "../../hooks/useStocks";
 import { ApiStock } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
@@ -72,7 +73,8 @@ export default function BuyScreen() {
 
   const { data: walletBalanceData } = useWalletBalance();
   const walletBalance = Number(walletBalanceData?.availableBalance || walletBalanceData?.balance || 0);
-  const [availableShares] = useState<number>(0);
+  // Live position in the currently selected stock (0 when not owned).
+  const availableShares = useHoldingQuantity(selectedStock?.symbol);
   const isBuy = mode === "buy";
 
   return (
@@ -211,8 +213,8 @@ export default function BuyScreen() {
       {/* Bottom CTA */}
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
         <TouchableOpacity
-          style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: rawAmount && selectedStock ? 1 : 0.5 }}
-          disabled={!rawAmount || !selectedStock}
+          style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: rawAmount && selectedStock && (isBuy || availableShares > 0) ? 1 : 0.5 }}
+          disabled={!rawAmount || !selectedStock || (!isBuy && availableShares <= 0)}
           onPress={() => router.push({
             pathname: "/trade/confirm" as any,
             params: { stockId: selectedStock?.id ?? "", symbol: selectedStock?.symbol ?? "", name: selectedStock?.name ?? "", side: mode.toUpperCase(), amount: rawAmount, price: String(selectedStock?.priceRaw ?? 0) },
