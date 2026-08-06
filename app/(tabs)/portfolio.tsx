@@ -151,9 +151,11 @@ export default function PortfolioScreen() {
   const loadPortfolio = useCallback(() => {
     portfolioApi.getSummary()
       .then((s) => {
-        setTotalValue(`K ${Number(s.totalValue || 0).toLocaleString()}`);
-        const gain = Number(s.totalGain || 0);
-        setTotalGain(`${gain >= 0 ? '+' : ''}K ${Math.abs(gain).toLocaleString()} (${s.totalGainPercent || '0'}%)`);
+        // portfolioValue = cash + market value of holdings (server-computed)
+        setTotalValue(`K ${Number(s.portfolioValue ?? 0).toLocaleString()}`);
+        const gain = Number(s.totalUnrealizedPnl ?? 0);
+        const gainPct = Number(s.totalPnlPercent ?? 0);
+        setTotalGain(`${gain >= 0 ? '+' : ''}K ${Math.abs(gain).toLocaleString()} (${gainPct}%)`);
         setGainPositive(gain >= 0);
       })
       .catch(() => {

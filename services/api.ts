@@ -375,12 +375,18 @@ export const walletApi = {
 
 // ─── Portfolio API ────────────────────────────────────────────────────────────
 
+// Mirrors the backend's GET /portfolio/summary response exactly. The previous
+// shape ({totalValue, totalGain, ...}) never matched the server, so the
+// portfolio balance always rendered as 0 while holdings updated fine.
 export interface PortfolioSummary {
-  totalValue: string;
-  totalCost: string;
-  totalGain: string;
-  totalGainPercent: string;
-  holdingsCount: number;
+  cashBalance: number;
+  totalInvested: number;
+  totalMarketValue: number;
+  totalUnrealizedPnl: number;
+  totalPnlPercent: number;
+  portfolioValue: number;
+  dailyChange: number;
+  dailyChangePct: number;
 }
 
 export interface Holding {
