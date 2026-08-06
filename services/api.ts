@@ -389,16 +389,23 @@ export interface PortfolioSummary {
   dailyChangePct: number;
 }
 
+// Mirrors the backend's HoldingDetail (GET /portfolio/holdings) exactly.
 export interface Holding {
   stockId: string;
   symbol: string;
   name: string;
-  quantity: string;
-  avgCost: string;
-  currentPrice: string;
-  marketValue: string;
-  gain: string;
-  gainPercent: string;
+  sector: string;
+  quantity: number;
+  averageCost: number;
+  currentPrice: number;
+  previousClose: number;
+  marketValue: number;
+  costBasis: number;
+  unrealizedPnl: number;
+  pnlPercent: number;
+  dailyChange: number;
+  dailyChangePct: number;
+  weight: number;
 }
 
 export const portfolioApi = {

@@ -176,11 +176,11 @@ export default function PortfolioScreen() {
           name: item.name,
           logo: getStockLogo(item.symbol),
           price: `K ${Number(item.currentPrice || 0).toLocaleString()}`,
-          change: `${Number(item.gainPercent || 0) >= 0 ? '+' : ''}${item.gainPercent || '0'}%`,
-          positive: Number(item.gainPercent || 0) >= 0,
+          change: `${Number(item.pnlPercent || 0) >= 0 ? '+' : ''}${Number(item.pnlPercent || 0)}%`,
+          positive: Number(item.pnlPercent || 0) >= 0,
           shares: String(item.quantity || 0),
           value: `K ${Number(item.marketValue || 0).toLocaleString()}`,
-          changePct: `${item.gainPercent || '0'}%`,
+          changePct: `${Number(item.pnlPercent || 0)}%`,
         })));
       })
       .catch(() => {});

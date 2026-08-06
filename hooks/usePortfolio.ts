@@ -7,12 +7,20 @@ export const portfolioKeys = {
   summary:  () => [...portfolioKeys.all, 'summary'] as const,
 };
 
-/** Fetch the user's current holdings. Refreshes every 5 minutes. */
+/**
+ * Fetch the user's current holdings.
+ * Kept fresh (30s + refetch on mount/focus) so ownership-dependent UI —
+ * like the Sell button on the stock detail page — flips as soon as a
+ * broker-executed trade settles.
+ */
 export function useHoldings() {
   return useQuery<Holding[], Error>({
     queryKey: portfolioKeys.holdings(),
     queryFn:  () => portfolioApi.getHoldings(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     retry: 1,
   });
 }
@@ -27,5 +35,5 @@ export function useHoldingQuantity(symbol: string | undefined): number {
   const holding = holdings.find(
     (h) => h.symbol.toUpperCase() === symbol.toUpperCase()
   );
-  return holding ? parseFloat(holding.quantity) : 0;
+  return holding ? Number(holding.quantity) || 0 : 0;
 }
