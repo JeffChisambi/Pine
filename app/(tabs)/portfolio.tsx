@@ -147,18 +147,13 @@ export default function PortfolioScreen() {
   const [totalValue, setTotalValue] = useState<string | null>(null);
   const [totalGain, setTotalGain] = useState<string | null>(null);
   const [gainPositive, setGainPositive] = useState(true);
-  const [breakdown, setBreakdown] = useState<{ cash: number; invested: number } | null>(null);
 
   const loadPortfolio = useCallback(() => {
     portfolioApi.getSummary()
       .then((s) => {
-        // portfolioValue = available cash + Σ(qty × live price), derived
-        // server-side on every read — never stored.
+        // portfolioValue = Σ(qty × live price) of owned assets only —
+        // wallet cash is separate money shown on the home screen.
         setTotalValue(`K ${Number(s.portfolioValue ?? 0).toLocaleString()}`);
-        setBreakdown({
-          cash: Number(s.cashBalance ?? 0),
-          invested: Number(s.totalMarketValue ?? 0),
-        });
         const gain = Number(s.totalUnrealizedPnl ?? 0);
         const gainPct = Number(s.totalPnlPercent ?? 0);
         setTotalGain(`${gain >= 0 ? '+' : ''}K ${Math.abs(gain).toLocaleString()} (${gainPct}%)`);
@@ -217,7 +212,6 @@ export default function PortfolioScreen() {
     balanceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
     balanceBlock: { flex: 1 },
     balanceAmount: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 38, color: c.text, letterSpacing: -1, marginBottom: 8 },
-    breakdownText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 12.5, color: c.mutedForeground, marginBottom: 8 },
     balanceHidden: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 38, color: c.mutedForeground, marginBottom: 8 },
     monthPill: { backgroundColor: c.card, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 7, flexDirection: "row", alignItems: "center", gap: 4, borderWidth: 1, borderColor: c.border },
     monthText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: c.text },
@@ -308,11 +302,6 @@ export default function PortfolioScreen() {
                 {dividendMode
                   ? `K ${(dividendsTotal ?? 0).toLocaleString()}`
                   : (totalValue ?? "—")}
-              </Text>
-            )}
-            {!dividendMode && !balanceHidden && breakdown !== null && (
-              <Text style={styles.breakdownText} numberOfLines={1}>
-                Cash K {breakdown.cash.toLocaleString()}  ·  Investments K {breakdown.invested.toLocaleString()}
               </Text>
             )}
             {dividendMode ? (
