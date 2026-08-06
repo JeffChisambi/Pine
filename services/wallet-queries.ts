@@ -67,10 +67,15 @@ export function setOptimisticBalance(
   const prev = qc.getQueryData<WalletBalance>(WALLET_BALANCE_QUERY_KEY);
   if (!prev) return () => {};
 
+  // availableBalance falls back to the total balance when the server omits it —
+  // starting from 0 here would make the overlay display the deposit amount as
+  // the entire balance.
+  const prevTotal = Number(prev.balance ?? 0);
+  const prevAvail = Number(prev.availableBalance ?? prev.balance ?? 0);
   const bumped: WalletBalance = {
     ...prev,
-    balance: (Number(prev.balance || 0) + addAmount).toString(),
-    availableBalance: (Number(prev.availableBalance || 0) + addAmount).toString(),
+    balance: (prevTotal + addAmount).toString(),
+    availableBalance: (prevAvail + addAmount).toString(),
   };
   qc.setQueryData<WalletBalance>(WALLET_BALANCE_QUERY_KEY, bumped);
 
@@ -128,7 +133,7 @@ export async function reconcileDepositCredit(
       last = b;
       onProgress?.(b);
 
-      if (Number(b.availableBalance || 0) >= target) {
+      if (Number(b.availableBalance ?? b.balance ?? 0) >= target) {
         // Server confirmed the credit — safe to replace the optimistic value
         // with the authoritative server value.
         qc.setQueryData<WalletBalance>(WALLET_BALANCE_QUERY_KEY, b);

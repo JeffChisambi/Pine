@@ -365,10 +365,10 @@ export const walletApi = {
       body: JSON.stringify(data),
     }),
 
-  withdraw: (data: { amount: number; method: string; destination: string; pinToken: string }): Promise<any> =>
+  withdraw: (data: { amount: number; pinToken: string; idempotencyKey?: string }): Promise<any> =>
     request('/wallet/withdraw', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({ amount: data.amount, idempotencyKey: data.idempotencyKey }),
       headers: { 'x-pin-token': data.pinToken },
     }),
 };

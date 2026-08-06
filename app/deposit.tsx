@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle } from "react-native-svg";
 import { paymentsApi } from "../services/api";
 
-const BANK_CARD_LOGO = require("../assets/images/bankcard.png");
+const BANK_CARD_LOGO = require("../assets/images/bank-transfer.png");
 
 const TEAL  = "#164951";
 const WHITE = "#FFFFFF";

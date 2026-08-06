@@ -31,8 +31,10 @@ import {
   loadPendingDeposit,
   clearPendingDeposit,
   savePendingDeposit,
+  invalidateWalletBalance,
   WALLET_BALANCE_QUERY_KEY,
 } from "../../services/wallet-queries";
+import { useBalanceVisibility } from "../../contexts/balance-visibility";
 import Svg, {
   Path,
   Circle,
@@ -72,17 +74,39 @@ function NotificationIcon() {
         <Path d="M15.02 19.06C15.02 20.71 13.67 22.06 12.02 22.06C11.2 22.06 10.44 21.72 9.9 21.18C9.36 20.64 9.02 19.88 9.02 19.06" stroke={c.text} strokeWidth={1.5} strokeMiterlimit={10} />
       </Svg>
       {unread > 0 && (
+        // Ring drawn as an outer wrapper (not borderWidth on the pill itself)
+        // so the border never eats into the pill's content box and skew the
+        // digit centering. The pill grows horizontally for 2-digit and "99+"
+        // counts while staying a perfect circle for single digits.
         <View
           style={{
-            position: "absolute", top: 4, right: 2,
-            minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 3,
-            backgroundColor: RED, borderWidth: 1.5, borderColor: c.background,
-            alignItems: "center", justifyContent: "center",
+            position: "absolute", top: 2, right: 0,
+            borderRadius: 11, padding: 1.5, backgroundColor: c.background,
           }}
         >
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 9, color: "#FFFFFF" }}>
-            {unread > 99 ? "99+" : unread}
-          </Text>
+          <View
+            style={{
+              minWidth: 18, height: 18, borderRadius: 9,
+              paddingHorizontal: unread > 9 ? 4 : 0,
+              backgroundColor: RED,
+              alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <Text
+              allowFontScaling={false}
+              style={{
+                fontFamily: "PlusJakartaSans_700Bold",
+                fontSize: 10,
+                lineHeight: 13,
+                color: "#FFFFFF",
+                textAlign: "center",
+                textAlignVertical: "center",
+                includeFontPadding: false,
+              }}
+            >
+              {unread > 99 ? "99+" : unread}
+            </Text>
+          </View>
         </View>
       )}
     </View>
@@ -315,7 +339,7 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
-  const [balanceVisible, setBalanceVisible] = useState(true);
+  const { visible: balanceVisible, requestToggle: requestBalanceToggle } = useBalanceVisibility();
   const c = useColors();
 
   const searchParams = useLocalSearchParams<{
@@ -332,8 +356,10 @@ export default function HomeScreen() {
 
   const qc = useWalletQueryClient();
   const { data: walletBalance, refetch: refetchBalance } = useWalletBalance();
+  // The card is labelled TOTAL BALANCE — show the total, not the available
+  // subset (available = total minus reservations/pending withdrawals).
   const totalBalance = walletBalance
-    ? `K ${Number(walletBalance.availableBalance || walletBalance.balance || 0).toLocaleString()}`
+    ? `K ${Number(walletBalance.balance ?? walletBalance.availableBalance ?? 0).toLocaleString()}`
     : null;
 
   const reconcileRef = useRef(false);
@@ -375,7 +401,11 @@ export default function HomeScreen() {
       if (outcome.status === "reflected") {
         await clearPendingDeposit();
       } else {
-        void revertOptimistic;
+        // Server never confirmed the credit — drop the optimistic overlay and
+        // refetch the authoritative value. The persisted pending-deposit
+        // record survives, so reconciliation resumes on the next mount.
+        revertOptimistic();
+        await invalidateWalletBalance(qc).catch(() => {});
       }
     })().catch(() => {});
   }, [searchParams.depositSuccess, searchParams.depositAmount, searchParams.depositTxRef, walletBalance, qc]);
@@ -412,7 +442,7 @@ export default function HomeScreen() {
                 {balanceVisible ? (totalBalance ?? "—") : "K  ••••••"}
               </Text>
             </View>
-            <TouchableOpacity onPress={() => setBalanceVisible((v) => !v)} activeOpacity={0.7} style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" }}>
+            <TouchableOpacity onPress={requestBalanceToggle} activeOpacity={0.7} style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" }}>
               <EyeIcon visible={balanceVisible} />
             </TouchableOpacity>
           </View>

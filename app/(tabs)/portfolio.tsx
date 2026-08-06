@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { portfolioApi } from "../../services/api";
-import { useWalletBalance } from "../../services/wallet-queries";
+import { useBalanceVisibility } from "../../contexts/balance-visibility";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 import { StockData } from "@/data/stocks";
@@ -134,7 +134,8 @@ export default function PortfolioScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
   const c = useColors();
-  const [balanceHidden, setBalanceHidden] = useState(false);
+  const { visible: balanceShown, requestToggle: requestBalanceToggle } = useBalanceVisibility();
+  const balanceHidden = !balanceShown;
   const [searchText, setSearchText] = useState("");
 
   // Dividends mode — the pill (formerly a dead "November" label) toggles the
@@ -271,7 +272,7 @@ export default function PortfolioScreen() {
         {/* "Portfolio Balance" + eye */}
         <View style={styles.titleRow}>
           <Text style={styles.titleLabel}>{dividendMode ? "Dividends" : "Portfolio Balance"}</Text>
-          <TouchableOpacity onPress={() => setBalanceHidden((v) => !v)} style={styles.eyeBtn}>
+          <TouchableOpacity onPress={requestBalanceToggle} style={styles.eyeBtn}>
             <EyeIcon hidden={balanceHidden} color={c.mutedForeground} />
           </TouchableOpacity>
         </View>

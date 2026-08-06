@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle, Rect, G, Defs, ClipPath } from "react-native-svg";
+import { useFocusEffect } from "expo-router";
 import { notificationsApi, type Notification } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
 import { guardedBack } from "@/utils/navigation";
@@ -166,14 +167,19 @@ export default function NotificationsScreen() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // The "no notifications" illustration may only appear when a fetch has
+  // SUCCEEDED and returned zero items — never on a failed/uncertain load.
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
     try {
       const result = await notificationsApi.list(30);
       setNotifications(result.notifications ?? []);
       setUnreadCount(result.unreadCount ?? 0);
+      setLoadFailed(false);
     } catch {
-      // Keep existing state on error
+      // Keep existing items; flag the failure so we don't claim "no notifications"
+      setLoadFailed(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -181,6 +187,10 @@ export default function NotificationsScreen() {
   }, []);
 
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+
+  // Refresh whenever the screen regains focus so newly arrived notifications
+  // show without requiring a manual pull-to-refresh.
+  useFocusEffect(useCallback(() => { fetchNotifications(); }, [fetchNotifications]));
 
   const onRefresh = () => { setRefreshing(true); fetchNotifications(); };
 
@@ -234,11 +244,25 @@ export default function NotificationsScreen() {
           <ActivityIndicator size="large" color={TEAL} />
         </View>
       ) : notifications.length === 0 ? (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 48, gap: 12 }}>
-          <NotificationsIllustration />
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text, marginTop: 8 }}>No notifications yet</Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center" }}>We'll notify you when something important happens</Text>
-        </View>
+        loadFailed ? (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 48, gap: 12 }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text }}>Couldn't load notifications</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center" }}>Check your connection and try again</Text>
+            <TouchableOpacity
+              onPress={() => { setLoading(true); fetchNotifications(); }}
+              style={{ marginTop: 8, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 10, backgroundColor: TEAL }}
+              activeOpacity={0.8}
+            >
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: WHITE }}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 48, gap: 12 }}>
+            <NotificationsIllustration />
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text, marginTop: 8 }}>No notifications yet</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center" }}>We'll notify you when something important happens</Text>
+          </View>
+        )
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}

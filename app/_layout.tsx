@@ -28,6 +28,7 @@ import { LogBox } from "react-native";
 import { AnimatedSplash } from "@/components/AnimatedSplash";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "../services/auth-context";
+import { BalanceVisibilityProvider } from "@/contexts/balance-visibility";
 import { ThemeProvider, useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
 import { configurePushNotifications } from "../services/push";
@@ -326,6 +327,7 @@ export default function RootLayout() {
           <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
               <AuthProvider>
+                <BalanceVisibilityProvider>
                 <GestureHandlerRootView style={{ flex: 1 }}>
                   {/* The animated splash covers everything, so the app tree can
                       wait for fonts underneath it without delaying the intro. */}
@@ -345,6 +347,7 @@ export default function RootLayout() {
                     />
                   )}
                 </GestureHandlerRootView>
+                </BalanceVisibilityProvider>
               </AuthProvider>
             </QueryClientProvider>
           </ErrorBoundary>

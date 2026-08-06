@@ -1,8 +1,8 @@
 import { guardedBack } from "@/utils/navigation";
-import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useColors } from "@/hooks/useColors";
 import {
+  Alert,
   Keyboard,
   Platform,
   StyleSheet,
@@ -15,8 +15,12 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle } from "react-native-svg";
+import { useQueryClient } from "@tanstack/react-query";
+import PinVerifyModal from "@/components/PinVerifyModal";
+import { walletApi } from "../services/api";
+import { invalidateWalletBalance, useWalletBalance } from "../services/wallet-queries";
 
-const BANK_CARD_LOGO = require("../assets/images/bankcard.png");
+const BANK_TRANSFER_ART = require("../assets/images/bank-transfer.png");
 
 const TEAL  = "#164951";
 const WHITE = "#FFFFFF";
@@ -68,13 +72,46 @@ export default function WithdrawScreen() {
   const c = useColors();
 
   const [rawAmount, setRawAmount] = useState("");
-  const [walletBalance] = useState<number>(0);
+  const [showPin, setShowPin] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const qc = useQueryClient();
+  // One idempotency key per screen visit so a retried submit can't double-debit.
+  const idemKeyRef = useRef(`withdraw-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+
+  const { data: balanceData } = useWalletBalance();
+  const walletBalance = Number(balanceData?.availableBalance ?? balanceData?.balance ?? 0);
   const walletBalanceDisplay = walletBalance.toLocaleString("en-MW", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const numericValue = parseFloat(rawAmount.replace(/,/g, "")) || 0;
   const exceeds      = numericValue > walletBalance;
-  const canWithdraw  = numericValue >= 10000 && !exceeds;
-  const youReceive   = numericValue; // no fee
+  const canWithdraw  = numericValue >= 10000 && !exceeds && !submitting;
+
+  const submitWithdrawal = async (pinToken: string) => {
+    setShowPin(false);
+    setSubmitting(true);
+    try {
+      await walletApi.withdraw({
+        amount: numericValue,
+        pinToken,
+        idempotencyKey: idemKeyRef.current,
+      });
+      await invalidateWalletBalance(qc).catch(() => {});
+      Alert.alert(
+        "Withdrawal requested",
+        `MK ${numericValue.toLocaleString()} will be sent to your registered bank account within 1–2 business days.`,
+        [{ text: "OK", onPress: () => guardedBack("/(tabs)") }],
+      );
+    } catch (e: any) {
+      const code = e?.code ?? e?.error?.code;
+      if (code === "AUTH_PIN_INVALID" || code === "AUTH_PIN_NOT_SET") {
+        setShowPin(true);
+      } else {
+        Alert.alert("Withdrawal failed", e?.message || "Something went wrong. Please try again.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: c.background },
@@ -343,7 +380,7 @@ export default function WithdrawScreen() {
           <Text style={styles.sectionLabel}>Withdrawal Method</Text>
           <View style={[styles.methodCard, styles.methodCardActive]}>
             <View style={styles.methodLogoWrap}>
-              <Image source={BANK_CARD_LOGO} style={{ width: 42, height: 42, borderRadius: 8 }} resizeMode="contain" />
+              <Image source={BANK_TRANSFER_ART} style={{ width: 42, height: 42, borderRadius: 8 }} resizeMode="contain" />
             </View>
             <View style={styles.methodInfo}>
               <Text style={styles.methodName}>Bank Transfer</Text>
@@ -390,13 +427,21 @@ export default function WithdrawScreen() {
             style={[styles.ctaBtn, !canWithdraw && styles.ctaBtnDisabled]}
             activeOpacity={0.85}
             disabled={!canWithdraw}
-            onPress={() => guardedBack("/(tabs)")}
+            onPress={() => setShowPin(true)}
           >
             <Text style={styles.ctaBtnText}>
-              {canWithdraw ? `Withdraw MK ${rawAmount}` : "Withdraw"}
+              {submitting ? "Processing…" : canWithdraw ? `Withdraw MK ${rawAmount}` : "Withdraw"}
             </Text>
           </TouchableOpacity>
         </View>
+
+        <PinVerifyModal
+          visible={showPin}
+          title="Confirm withdrawal"
+          subtitle={`Enter your 4-digit PIN to withdraw MK ${numericValue.toLocaleString()}`}
+          onVerified={submitWithdrawal}
+          onCancel={() => setShowPin(false)}
+        />
 
       </View>
     </TouchableWithoutFeedback>
