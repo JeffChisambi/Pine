@@ -241,7 +241,6 @@ function RootLayoutNav() {
         <Stack.Screen name="trade/exchange" options={section} />
         <Stack.Screen name="trade/payment" options={section} />
         <Stack.Screen name="trade/confirm" options={section} />
-        <Stack.Screen name="trade/payment-webview" options={section} />
         <Stack.Screen
           name="trade/success"
           options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300 }}

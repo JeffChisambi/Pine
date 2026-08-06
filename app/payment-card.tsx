@@ -16,6 +16,7 @@ import {
   Alert,
   Animated,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -33,9 +34,11 @@ import { useColors } from "@/hooks/useColors";
 import { cardPaymentsApi } from "../services/api";
 import {
   invalidateWalletBalance,
-  reconcileDepositCredit,
-  readCachedAvailable,
 } from "../services/wallet-queries";
+
+function makeAttemptKey(): string {
+  return `app-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 const TEAL    = "#164951";
@@ -304,31 +307,42 @@ export default function PaymentCardScreen() {
     return Object.keys(errs).length === 0;
   };
 
-  const handlePay = async () => {
-    if (!validate() || loading) return;
+  // One idempotency key per payment attempt: accidental double-taps replay the
+  // SAME payment (never charged twice); a new attempt gets a fresh key.
+  const attemptKeyRef = useRef(makeAttemptKey());
+
+  /**
+   * Runs the full payment workflow. `test` carries a simulated outcome and
+   * routes through the mock gateway server-side — every state (loading,
+   * receipt, decline, timeout…) uses the exact production code path.
+   */
+  const runPayment = async (card: {
+    cardholderName: string; cardNumber: string; expiryMonth: string; expiryYear: string; cvv: string;
+  }, testScenario?: string) => {
+    if (loading) return;
     setLoading(true);
 
-    // Snapshot balance before charge so reconciliation knows the baseline
-    const prevAvailable = readCachedAvailable(qc);
-
     try {
-      const [mm, yy] = expiry.split("/");
       const result = await cardPaymentsApi.initiateCardPayment({
         amount,
         currency,
-        cardholderName: cardHolder.trim(),
-        cardNumber: cardNumber.replace(/\s/g, ""),
-        expiryMonth: mm,
-        expiryYear: yy,
-        cvv,
+        ...card,
         purpose,
+        idempotencyKey: attemptKeyRef.current,
+        ...(testScenario ? { testScenario } : {}),
       });
 
-      // Invalidate wallet balance immediately so the home screen
-      // picks up the credited deposit on next focus.
+      // Terminal outcome — the next attempt is a new payment.
+      attemptKeyRef.current = makeAttemptKey();
+
+      if (result.status === "FAILED") {
+        Alert.alert("Payment Failed", result.message || "Your card could not be charged.");
+        return;
+      }
+
+      // Success: the server credited the wallet atomically before responding.
       invalidateWalletBalance(qc).catch(() => {});
 
-      // Navigate to the card-specific deposit success screen
       router.replace({
         pathname: "/trade/card-success" as any,
         params: {
@@ -339,15 +353,9 @@ export default function PaymentCardScreen() {
           txRef: result.txRef,
         },
       });
-
-      // Reconcile in the background so the balance is confirmed by the time
-      // the user navigates to the home tab.
-      reconcileDepositCredit(qc, {
-        expectedIncrement: amount,
-        prevAvailable,
-      }).catch(() => {});
     } catch (err: any) {
-      // Surface the backend / gateway error message where available
+      // Transport / gateway-unavailable errors (payment did not complete)
+      attemptKeyRef.current = makeAttemptKey();
       const msg =
         err?.message ??
         "Your card could not be charged. Please check your details and try again.";
@@ -355,6 +363,29 @@ export default function PaymentCardScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePay = async () => {
+    if (!validate() || loading) return;
+    const [mm, yy] = expiry.split("/");
+    await runPayment({
+      cardholderName: cardHolder.trim(),
+      cardNumber: cardNumber.replace(/\s/g, ""),
+      expiryMonth: mm,
+      expiryYear: yy,
+      cvv,
+    });
+  };
+
+  // ── Test Transaction mode ──
+  const [showTestSheet, setShowTestSheet] = useState(false);
+  const runTestTransaction = async (scenario: string) => {
+    setShowTestSheet(false);
+    // Standard test card — real card details are never required in test mode.
+    await runPayment(
+      { cardholderName: "TEST USER", cardNumber: "4111111111111111", expiryMonth: "12", expiryYear: "30", cvv: "123" },
+      scenario,
+    );
   };
 
   const topPad    = Platform.OS === "web" ? 44 : insets.top;
@@ -367,12 +398,12 @@ export default function PaymentCardScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={0}
     >
-      {/* Header */}
+      {/* Header — clean white, dark text */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/deposit")}>
-          <BackIcon color={WHITE} />
+          <BackIcon color={DARK} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Bank Card</Text>
+        <Text style={styles.headerTitle}>Card Payment</Text>
         <View style={styles.backBtn} />
       </View>
 
@@ -488,21 +519,62 @@ export default function PaymentCardScreen() {
             </Text>
           )}
         </TouchableOpacity>
+
+        {/* Test Transaction — full workflow through the mock gateway */}
+        <TouchableOpacity
+          style={styles.testBtn}
+          activeOpacity={0.7}
+          disabled={loading}
+          onPress={() => setShowTestSheet(true)}
+        >
+          <Text style={styles.testBtnText}>Test Transaction</Text>
+        </TouchableOpacity>
       </View>
+
+      {/* Scenario picker */}
+      <Modal transparent visible={showTestSheet} animationType="fade" onRequestClose={() => setShowTestSheet(false)}>
+        <TouchableOpacity style={styles.sheetOverlay} activeOpacity={1} onPress={() => setShowTestSheet(false)}>
+          <View style={styles.sheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Test Transaction</Text>
+            <Text style={styles.sheetSubtitle}>
+              Simulates the complete payment workflow — no real charge is made.
+            </Text>
+            {([
+              ["success", "Successful payment"],
+              ["declined", "Card declined"],
+              ["insufficient_funds", "Insufficient funds"],
+              ["expired_card", "Expired card"],
+              ["network_failure", "Network failure"],
+              ["timeout", "Gateway timeout"],
+              ["duplicate", "Duplicate submission"],
+            ] as const).map(([key, label]) => (
+              <TouchableOpacity
+                key={key}
+                style={styles.sheetItem}
+                activeOpacity={0.7}
+                onPress={() => runTestTransaction(key)}
+              >
+                <Text style={styles.sheetItemText}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG },
+  root: { flex: 1, backgroundColor: WHITE },
 
   header: {
-    backgroundColor: TEAL,
+    backgroundColor: WHITE,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingBottom: 10,
   },
   backBtn: { width: 40, height: 40, justifyContent: "center" },
   headerTitle: {
@@ -510,13 +582,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
-    color: WHITE,
+    color: DARK,
   },
 
-  // ── Card preview ────────────────────────────────────────────────────────────
+  // ── Card preview — floats on the white page ────────────────────────────────
   cardContainer: {
-    backgroundColor: TEAL,
-    paddingBottom: 28,
+    backgroundColor: WHITE,
+    paddingTop: 8,
+    paddingBottom: 24,
     paddingHorizontal: 24,
     alignItems: "center",
   },
@@ -739,5 +812,65 @@ const styles = StyleSheet.create({
     fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 17,
     color: WHITE,
+  },
+
+  // ── Test Transaction ────────────────────────────────────────────────────────
+  testBtn: {
+    marginTop: 10,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: DIVIDER,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: WHITE,
+  },
+  testBtnText: {
+    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontSize: 14,
+    color: TEAL,
+  },
+  sheetOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: WHITE,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 40,
+  },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: DIVIDER,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  sheetTitle: {
+    fontFamily: "PlusJakartaSans_700Bold",
+    fontSize: 18,
+    color: DARK,
+    marginBottom: 4,
+  },
+  sheetSubtitle: {
+    fontFamily: "PlusJakartaSans_400Regular",
+    fontSize: 13,
+    color: MUTED,
+    marginBottom: 12,
+  },
+  sheetItem: {
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+    borderBottomColor: DIVIDER,
+  },
+  sheetItemText: {
+    fontFamily: "PlusJakartaSans_500Medium",
+    fontSize: 15,
+    color: DARK,
   },
 });

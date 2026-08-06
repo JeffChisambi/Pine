@@ -18,7 +18,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle } from "react-native-svg";
-import { paymentsApi } from "../services/api";
 
 const BANK_CARD_LOGO = require("../assets/images/bank-transfer.png");
 
@@ -69,8 +68,8 @@ export default function DepositScreen() {
   const c = useColors();
 
   const [rawAmount, setRawAmount] = useState("");
-  const [selectedMethod, setSelectedMethod] = useState("paychangu");
-  const [loading, setLoading] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState("bankcard");
+  const [loading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const numericValue = parseFloat(rawAmount.replace(/,/g, "")) || 0;
@@ -81,46 +80,12 @@ export default function DepositScreen() {
     setErrorMsg("");
   };
 
-  const handleDeposit = async () => {
+  const handleDeposit = () => {
     if (!canDeposit) return;
-
-    if (selectedMethod === "bankcard") {
-      router.push({
-        pathname: "/payment-card" as any,
-        params: { amount: String(numericValue), currency: "MWK", purpose: "wallet_deposit" },
-      });
-      return;
-    }
-
-    setLoading(true);
-    setErrorMsg("");
-    try {
-      const session = await paymentsApi.initiate({
-        amount: numericValue,
-        currency: "MWK",
-        purpose: "wallet_deposit",
-      });
-
-      if (!session.checkoutUrl) {
-        throw new Error("Payment gateway did not return a checkout URL. Please try again.");
-      }
-
-      router.push({
-        pathname: "/trade/payment-webview" as any,
-        params: {
-          checkoutUrl: session.checkoutUrl,
-          txRef: session.txRef,
-          amount: String(numericValue),
-          purpose: "wallet_deposit",
-        },
-      });
-    } catch (err: any) {
-      const msg = err?.message ?? "Could not initiate payment. Please try again.";
-      setErrorMsg(msg);
-      Alert.alert("Payment Error", msg);
-    } finally {
-      setLoading(false);
-    }
+    router.push({
+      pathname: "/payment-card" as any,
+      params: { amount: String(numericValue), currency: "MWK", purpose: "wallet_deposit" },
+    });
   };
 
   const styles = StyleSheet.create({
@@ -428,26 +393,6 @@ export default function DepositScreen() {
           {/* Section label */}
           <Text style={styles.sectionLabel}>Payment Method</Text>
 
-          {/* PayChangu card */}
-          <TouchableOpacity
-            style={[styles.methodCard, selectedMethod === "paychangu" && styles.methodCardActive]}
-            activeOpacity={0.7}
-            onPress={() => setSelectedMethod("paychangu")}
-          >
-            <View style={styles.methodLogoWrap}>
-              <Image
-                source={require("../assets/images/paychangu-logo.png")}
-                style={styles.methodLogo}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.methodInfo}>
-              <Text style={styles.methodName}>PayChangu</Text>
-              <Text style={styles.methodSub}>Mobile money &amp; card payments</Text>
-            </View>
-            {selectedMethod === "paychangu" ? <CheckIcon /> : <View style={styles.uncheckCircle} />}
-          </TouchableOpacity>
-
           {/* Bank Card */}
           <TouchableOpacity
             style={[styles.methodCard, selectedMethod === "bankcard" && styles.methodCardActive]}
@@ -459,7 +404,7 @@ export default function DepositScreen() {
             </View>
             <View style={styles.methodInfo}>
               <Text style={styles.methodName}>Bank Card</Text>
-              <Text style={styles.methodSub}>Visa, Mastercard &amp; more</Text>
+              <Text style={styles.methodSub}>Visa &amp; Mastercard</Text>
             </View>
             {selectedMethod === "bankcard" ? <CheckIcon /> : <View style={styles.uncheckCircle} />}
           </TouchableOpacity>
@@ -468,9 +413,7 @@ export default function DepositScreen() {
           <View style={styles.noteRow}>
             <InfoIcon />
             <Text style={styles.noteText}>
-              {selectedMethod === "paychangu"
-                ? "You'll be redirected to PayChangu to complete your payment securely."
-                : "You'll be able to securely enter your card details to process the deposit."}
+              You'll be able to securely enter your card details to process the deposit.
             </Text>
           </View>
 

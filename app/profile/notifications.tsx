@@ -18,10 +18,7 @@ import { guardedBack } from "@/utils/navigation";
 import { useInvalidateNotifications } from "@/hooks/useNotifications";
 
 const TEAL = "#164951";
-const GREEN = "#45B369";
 const RED = "#EF4770";
-const ORANGE = "#F38744";
-const PURPLE = "#4A4AF4";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
@@ -68,77 +65,6 @@ function NotificationsIllustration() {
   );
 }
 
-function TradingIcon() {
-  return (
-    <Svg width={32} height={32} viewBox="0 0 32 32">
-      <Circle cx={16} cy={16} r={16} fill={GREEN} />
-      <Path d="M10 20l4-4 3 2 5-6" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Path d="M18 12h4v4" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function PortfolioIcon() {
-  return (
-    <Svg width={32} height={32} viewBox="0 0 32 32">
-      <Circle cx={16} cy={16} r={16} fill={TEAL} />
-      <Path d="M11 22V15l5-4 5 4v7H11z" stroke={WHITE} strokeWidth={1.3} strokeLinejoin="round" fill="none" />
-      <Rect x={14} y={18} width={4} height={4} rx={1} fill={WHITE} />
-    </Svg>
-  );
-}
-
-function WalletIcon() {
-  return (
-    <Svg width={32} height={32} viewBox="0 0 32 32">
-      <Circle cx={16} cy={16} r={16} fill={ORANGE} />
-      <Rect x={10} y={12} width={12} height={9} rx={2} stroke={WHITE} strokeWidth={1.3} fill="none" />
-      <Circle cx={19} cy={16.5} r={1.2} fill={WHITE} />
-    </Svg>
-  );
-}
-
-function SecurityIcon() {
-  return (
-    <Svg width={32} height={32} viewBox="0 0 32 32">
-      <Circle cx={16} cy={16} r={16} fill={RED} />
-      <Path d="M16 10l5 2.5v4c0 3.5-2.2 6-5 7-2.8-1-5-3.5-5-7v-4L16 10z" stroke={WHITE} strokeWidth={1.3} fill="none" />
-      <Path d="M14 16l1.5 1.5 3-3" stroke={WHITE} strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function KycIcon() {
-  return (
-    <Svg width={32} height={32} viewBox="0 0 32 32">
-      <Circle cx={16} cy={16} r={16} fill={PURPLE} />
-      <Rect x={11} y={11} width={10} height={10} rx={2} stroke={WHITE} strokeWidth={1.3} fill="none" />
-      <Path d="M14 15l1.5 1.5 3-3" stroke={WHITE} strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function SystemIcon() {
-  return (
-    <Svg width={32} height={32} viewBox="0 0 32 32">
-      <Circle cx={16} cy={16} r={16} fill={TEAL} />
-      <Circle cx={16} cy={16} r={5} stroke={WHITE} strokeWidth={1.3} fill="none" />
-      <Path d="M16 9v2M16 21v2M9 16h2M21 16h2" stroke={WHITE} strokeWidth={1.3} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function getIconForCategory(category: string) {
-  switch (category?.toUpperCase()) {
-    case "TRADING": return <TradingIcon />;
-    case "PORTFOLIO": return <PortfolioIcon />;
-    case "WALLET": return <WalletIcon />;
-    case "SECURITY": return <SecurityIcon />;
-    case "KYC": return <KycIcon />;
-    case "MARKET": return <TradingIcon />;
-    default: return <SystemIcon />;
-  }
-}
 
 function formatRelativeTime(dateStr: string): string {
   try {
@@ -156,6 +82,88 @@ function formatRelativeTime(dateStr: string): string {
   } catch {
     return "";
   }
+}
+
+// ─── Expandable notification row ─────────────────────────────────────────────
+function NotificationItem({
+  item,
+  isLast,
+  onMarkRead,
+  onDelete,
+  colors: c,
+}: {
+  item: Notification;
+  isLast: boolean;
+  onMarkRead: (id: string) => void;
+  onDelete: (id: string) => void;
+  colors: ReturnType<typeof useColors>;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  // We need to know whether the body actually overflows 2 lines before showing
+  // the toggle. We detect this by comparing the full-text height vs 2-line cap.
+  const [needsToggle, setNeedsToggle] = useState(false);
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.75}
+      onPress={() => { if (!item.isRead) onMarkRead(item.id); }}
+      onLongPress={() => onDelete(item.id)}
+      style={[
+        { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 24, paddingVertical: 18, gap: 14 },
+        !item.isRead && { backgroundColor: c.card },
+        !isLast && { borderBottomWidth: 1, borderBottomColor: c.border },
+      ]}
+    >
+      <View style={{ flex: 1 }}>
+        {/* Title + unread dot */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text, flex: 1 }} numberOfLines={1}>
+            {item.title}
+          </Text>
+          {!item.isRead && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: TEAL }} />}
+        </View>
+
+        {/* Body — truncated unless expanded */}
+        <Text
+          style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, lineHeight: 19, marginBottom: 2 }}
+          numberOfLines={expanded ? undefined : 2}
+          onTextLayout={(e) => {
+            if (!needsToggle && e.nativeEvent.lines.length > 2) setNeedsToggle(true);
+          }}
+        >
+          {item.body}
+        </Text>
+
+        {/* Show more / Show less toggle */}
+        {needsToggle && (
+          <TouchableOpacity
+            onPress={() => setExpanded((v) => !v)}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            style={{ marginBottom: 4 }}
+          >
+            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: TEAL }}>
+              {expanded ? "Show less" : "Show more"}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "#C4C4C4", marginTop: 2 }}>
+          {formatRelativeTime(item.createdAt)}
+        </Text>
+      </View>
+
+      {/* Dismiss button */}
+      <TouchableOpacity
+        onPress={() => onDelete(item.id)}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        style={{ padding: 4, marginTop: 2 }}
+      >
+        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+          <Path d="M18 6L6 18M6 6l12 12" stroke={MUTED} strokeWidth={1.8} strokeLinecap="round" />
+        </Svg>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
 }
 
 export default function NotificationsScreen() {
@@ -246,11 +254,6 @@ export default function NotificationsScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text }}>Notifications</Text>
-          {unreadCount > 0 && (
-            <View style={{ backgroundColor: RED, borderRadius: 10, minWidth: 20, height: 20, alignItems: "center", justifyContent: "center", paddingHorizontal: 5 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 11, color: WHITE }}>{unreadCount}</Text>
-            </View>
-          )}
         </View>
         {unreadCount > 0 && (
           <TouchableOpacity onPress={markAllRead} style={{ paddingHorizontal: 6, paddingVertical: 4 }}>
@@ -294,36 +297,14 @@ export default function NotificationsScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={TEAL} />}
         >
           {notifications.map((item, i) => (
-            <TouchableOpacity
+            <NotificationItem
               key={item.id}
-              activeOpacity={0.75}
-              onPress={() => { if (!item.isRead) markRead(item.id); }}
-              onLongPress={() => deleteNotification(item.id)}
-              style={[
-                { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 24, paddingVertical: 18, gap: 14 },
-                !item.isRead && { backgroundColor: c.card },
-                i < notifications.length - 1 && { borderBottomWidth: 1, borderBottomColor: c.border },
-              ]}
-            >
-              <View style={{ marginTop: 2 }}>{getIconForCategory(item.category)}</View>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text, flex: 1 }} numberOfLines={1}>{item.title}</Text>
-                  {!item.isRead && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: TEAL }} />}
-                </View>
-                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, lineHeight: 19, marginBottom: 6 }} numberOfLines={2}>{item.body}</Text>
-                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "#C4C4C4" }}>{formatRelativeTime(item.createdAt)}</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => deleteNotification(item.id)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                style={{ padding: 4, marginTop: 2 }}
-              >
-                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                  <Path d="M18 6L6 18M6 6l12 12" stroke={MUTED} strokeWidth={1.8} strokeLinecap="round" />
-                </Svg>
-              </TouchableOpacity>
-            </TouchableOpacity>
+              item={item}
+              isLast={i === notifications.length - 1}
+              onMarkRead={markRead}
+              onDelete={deleteNotification}
+              colors={c}
+            />
           ))}
           <View style={{ height: 32 }} />
         </ScrollView>

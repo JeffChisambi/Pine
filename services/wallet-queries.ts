@@ -116,7 +116,7 @@ export type ReconcileOutcome =
  *
  * Notes:
  *   - Backend `processDeposit` is transactional and is awaited before the
- *     PayChangu callback redirects, so under normal conditions the very first
+ *     gateway confirms the charge, so under normal conditions the very first
  *     fetch already reflects the credit. This retry loop exists for network
  *     hiccups and the rare case where the webhook (not the callback) is what
  *     ultimately credits the wallet.
@@ -160,8 +160,8 @@ export async function reconcileDepositCredit(
 // ─── Pending deposit persistence ──────────────────────────────────────────────
 
 /**
- * Persist a pending deposit so that if the app is killed between the PayChangu
- * checkout and Home rendering, the reconciliation can still resume on next open.
+ * Persist a pending deposit so that if the app is killed between checkout
+ * and Home rendering, the reconciliation can still resume on next open.
  */
 export async function savePendingDeposit(pd: PendingDeposit): Promise<void> {
   try {

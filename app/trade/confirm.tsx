@@ -13,7 +13,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path } from "react-native-svg";
+import { useQueryClient } from "@tanstack/react-query";
 import { tradingApi, ApiError, getErrorMessage, logHandledError } from "../../services/api";
+import { invalidateWalletBalance } from "../../services/wallet-queries";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 import PinVerifyModal from "../../components/PinVerifyModal";
@@ -73,6 +75,8 @@ export default function ConfirmScreen() {
     setShowPinModal(true);
   };
 
+  const qc = useQueryClient();
+
   const submitOrder = async (pinToken: string) => {
     setShowPinModal(false);
     setLoading(true);
@@ -84,6 +88,9 @@ export default function ConfirmScreen() {
       } else {
         result = await tradingApi.sell({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey, pinToken });
       }
+      // The order's cost is reserved server-side the moment it is accepted —
+      // refresh so the available balance drops immediately.
+      invalidateWalletBalance(qc).catch(() => {});
       router.push({
         pathname: "/trade/success" as any,
         params: {

@@ -111,12 +111,12 @@ function mapTxStatus(s: string): MoneyEntry["status"] {
 function StatusBadge({ status }: { status: Order["status"] }) {
   const configs = {
     Pending:   { bg: AMBER + "28", text: AMBER },
-    Complete:  { bg: GREEN + "28", text: GREEN },
+    Complete:  { bg: "transparent",  text: GREEN },
     Cancelled: { bg: RED   + "28", text: RED   },
   };
   const cfg = configs[status];
   return (
-    <View style={{ borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: cfg.bg }}>
+    <View style={{ borderRadius: 10, paddingHorizontal: status === "Complete" ? 0 : 8, paddingVertical: 3, backgroundColor: cfg.bg }}>
       <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: cfg.text }}>{status}</Text>
     </View>
   );

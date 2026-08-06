@@ -863,41 +863,6 @@ export const notificationsApi = {
 
 // ─── Payments API ─────────────────────────────────────────────────────────────
 
-export interface PaymentSession {
-  checkoutUrl: string;
-  txRef: string;
-  transactionId: string;
-  status: string;
-}
-
-export interface PaymentVerification {
-  txRef: string;
-  status: string;
-  amount: number;
-  currency: string;
-  channel?: string;
-  completedAt?: string;
-}
-
-export const paymentsApi = {
-  /** Initiate a PayChangu checkout session */
-  initiate: (data: {
-    amount: number;
-    currency: 'MWK' | 'USD';
-    purpose?: string;
-    stockSymbol?: string;
-    quantity?: number;
-  }): Promise<PaymentSession> =>
-    request<PaymentSession>('/payments/initiate', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-
-  /** Verify payment status by txRef */
-  verify: (txRef: string): Promise<PaymentVerification> =>
-    request<PaymentVerification>(`/payments/verify/${txRef}`),
-};
-
 // ─── Bank Card Payments API ───────────────────────────────────────────────────
 
 export interface CardPaymentSession {
@@ -924,8 +889,10 @@ export interface CardPaymentVerification {
 
 export const cardPaymentsApi = {
   /**
-   * Initiate a direct bank card payment.
-   * Returns txRef + status from the card processor (skeleton — 501 until wired up).
+   * Charge a bank card and credit the wallet. The server responds only after
+   * the charge outcome is final: status SUCCESS (wallet already credited) or
+   * FAILED (with a user-safe message). `idempotencyKey` makes duplicate
+   * submissions safe; `testScenario` runs the flow through the mock gateway.
    */
   initiateCardPayment: (data: {
     amount: number;
@@ -938,6 +905,8 @@ export const cardPaymentsApi = {
     purpose?: string;
     stockSymbol?: string;
     quantity?: number;
+    idempotencyKey?: string;
+    testScenario?: string;
   }): Promise<CardPaymentSession> =>
     request<CardPaymentSession>('/payments/card/initiate', {
       method: 'POST',
