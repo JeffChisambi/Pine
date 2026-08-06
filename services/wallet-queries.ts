@@ -40,7 +40,10 @@ export function useWalletBalance() {
   return useQuery({
     queryKey: WALLET_BALANCE_QUERY_KEY,
     queryFn: () => walletApi.getBalance(),
-    staleTime: 30_000,
+    staleTime: 25_000,
+    // Poll so server-side events (broker executing an order, dividends,
+    // webhook-credited deposits) reach the UI without a manual refresh.
+    refetchInterval: 30_000,
     refetchOnMount: true,
     // React Native has no window focus, but this is harmless there and useful on web
     refetchOnWindowFocus: true,

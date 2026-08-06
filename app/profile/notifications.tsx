@@ -7,6 +7,7 @@ import {
   Platform,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle, Rect, G, Defs, ClipPath } from "react-native-svg";
@@ -215,6 +216,25 @@ export default function NotificationsScreen() {
     try { await notificationsApi.delete(id); invalidateNotifications(); } catch { fetchNotifications(); }
   };
 
+  const clearAll = () => {
+    Alert.alert(
+      "Clear all notifications?",
+      "This permanently removes every notification from your inbox.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear all",
+          style: "destructive",
+          onPress: async () => {
+            setNotifications([]);
+            setUnreadCount(0);
+            try { await notificationsApi.clearAll(); invalidateNotifications(); } catch { fetchNotifications(); }
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: c.background, paddingTop: topPad }}>
       {/* Header */}
@@ -235,6 +255,11 @@ export default function NotificationsScreen() {
         {unreadCount > 0 && (
           <TouchableOpacity onPress={markAllRead} style={{ paddingHorizontal: 6, paddingVertical: 4 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: TEAL }}>Mark all read</Text>
+          </TouchableOpacity>
+        )}
+        {notifications.length > 0 && (
+          <TouchableOpacity onPress={clearAll} style={{ paddingHorizontal: 6, paddingVertical: 4 }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: RED }}>Clear</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -289,6 +314,15 @@ export default function NotificationsScreen() {
                 <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, lineHeight: 19, marginBottom: 6 }} numberOfLines={2}>{item.body}</Text>
                 <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "#C4C4C4" }}>{formatRelativeTime(item.createdAt)}</Text>
               </View>
+              <TouchableOpacity
+                onPress={() => deleteNotification(item.id)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={{ padding: 4, marginTop: 2 }}
+              >
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                  <Path d="M18 6L6 18M6 6l12 12" stroke={MUTED} strokeWidth={1.8} strokeLinecap="round" />
+                </Svg>
+              </TouchableOpacity>
             </TouchableOpacity>
           ))}
           <View style={{ height: 32 }} />

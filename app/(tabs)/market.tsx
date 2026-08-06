@@ -10,6 +10,7 @@ import {
   Image,
   Animated,
   Dimensions,
+  Modal,
 } from "react-native";
 
 const SCREEN_H = Dimensions.get("window").height;
@@ -326,7 +327,12 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
   const SECTOR_ICON_BG = c.card;
   const iconColor = isDark ? WHITE : ICON_COLOR_LIGHT;
 
+  // Rendered inside the screen's vertical ScrollView, a plain absolute-fill
+  // overlay positions against the scrolled content — off-screen once the user
+  // has scrolled, which made "View All" look dead. A real Modal always
+  // renders at window level.
   return (
+    <Modal transparent statusBarTranslucent animationType="none" visible={mounted} onRequestClose={onClose}>
     <View style={[StyleSheet.absoluteFillObject, { zIndex: 999 }]}>
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
         <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.35)", opacity: fadeOvl }]} pointerEvents={visible ? "auto" : "none"}>
@@ -370,6 +376,7 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
         </Animated.View>
       </View>
     </View>
+    </Modal>
   );
 }
 

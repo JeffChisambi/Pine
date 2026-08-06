@@ -813,6 +813,9 @@ export const notificationsApi = {
   markAllRead: (): Promise<{ success: boolean; count: number }> =>
     request('/notifications/read-all', { method: 'POST' }),
 
+  clearAll: (): Promise<{ success: boolean; count: number }> =>
+    request('/notifications', { method: 'DELETE' }),
+
   delete: (id: string): Promise<{ success: boolean }> =>
     request(`/notifications/${id}`, { method: 'DELETE' }),
 

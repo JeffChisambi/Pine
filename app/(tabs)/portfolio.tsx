@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { guardedPush } from "@/utils/navigation";
 import {
   View,
@@ -12,7 +12,7 @@ import {
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { portfolioApi } from "../../services/api";
 import { useBalanceVisibility } from "../../contexts/balance-visibility";
@@ -148,7 +148,7 @@ export default function PortfolioScreen() {
   const [totalGain, setTotalGain] = useState<string | null>(null);
   const [gainPositive, setGainPositive] = useState(true);
 
-  useEffect(() => {
+  const loadPortfolio = useCallback(() => {
     portfolioApi.getSummary()
       .then((s) => {
         setTotalValue(`K ${Number(s.totalValue || 0).toLocaleString()}`);
@@ -157,13 +157,13 @@ export default function PortfolioScreen() {
         setGainPositive(gain >= 0);
       })
       .catch(() => {
-        setTotalValue("K 0");
-        setTotalGain("K 0 (0%)");
+        setTotalValue((prev) => prev ?? "K 0");
+        setTotalGain((prev) => prev ?? "K 0 (0%)");
       });
 
     portfolioApi.getDividends()
       .then((d) => setDividendsTotal(Number(d.totalDividends) || 0))
-      .catch(() => setDividendsTotal(0));
+      .catch(() => setDividendsTotal((prev) => prev ?? 0));
 
     portfolioApi.getHoldings()
       .then((h) => {
@@ -182,6 +182,14 @@ export default function PortfolioScreen() {
       })
       .catch(() => {});
   }, []);
+
+  // Refresh on every focus and poll while the tab is visible, so an order the
+  // broker executes shows up here without a manual refresh.
+  useFocusEffect(useCallback(() => {
+    loadPortfolio();
+    const interval = setInterval(loadPortfolio, 30_000);
+    return () => clearInterval(interval);
+  }, [loadPortfolio]));
 
   const filtered = holdings.filter(
     (a) =>
