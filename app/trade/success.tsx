@@ -79,6 +79,7 @@ export default function SuccessScreen() {
 
   const params = useLocalSearchParams<{
     queued?: string;
+    marketOpen?: string;
     symbol?: string;
     stockName?: string;
     side?: string;
@@ -87,14 +88,18 @@ export default function SuccessScreen() {
     message?: string;
   }>();
 
-  const isQueued   = params.queued === "1";
   const symbol     = params.symbol ?? "—";
   const stockName  = params.stockName ?? "Stock";
   const side       = params.side ?? "BUY";
   const quantity   = params.quantity ?? "—";
   const total      = params.total ?? "—";
 
-  const title = isQueued ? "Order Submitted!" : "Order Placed!";
+  // The amber "waiting" treatment (clock + trading-hours banner) applies ONLY
+  // when the market is closed. During market hours the order goes straight to
+  // the broker, so the screen shows the green confirmation.
+  const waitingForOpen = params.marketOpen !== "1";
+
+  const title = "Order Submitted!";
   // Prefer the server's message — it knows whether the market is open
   // ("being processed by the broker") or closed ("executed when the market
   // opens"), so the user is never told to wait for open during hours.
@@ -106,7 +111,7 @@ export default function SuccessScreen() {
     { label: "Stock",      value: `${symbol} · ${stockName}` },
     { label: "Order Type", value: side === "BUY" ? "Buy" : "Sell" },
     { label: "Quantity",   value: `${quantity} share${Number(quantity) !== 1 ? "s" : ""}` },
-    { label: "Total",      value: total },
+    { label: side === "SELL" ? "You Receive" : "Total", value: total },
   ];
 
   return (
@@ -115,7 +120,7 @@ export default function SuccessScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1, alignItems: "center", paddingTop: topPad }}
       >
-      <SuccessIllustration queued={isQueued} />
+      <SuccessIllustration queued={waitingForOpen} />
 
       <View style={{ alignItems: "center", paddingHorizontal: 32, marginTop: -8, marginBottom: 24 }}>
         <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 26, color: c.text, marginBottom: 10, textAlign: "center" }}>
@@ -124,7 +129,7 @@ export default function SuccessScreen() {
         <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center", lineHeight: 21 }}>
           {subtitle}
         </Text>
-        {isQueued && (
+        {waitingForOpen && (
           <View style={{ marginTop: 12, backgroundColor: "#FFFBEB", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: "#FDE68A" }}>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "#92400E", textAlign: "center", lineHeight: 18 }}>
               🕐  MSE trading hours: 10:00 AM – 2:00 PM CAT, Monday – Friday

@@ -88,6 +88,7 @@ export default function ConfirmScreen() {
         pathname: "/trade/success" as any,
         params: {
           queued: result.queued ? "1" : "0",
+          marketOpen: result.marketOpen ? "1" : "0",
           symbol,
           stockName,
           side: isBuy ? "BUY" : "SELL",
