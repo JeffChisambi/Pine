@@ -59,12 +59,14 @@ function buildProfile(user: AuthTokens['user']): UserProfile {
     email:      user.email,
     firstName:  user.firstName,
     lastName:   user.lastName,
+    dateOfBirth: user.dateOfBirth ?? null,
+    gender:     user.gender ?? null,
     role:       user.role,
     kycStatus:  user.kycStatus,
     hasPinSet:  user.hasPinSet ?? false,
     avatarUrl:  user.avatarUrl ?? null,
     isActive:   true,
-    createdAt:  new Date().toISOString(),
+    createdAt:  user.createdAt ?? new Date().toISOString(),
   };
 }
 

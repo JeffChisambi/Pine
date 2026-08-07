@@ -211,10 +211,13 @@ export interface AuthTokens {
     email: string | null;
     firstName: string;
     lastName: string;
+    dateOfBirth: string | null;
+    gender: string | null;
     role: string;
     kycStatus: string;
     hasPinSet: boolean;
     avatarUrl: string | null;
+    createdAt?: string;
   };
 }
 
@@ -224,6 +227,8 @@ export interface UserProfile {
   email: string | null;
   firstName: string;
   lastName: string;
+  dateOfBirth: string | null;
+  gender: string | null;
   role: string;
   kycStatus: string;
   hasPinSet: boolean;

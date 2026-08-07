@@ -356,10 +356,8 @@ export default function HomeScreen() {
 
   const qc = useWalletQueryClient();
   const { data: walletBalance, refetch: refetchBalance } = useWalletBalance();
-  // The card is labelled TOTAL BALANCE — show the total, not the available
-  // subset (available = total minus reservations/pending withdrawals).
   const totalBalance = walletBalance
-    ? `K ${Number(walletBalance.balance ?? walletBalance.availableBalance ?? 0).toLocaleString()}`
+    ? `K ${Number(walletBalance.availableBalance ?? walletBalance.balance ?? 0).toLocaleString()}`
     : null;
 
   const reconcileRef = useRef(false);
@@ -437,7 +435,7 @@ export default function HomeScreen() {
         <View style={{ backgroundColor: GREEN, borderRadius: 16, padding: 20, gap: 28 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 16 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE, opacity: 0.8, letterSpacing: 1, marginBottom: 4 }}>TOTAL BALANCE</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE, opacity: 0.8, letterSpacing: 1, marginBottom: 4 }}>AVAILABLE BALANCE</Text>
               <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 34, color: WHITE, letterSpacing: -0.5 }} adjustsFontSizeToFit numberOfLines={1}>
                 {balanceVisible ? (totalBalance ?? "—") : "K  ••••••"}
               </Text>

@@ -141,36 +141,33 @@ function FeaturedCard({ item, onPress, c }: { item: NewsItem; onPress: () => voi
   );
 }
 
-// ─── News card (list row) ───────────────────────────────────────────────────────
-function NewsCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c: ReturnType<typeof useColors> }) {
+// ─── News card (list row — flat style matching market stock rows) ────────────
+function NewsCard({ item, onPress, isLast, c }: { item: NewsItem; onPress: () => void; isLast?: boolean; c: ReturnType<typeof useColors> }) {
   return (
     <TouchableOpacity
       activeOpacity={0.82}
       onPress={onPress}
       style={{
         flexDirection: "row",
-        alignItems: "flex-start",
-        marginHorizontal: 20,
-        marginBottom: 10,
-        borderRadius: 16,
-        backgroundColor: c.card,
-        borderWidth: 1,
-        borderColor: c.border,
-        padding: 14,
+        alignItems: "center",
+        marginHorizontal: 24,
+        paddingVertical: 14,
+        borderBottomWidth: isLast ? 0 : 1,
+        borderBottomColor: c.border,
         gap: 14,
       }}
     >
       {/* Thumbnail */}
       <Image
         source={imgSrc(item.image)}
-        style={{ width: 76, height: 76, borderRadius: 12, backgroundColor: c.border, flexShrink: 0 }}
+        style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.border, flexShrink: 0, borderWidth: 1, borderColor: c.border }}
         contentFit="cover"
         cachePolicy="memory-disk"
         transition={150}
       />
 
       {/* Content */}
-      <View style={{ flex: 1, gap: 6 }}>
+      <View style={{ flex: 1, gap: 4 }}>
         <Text
           style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: c.text, lineHeight: 19 }}
           numberOfLines={2}
@@ -415,11 +412,12 @@ export default function NewsScreen() {
               </Text>
             </View>
 
-            {rest.map((item) => (
+            {rest.map((item, idx) => (
               <NewsCard
                 key={item.id}
                 item={item}
                 onPress={() => setSelected(item)}
+                isLast={idx === rest.length - 1}
                 c={c}
               />
             ))}
