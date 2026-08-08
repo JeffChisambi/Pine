@@ -31,7 +31,10 @@ import { AuthProvider, useAuth } from "../services/auth-context";
 import { BalanceVisibilityProvider } from "@/contexts/balance-visibility";
 import { ThemeProvider, useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
-import { configurePushNotifications } from "../services/push";
+import {
+  configurePushNotifications,
+  setupNotificationListeners,
+} from "../services/push";
 
 // Suppress non-actionable native warnings that appear in Expo Go on iOS.
 LogBox.ignoreLogs([
@@ -162,6 +165,10 @@ function RootLayoutNav() {
     // Set up foreground presentation + the Android notification channel once.
     // Guarded internally; a no-op when the native push module is absent.
     configurePushNotifications().catch(() => {});
+
+    // Listen for notification taps (foreground, background, and cold start).
+    const cleanup = setupNotificationListeners();
+    return cleanup;
   }, []);
 
   // Drill-in "section" screens (notifications, profile sub-pages, treasury,

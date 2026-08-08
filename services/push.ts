@@ -11,6 +11,7 @@
  */
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
 import { notificationsApi } from './api';
 
 export type PushPermissionStatus =
@@ -172,4 +173,61 @@ export async function unregisterPushDevice(): Promise<void> {
   } catch {
     // Ignore — the backend can also expire stale tokens on send failure.
   }
+}
+
+/**
+ * Navigate to the appropriate screen when a push notification is tapped.
+ */
+function handleNotificationResponse(data: Record<string, any> | undefined) {
+  if (!data) return;
+
+  try {
+    if (data.orderId) {
+      router.push('/trade/history' as any);
+    } else if (data.type === 'KYC_APPROVED' || data.type === 'KYC_REJECTED') {
+      router.push('/profile/personal-data' as any);
+    } else if (data.type === 'DEPOSIT' || data.type === 'WITHDRAWAL') {
+      router.push('/(tabs)/' as any);
+    } else {
+      router.push('/profile/notifications' as any);
+    }
+  } catch {
+    // Navigation may not be ready yet — ignore.
+  }
+}
+
+/**
+ * Set up listeners for notification taps (foreground, background, and cold
+ * start). Returns a cleanup function. Call once from the root layout.
+ */
+export function setupNotificationListeners(): () => void {
+  if (!Notifications) return () => {};
+
+  // Handle taps on notifications that arrived while the app was backgrounded
+  // or foregrounded.
+  const responseSub = Notifications.addNotificationResponseReceivedListener(
+    (response) => {
+      const data = response.notification.request.content.data as
+        | Record<string, any>
+        | undefined;
+      handleNotificationResponse(data);
+    },
+  );
+
+  // Handle a cold-start tap: the user tapped a notification that launched the
+  // app from a killed state.
+  Notifications.getLastNotificationResponseAsync()
+    .then((response) => {
+      if (response) {
+        const data = response.notification.request.content.data as
+          | Record<string, any>
+          | undefined;
+        handleNotificationResponse(data);
+      }
+    })
+    .catch(() => {});
+
+  return () => {
+    responseSub.remove();
+  };
 }
