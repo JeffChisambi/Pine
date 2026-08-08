@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import Svg, {
   Circle,
   Defs,
@@ -29,6 +30,7 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
+import { invalidateWalletBalance } from "@/services/wallet-queries";
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
 const TEAL  = "#164951";
@@ -117,6 +119,7 @@ export default function CardSuccessScreen() {
   const topPad    = Platform.OS === "web" ? 48 : insets.top || 16;
   const bottomPad = insets.bottom || 24;
   const c         = useColors();
+  const qc        = useQueryClient();
 
   const params   = useLocalSearchParams<{
     amount: string;
@@ -137,6 +140,8 @@ export default function CardSuccessScreen() {
   const fadeAnim  = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    invalidateWalletBalance(qc).catch(() => {});
+
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -200,7 +205,7 @@ export default function CardSuccessScreen() {
         <TouchableOpacity
           style={[styles.ctaOutline, { borderColor: TEAL }]}
           activeOpacity={0.75}
-          onPress={() => router.push("/(tabs)/" as any)}
+          onPress={() => router.push({ pathname: "/(tabs)/", params: { depositSuccess: "true", depositAmount: String(amount), depositTxRef: txRef } } as any)}
         >
           <Text style={[styles.ctaOutlineText, { color: TEAL }]}>View Wallet</Text>
         </TouchableOpacity>
@@ -208,7 +213,7 @@ export default function CardSuccessScreen() {
         <TouchableOpacity
           style={styles.ctaSolid}
           activeOpacity={0.85}
-          onPress={() => router.replace("/(tabs)/" as any)}
+          onPress={() => router.replace({ pathname: "/(tabs)/", params: { depositSuccess: "true", depositAmount: String(amount), depositTxRef: txRef } } as any)}
         >
           <Text style={styles.ctaSolidText}>Back to Home</Text>
         </TouchableOpacity>
