@@ -205,7 +205,10 @@ export default function CardSuccessScreen() {
         <TouchableOpacity
           style={[styles.ctaOutline, { borderColor: TEAL }]}
           activeOpacity={0.75}
-          onPress={() => router.push({ pathname: "/(tabs)/", params: { depositSuccess: "true", depositAmount: String(amount), depositTxRef: txRef } } as any)}
+          onPress={() => {
+            invalidateWalletBalance(qc).catch(() => {});
+            router.push("/(tabs)/" as any);
+          }}
         >
           <Text style={[styles.ctaOutlineText, { color: TEAL }]}>View Wallet</Text>
         </TouchableOpacity>
@@ -213,7 +216,10 @@ export default function CardSuccessScreen() {
         <TouchableOpacity
           style={styles.ctaSolid}
           activeOpacity={0.85}
-          onPress={() => router.replace({ pathname: "/(tabs)/", params: { depositSuccess: "true", depositAmount: String(amount), depositTxRef: txRef } } as any)}
+          onPress={() => {
+            invalidateWalletBalance(qc).catch(() => {});
+            router.replace("/(tabs)/" as any);
+          }}
         >
           <Text style={styles.ctaSolidText}>Back to Home</Text>
         </TouchableOpacity>
