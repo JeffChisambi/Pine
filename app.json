@@ -22,14 +22,9 @@
       "package": "com.pine.app",
       "softwareKeyboardLayoutMode": "pan",
       "splash": {
-        "image": "./assets/pine_assets/logos/g8 1.png",
+        "image": "./assets/pine_assets/logos/splash-logo.png",
         "resizeMode": "contain",
-        "backgroundColor": "#ffffff",
-        "mdpi": "./assets/pine_assets/logos/g8 1.png",
-        "hdpi": "./assets/pine_assets/logos/g8 1.png",
-        "xhdpi": "./assets/pine_assets/logos/g8 1.png",
-        "xxhdpi": "./assets/pine_assets/logos/g8 1.png",
-        "xxxhdpi": "./assets/pine_assets/logos/g8 1.png"
+        "backgroundColor": "#ffffff"
       },
       "adaptiveIcon": {
         "foregroundImage": "./assets/pine_assets/icons/rounded/icon (1).png",
@@ -37,7 +32,7 @@
       }
     },
     "web": {
-      "favicon": "./assets/pine_assets/logos/g8 1.png"
+      "favicon": "./assets/pine_assets/logos/splash-logo.png"
     },
     "plugins": [
       "expo-dev-client",
