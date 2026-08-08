@@ -332,21 +332,7 @@ export default function LoginScreen() {
 
           {/* ── Top nav bar ── */}
           <View style={styles.topBar}>
-            <TouchableOpacity
-              style={styles.backBtn}
-              activeOpacity={0.7}
-              onPress={() => guardedBack("/")}
-            >
-              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M15 19l-7-7 7-7"
-                  stroke={DARK}
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </Svg>
-            </TouchableOpacity>
+            <View style={styles.backBtn} />
             <TouchableOpacity activeOpacity={0.7} onPress={() => guardedPush(() => router.push("/signup"))}>
               <Text style={[styles.signUpLink, { color: c.primary }]}>Sign Up</Text>
             </TouchableOpacity>
