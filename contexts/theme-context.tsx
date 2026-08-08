@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { AppState } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { mobileThemeApi } from "@/services/api";
 import type { BrandOverrides } from "@/constants/theme";
@@ -58,6 +59,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isHydrated) refreshTheme();
   }, [isHydrated, refreshTheme]);
+
+  // Re-fetch the broker theme when the app returns to the foreground so
+  // dashboard changes are picked up without requiring a full app restart.
+  const appState = useRef(AppState.currentState);
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (next) => {
+      if (appState.current.match(/inactive|background/) && next === "active") {
+        refreshTheme();
+      }
+      appState.current = next;
+    });
+    return () => sub.remove();
+  }, [refreshTheme]);
 
   const toggleTheme = () => {
     setIsDark((prev) => {
