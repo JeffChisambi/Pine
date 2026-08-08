@@ -19,8 +19,8 @@ import AnimatedEyeButton from "../components/AnimatedEyeButton";
 import { useAuth } from "../services/auth-context";
 import { getErrorMessage, logHandledError } from "../services/api";
 import { formatMalawiNational, malawiNationalDigits, isValidMalawiNational } from "@/utils/phone";
+import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const WHITE = "#FFFFFF";
 const DARK = "#111827";
 const BORDER_LIGHT = "#EBEBEB";
@@ -207,6 +207,7 @@ const COUNTRIES: Country[] = [
 ];
 
 export default function LoginScreen() {
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16);
@@ -225,10 +226,10 @@ export default function LoginScreen() {
   const identifier = selectedCountry.dial + phoneNumber.trim();
   const canSubmit = phoneNumber.trim().length > 0 && password.length > 0 && !loading;
 
-  const filteredCountries = COUNTRIES.filter((c) =>
-    c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
-    c.code.toLowerCase().includes(countrySearch.toLowerCase()) ||
-    c.dial.includes(countrySearch)
+  const filteredCountries = COUNTRIES.filter((country) =>
+    country.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+    country.code.toLowerCase().includes(countrySearch.toLowerCase()) ||
+    country.dial.includes(countrySearch)
   );
 
   const handleLogin = async () => {
@@ -347,7 +348,7 @@ export default function LoginScreen() {
               </Svg>
             </TouchableOpacity>
             <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/signup")}>
-              <Text style={styles.signUpLink}>Sign Up</Text>
+              <Text style={[styles.signUpLink, { color: c.primary }]}>Sign Up</Text>
             </TouchableOpacity>
           </View>
 
@@ -430,14 +431,14 @@ export default function LoginScreen() {
               activeOpacity={0.7}
               onPress={() => router.push("/forgot-password")}
             >
-              <Text style={styles.forgotText}>Forgot your password?</Text>
+              <Text style={[styles.forgotText, { color: c.primary }]}>Forgot your password?</Text>
             </TouchableOpacity>
           </View>
 
           {/* ── Log in button ── */}
           <View style={styles.ctaWrap}>
             <TouchableOpacity
-              style={[styles.loginBtn, !canSubmit && { opacity: 0.5 }]}
+              style={[styles.loginBtn, { backgroundColor: c.primary }, !canSubmit && { opacity: 0.5 }]}
               activeOpacity={0.85}
               onPress={handleLogin}
               disabled={!canSubmit}
@@ -480,7 +481,6 @@ const styles = StyleSheet.create({
   signUpLink: {
     fontSize: 15,
     fontFamily: "PlusJakartaSans_600SemiBold",
-    color: TEAL,
   },
 
   // ── Heading ─────────────────────────────────────────────────────
@@ -583,7 +583,6 @@ const styles = StyleSheet.create({
   forgotText: {
     fontSize: 14,
     fontFamily: "PlusJakartaSans_600SemiBold",
-    color: TEAL,
   },
 
   // ── CTA ─────────────────────────────────────────────────────────
@@ -592,7 +591,6 @@ const styles = StyleSheet.create({
   },
   loginBtn: {
     height: 58,
-    backgroundColor: TEAL,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",

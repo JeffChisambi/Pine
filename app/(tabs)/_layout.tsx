@@ -12,11 +12,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const MUTED = "#9CA3AF";
 
-function HomeIcon({ color }: { color: string }) {
-  const active = color === TEAL;
+function HomeIcon({ color, active }: { color: string; active?: boolean }) {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
       {active && (
@@ -34,8 +32,7 @@ function HomeIcon({ color }: { color: string }) {
   );
 }
 
-function MarketIcon({ color }: { color: string }) {
-  const active = color === TEAL;
+function MarketIcon({ color, active }: { color: string; active?: boolean }) {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
       <Path
@@ -66,8 +63,7 @@ function MarketIcon({ color }: { color: string }) {
   );
 }
 
-function PortfolioIcon({ color }: { color: string }) {
-  const active = color === TEAL;
+function PortfolioIcon({ color, active }: { color: string; active?: boolean }) {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
       <Path
@@ -86,8 +82,7 @@ function PortfolioIcon({ color }: { color: string }) {
   );
 }
 
-function NewsIcon({ color }: { color: string }) {
-  const active = color === TEAL;
+function NewsIcon({ color, active }: { color: string; active?: boolean }) {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
       <Path
@@ -127,8 +122,7 @@ function NewsIcon({ color }: { color: string }) {
   );
 }
 
-function ProfileIcon({ color }: { color: string }) {
-  const active = color === TEAL;
+function ProfileIcon({ color, active }: { color: string; active?: boolean }) {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
       <Path
@@ -156,7 +150,7 @@ const VISIBLE_TABS = 5;
 interface TabItemConfig {
   name: string;
   label: string;
-  Icon: React.ComponentType<{ color: string }>;
+  Icon: React.ComponentType<{ color: string; active?: boolean }>;
 }
 
 const TAB_ITEMS: TabItemConfig[] = [
@@ -182,6 +176,7 @@ function AnimatedTabItem({
   tabWidth: number;
   tabBg: string;
 }) {
+  const c = useColors();
   const scale = useSharedValue(1);
   const labelOpacity = useSharedValue(isFocused ? 1 : 0.55);
 
@@ -214,10 +209,10 @@ function AnimatedTabItem({
       activeOpacity={0.7}
     >
       <Animated.View style={iconStyle}>
-        <item.Icon color={isFocused ? TEAL : MUTED} />
+        <item.Icon color={isFocused ? c.primary : MUTED} active={isFocused} />
       </Animated.View>
       <Animated.View style={labelStyle}>
-        <Text style={[styles.tabLabel, { color: isFocused ? TEAL : MUTED }]}>
+        <Text style={[styles.tabLabel, { color: isFocused ? c.primary : MUTED }]}>
           {item.label}
         </Text>
       </Animated.View>

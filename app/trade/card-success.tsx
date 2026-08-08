@@ -33,7 +33,6 @@ import { useColors } from "@/hooks/useColors";
 import { invalidateWalletBalance } from "@/services/wallet-queries";
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
-const TEAL  = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -203,18 +202,18 @@ export default function CardSuccessScreen() {
       {/* CTAs */}
       <View style={[styles.ctaWrap, { paddingBottom: bottomPad + 16 }]}>
         <TouchableOpacity
-          style={[styles.ctaOutline, { borderColor: TEAL }]}
+          style={[styles.ctaOutline, { borderColor: c.primary }]}
           activeOpacity={0.75}
           onPress={() => {
             invalidateWalletBalance(qc).catch(() => {});
             router.push("/(tabs)/" as any);
           }}
         >
-          <Text style={[styles.ctaOutlineText, { color: TEAL }]}>View Wallet</Text>
+          <Text style={[styles.ctaOutlineText, { color: c.primary }]}>View Wallet</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.ctaSolid}
+          style={[styles.ctaSolid, { backgroundColor: c.primary }]}
           activeOpacity={0.85}
           onPress={() => {
             invalidateWalletBalance(qc).catch(() => {});
@@ -298,7 +297,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   ctaSolid: {
-    backgroundColor: TEAL,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: "center",

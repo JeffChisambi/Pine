@@ -20,7 +20,6 @@ import { guardedBack } from "@/utils/navigation";
 import { useCreateTicket } from "@/hooks/useSupport";
 import { getErrorMessage, logHandledError, type SupportCategory, type SupportAttachment } from "@/services/api";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -121,8 +120,8 @@ export default function ReportScreen() {
                 onPress={() => setCategory(cat.key)}
                 style={{
                   paddingHorizontal: 16, paddingVertical: 9, borderRadius: 20, borderWidth: 1,
-                  backgroundColor: active ? TEAL : c.card,
-                  borderColor: active ? TEAL : c.border,
+                  backgroundColor: active ? c.primary : c.card,
+                  borderColor: active ? c.primary : c.border,
                 }}
               >
                 <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: active ? WHITE : c.text }}>{cat.label}</Text>

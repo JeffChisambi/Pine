@@ -16,7 +16,6 @@ import { getStockLogo } from "../utils/stock-logos";
 import { useStocks, useStockSearch } from "../hooks/useStocks";
 import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const RED = "#EF4770";
 const WHITE = "#FFFFFF";
@@ -67,8 +66,8 @@ export default function StockSearchScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1, height: 52, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, flexDirection: "row", alignItems: "center", paddingHorizontal: 14, gap: 10 }}>
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-            <Circle cx={11} cy={11} r={7.5} stroke={query.length > 0 ? TEAL : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-            <Path d="M16.5 16.5L20.5 20.5" stroke={query.length > 0 ? TEAL : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+            <Circle cx={11} cy={11} r={7.5} stroke={query.length > 0 ? c.primary : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+            <Path d="M16.5 16.5L20.5 20.5" stroke={query.length > 0 ? c.primary : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
           <TextInput
             style={{ flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: c.text, height: "100%" }}
@@ -122,7 +121,7 @@ export default function StockSearchScreen() {
               {getStockLogo(s.symbol) ? (
                 <Image source={getStockLogo(s.symbol)!} style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode="contain" />
               ) : (
-                <View style={{ width: 48, height: 48, backgroundColor: TEAL, justifyContent: "center", alignItems: "center" }}>
+                <View style={{ width: 48, height: 48, backgroundColor: c.primary, justifyContent: "center", alignItems: "center" }}>
                   <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>{s.symbol.slice(0, 3)}</Text>
                 </View>
               )}

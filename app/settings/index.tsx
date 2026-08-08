@@ -19,7 +19,6 @@ import { guardedBack } from "@/utils/navigation";
 import PinVerifyModal from "@/components/PinVerifyModal";
 import { accountApi, getErrorMessage, logHandledError } from "@/services/api";
 
-const TEAL = "#164951";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 const RED = "#EF4770";

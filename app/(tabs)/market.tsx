@@ -22,7 +22,6 @@ import { useColors } from "@/hooks/useColors";
 import { useTheme } from "@/contexts/theme-context";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
-const TEAL = "#164951";
 const LOGO_COLORS = ["#164951", "#1A3A6B", "#166534", "#7C3AED", "#B45309", "#BE185D"];
 const GREEN = "#45B369";
 const RED = "#EF4770";
@@ -117,7 +116,6 @@ function MiniSparkline({ positive, idx }: { positive: boolean; idx: number }) {
 }
 
 // ─── Sector icons ────────────────────────────────────────────────────────────
-const ICON_COLOR_LIGHT = "#164951";
 
 function SectorBankIcon({ color }: { color: string }) {
   return (
@@ -327,7 +325,7 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
   if (!mounted) return null;
 
   const SECTOR_ICON_BG = c.card;
-  const iconColor = isDark ? WHITE : ICON_COLOR_LIGHT;
+  const iconColor = isDark ? WHITE : c.primary;
 
   // Rendered inside the screen's vertical ScrollView, a plain absolute-fill
   // overlay positions against the scrolled content — off-screen once the user
@@ -438,7 +436,7 @@ export default function MarketScreen() {
   };
 
   const SECTOR_ICON_BG = c.card;
-  const iconColor = isDark ? WHITE : ICON_COLOR_LIGHT;
+  const iconColor = isDark ? WHITE : c.primary;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
@@ -603,7 +601,7 @@ export default function MarketScreen() {
         <View style={{ paddingVertical: 48, alignItems: "center" }}>
           <Text style={{ color: RED, fontFamily: "PlusJakartaSans_500Medium" }}>Backend unreachable</Text>
           <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, marginTop: 4 }}>Make sure the server is running</Text>
-          <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: TEAL, borderRadius: 8 }}>
+          <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: c.primary, borderRadius: 8 }}>
             <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_600SemiBold" }}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -657,8 +655,8 @@ function StockSearchOverlay({ onClose }: { onClose: () => void }) {
           </TouchableOpacity>
           <View style={{ flex: 1, height: 48, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, flexDirection: "row", alignItems: "center", paddingHorizontal: 14, gap: 10 }}>
             <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-              <Circle cx={11} cy={11} r={7.5} stroke={query.length > 0 ? TEAL : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-              <Path d="M16.5 16.5L20.5 20.5" stroke={query.length > 0 ? TEAL : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+              <Circle cx={11} cy={11} r={7.5} stroke={query.length > 0 ? c.primary : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M16.5 16.5L20.5 20.5" stroke={query.length > 0 ? c.primary : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
             <TextInput
               style={{ flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: c.text, height: "100%" }}
@@ -709,7 +707,7 @@ function StockSearchOverlay({ onClose }: { onClose: () => void }) {
                 {getStockLogo(s.symbol) ? (
                   <Image source={getStockLogo(s.symbol)!} style={{ width: 34, height: 34, borderRadius: 17 }} resizeMode="contain" />
                 ) : (
-                  <View style={{ width: 44, height: 44, backgroundColor: TEAL, justifyContent: "center", alignItems: "center" }}>
+                  <View style={{ width: 44, height: 44, backgroundColor: c.primary, justifyContent: "center", alignItems: "center" }}>
                     <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>{s.symbol.slice(0, 3)}</Text>
                   </View>
                 )}

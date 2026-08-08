@@ -17,15 +17,14 @@ import { useStocks } from "../../hooks/useStocks";
 import { ApiStock } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
-function SwapIcon() {
+function SwapIcon({ color }: { color: string }) {
   return (
     <Svg width={36} height={36} viewBox="0 0 36 36" fill="none">
-      <Circle cx={18} cy={18} r={18} fill={TEAL} />
+      <Circle cx={18} cy={18} r={18} fill={color} />
       <Path d="M12 15h12M12 21h12" stroke={WHITE} strokeWidth={1.8} strokeLinecap="round" />
       <Path d="M20 12l4 3-4 3" stroke={WHITE} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
       <Path d="M16 24l-4-3 4-3" stroke={WHITE} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
@@ -60,7 +59,7 @@ export default function ExchangeScreen() {
       {getStockLogo(symbol) ? (
         <Image source={getStockLogo(symbol)!} style={{ width: 28, height: 28, borderRadius: 14 }} resizeMode="contain" />
       ) : (
-        <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{symbol.slice(0, 3)}</Text>
+        <Text style={{ color: c.primary, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{symbol.slice(0, 3)}</Text>
       )}
     </View>
   );
@@ -114,7 +113,7 @@ export default function ExchangeScreen() {
           {/* Swap divider */}
           <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, gap: 12 }}>
             <View style={{ flex: 1, height: 1, backgroundColor: c.border }} />
-            <TouchableOpacity onPress={handleSwap}><SwapIcon /></TouchableOpacity>
+            <TouchableOpacity onPress={handleSwap}><SwapIcon color={c.primary} /></TouchableOpacity>
             <View style={{ flex: 1, height: 1, backgroundColor: c.border }} />
           </View>
 
@@ -122,7 +121,7 @@ export default function ExchangeScreen() {
           <View style={{ padding: 20 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: MUTED, letterSpacing: 0.8, marginBottom: 12 }}>TO</Text>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 32, color: TEAL, flex: 1 }}>{toAmount}</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 32, color: c.primary, flex: 1 }}>{toAmount}</Text>
               <TouchableOpacity style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: c.background, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 7 }} onPress={() => { setShowToPicker((v) => !v); setShowFromPicker(false); }}>
                 {toStock && <LogoCircle symbol={toStock.symbol} />}
                 <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text }}>{toStock?.symbol ?? "..."}</Text>
@@ -138,7 +137,7 @@ export default function ExchangeScreen() {
         {/* Rate card */}
         <View style={{ backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, padding: 14, flexDirection: "row", justifyContent: "space-between", marginBottom: 16 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED }}>Exchange Rate</Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: TEAL }}>
+          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: c.primary }}>
             1 {fromStock?.symbol ?? ""} = {fromStock && toPrice ? (fromPrice / toPrice).toFixed(4) : "0.0000"} {toStock?.symbol ?? ""}
           </Text>
         </View>
@@ -158,7 +157,7 @@ export default function ExchangeScreen() {
       </ScrollView>
 
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
-        <TouchableOpacity style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, alignItems: "center" }} onPress={() => router.push("/trade/confirm" as any)}>
+        <TouchableOpacity style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center" }} onPress={() => router.push("/trade/confirm" as any)}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE }}>Exchange</Text>
         </TouchableOpacity>
       </View>

@@ -8,7 +8,6 @@ import { useColors } from "@/hooks/useColors";
 import { calculateReturns, EMPTY_TBILL } from "@/data/treasury";
 import { useTreasuryProduct } from "@/hooks/useTreasury";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -19,19 +18,20 @@ function fmt(n: number): string {
 }
 
 function SuccessIcon() {
+  const c = useColors();
   return (
     <View
       style={{
         width: 96,
         height: 96,
         borderRadius: 48,
-        backgroundColor: TEAL + "15",
+        backgroundColor: c.primary + "15",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
       <Svg width={48} height={48} viewBox="0 0 48 48" fill="none">
-        <Circle cx={24} cy={24} r={24} fill={TEAL} />
+        <Circle cx={24} cy={24} r={24} fill={c.primary} />
         <Path
           d="M14 24l8 8 12-13"
           stroke={WHITE}
@@ -169,7 +169,7 @@ export default function TreasurySuccess() {
           <View style={{ height: 1, backgroundColor: c.border }} />
           <InfoRow label="Settles" value={settleDate} />
           <View style={{ height: 1, backgroundColor: c.border }} />
-          <InfoRow label="Reference" value={refNumber} valueColor={TEAL} />
+          <InfoRow label="Reference" value={refNumber} valueColor={c.primary} />
           <View style={{ height: 1, backgroundColor: c.border }} />
           <InfoRow
             label="Value at maturity"
@@ -215,7 +215,7 @@ export default function TreasurySuccess() {
           }
           style={{
             height: 56,
-            backgroundColor: TEAL,
+            backgroundColor: c.primary,
             borderRadius: 14,
             alignItems: "center",
             justifyContent: "center",

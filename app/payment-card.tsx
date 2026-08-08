@@ -46,8 +46,6 @@ function makeAttemptKey(): string {
 }
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
-const TEAL    = "#164951";
-const TEAL_LT = "#1D5C68";
 const WHITE   = "#FFFFFF";
 const DARK    = "#111827";
 const MUTED   = "#9CA3AF";
@@ -205,11 +203,12 @@ interface FieldProps {
 }
 
 function Field({ label, value, onChangeText, placeholder, keyboardType = "default", maxLength, onFocus, onBlur, autoCapitalize, secureTextEntry, error }: FieldProps) {
+  const c = useColors();
   const [focused, setFocused] = useState(false);
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={[styles.fieldBox, focused && styles.fieldBoxFocused, !!error && styles.fieldBoxError]}>
+      <View style={[styles.fieldBox, focused && [styles.fieldBoxFocused, { borderColor: c.primary }], !!error && styles.fieldBoxError]}>
         <TextInput
           style={styles.fieldInput}
           value={value}
@@ -420,7 +419,7 @@ export default function PaymentCardScreen() {
         {/* Amount banner */}
         <View style={styles.amountBanner}>
           <Text style={styles.amountBannerLabel}>Depositing</Text>
-          <Text style={styles.amountBannerValue}>
+          <Text style={[styles.amountBannerValue, { color: c.primary }]}>
             {currency === "MWK" ? "MK" : "$"} {amount.toLocaleString()}
           </Text>
         </View>
@@ -495,7 +494,7 @@ export default function PaymentCardScreen() {
       {/* CTA */}
       <View style={[styles.ctaWrap, { paddingBottom: bottomPad > 0 ? bottomPad : 24 }]}>
         <TouchableOpacity
-          style={[styles.ctaBtn, (!canPay || loading) && styles.ctaBtnDisabled]}
+          style={[styles.ctaBtn, { backgroundColor: c.primary }, (!canPay || loading) && styles.ctaBtnDisabled]}
           activeOpacity={0.85}
           disabled={!canPay || loading}
           onPress={handlePay}
@@ -521,7 +520,7 @@ export default function PaymentCardScreen() {
             disabled={loading}
             onPress={() => setShowTestSheet(true)}
           >
-            <Text style={styles.testBtnText}>Test Transaction</Text>
+            <Text style={[styles.testBtnText, { color: c.primary }]}>Test Transaction</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -706,7 +705,6 @@ const styles = StyleSheet.create({
   amountBannerValue: {
     fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 20,
-    color: TEAL,
   },
 
   // ── Form ─────────────────────────────────────────────────────────────────────
@@ -732,7 +730,7 @@ const styles = StyleSheet.create({
     height: 52,
     justifyContent: "center",
   },
-  fieldBoxFocused: { borderColor: TEAL },
+  fieldBoxFocused: {},
   fieldBoxError: { borderColor: ERROR },
   fieldInput: {
     fontFamily: "PlusJakartaSans_500Medium" as any,
@@ -796,7 +794,6 @@ const styles = StyleSheet.create({
   },
   ctaBtn: {
     height: 56,
-    backgroundColor: TEAL,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
@@ -822,7 +819,6 @@ const styles = StyleSheet.create({
   testBtnText: {
     fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 14,
-    color: TEAL,
   },
   sheetOverlay: {
     flex: 1,

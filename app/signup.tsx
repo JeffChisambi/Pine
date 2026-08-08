@@ -19,8 +19,8 @@ import AnimatedEyeButton from "../components/AnimatedEyeButton";
 import { useAuth } from "../services/auth-context";
 import { ApiError } from "../services/api";
 import { formatMalawiNational, isValidMalawiNational, malawiE164 } from "@/utils/phone";
+import { useColors } from "@/hooks/useColors";
 
-const TEAL        = "#164951";
 const WHITE       = "#FFFFFF";
 const DARK        = "#111827";
 const BORDER_LIGHT= "#F3F4F6";
@@ -73,20 +73,21 @@ interface FloatFieldProps {
   valid?: boolean;
 }
 function FloatField({ label, children, error, focused, valid }: FloatFieldProps) {
+  const c = useColors();
   return (
     <View style={styles.floatWrap}>
       <View
         style={[
           styles.inputRow,
           styles.inputRowBordered,
-          focused && styles.inputRowFocused,
+          focused && [styles.inputRowFocused, { borderColor: c.primary }],
           valid && styles.inputRowValid,
           error  && styles.inputRowError,
         ]}
       >
         {children}
       </View>
-      <Text style={[styles.floatLabel, focused && styles.floatLabelFocused, error && styles.floatLabelError]}>
+      <Text style={[styles.floatLabel, focused && [styles.floatLabelFocused, { color: c.primary }], error && styles.floatLabelError]}>
         {label}
       </Text>
     </View>
@@ -110,6 +111,7 @@ function PhoneIcon() {
 
 /* ─── Screen ─────────────────────────────────────────────────── */
 export default function SignupScreen() {
+  const c = useColors();
   const insets    = useSafeAreaInsets();
   const topPad    = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
@@ -302,7 +304,7 @@ export default function SignupScreen() {
               {(["Male", "Female"] as const).map((g) => (
                 <TouchableOpacity
                   key={g}
-                  style={[styles.genderPill, gender === g && styles.genderPillActive]}
+                  style={[styles.genderPill, gender === g && [styles.genderPillActive, { backgroundColor: c.primary, borderColor: c.primary }]]}
                   onPress={() => setGender(g)}
                   activeOpacity={0.7}
                 >
@@ -312,7 +314,7 @@ export default function SignupScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-            <Text style={[styles.floatLabel, gender !== "" && styles.floatLabelFocused]}>
+            <Text style={[styles.floatLabel, gender !== "" && [styles.floatLabelFocused, { color: c.primary }]]}>
               Gender
             </Text>
           </View>
@@ -422,7 +424,7 @@ export default function SignupScreen() {
         {/* ── Continue button ── */}
         <View style={styles.ctaWrap}>
           <TouchableOpacity
-            style={[styles.continueBtn, !canContinue && styles.continueBtnDisabled]}
+            style={[styles.continueBtn, { backgroundColor: c.primary }, !canContinue && styles.continueBtnDisabled]}
             activeOpacity={0.85}
             onPress={handleSignup}
             disabled={!canContinue}
@@ -439,7 +441,7 @@ export default function SignupScreen() {
         <View style={styles.bottomRow}>
           <Text style={styles.bottomText}>Already have an account? </Text>
           <TouchableOpacity activeOpacity={0.7} onPress={() => guardedBack("/login")}>
-            <Text style={styles.bottomLink}>Sign In</Text>
+            <Text style={[styles.bottomLink, { color: c.primary }]}>Sign In</Text>
           </TouchableOpacity>
         </View>
 
@@ -463,7 +465,6 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   topCard: {
-    backgroundColor: TEAL,
     borderRadius: 16,
     padding: 20,
     width: "100%",
@@ -491,7 +492,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: WHITE,
     borderWidth: 2,
-    borderColor: TEAL,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -527,7 +527,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   floatLabelFocused: {
-    color: TEAL,
   },
   floatLabelError: {
     color: "#EF4444",
@@ -548,7 +547,6 @@ const styles = StyleSheet.create({
     borderColor: BORDER_LIGHT,
   },
   inputRowFocused: {
-    borderColor: TEAL,
   },
   inputRowValid: {
     borderColor: "#22C55E",
@@ -583,8 +581,6 @@ const styles = StyleSheet.create({
     backgroundColor: BG_INPUT,
   },
   genderPillActive: {
-    backgroundColor: TEAL,
-    borderColor: TEAL,
   },
   genderPillText: {
     fontSize: 13,
@@ -639,7 +635,6 @@ const styles = StyleSheet.create({
   },
   continueBtn: {
     height: 56,
-    backgroundColor: TEAL,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
@@ -667,6 +662,5 @@ const styles = StyleSheet.create({
   bottomLink: {
     fontSize: 13,
     fontFamily: "PlusJakartaSans_600SemiBold",
-    color: TEAL,
   },
 });

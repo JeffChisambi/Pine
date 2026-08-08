@@ -19,7 +19,6 @@ import { kycApi, getErrorMessage, logHandledError } from "../../services/api";
 import { useAuth } from "../../services/auth-context";
 import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 
@@ -50,7 +49,7 @@ function CheckIcon() {
 }
 
 // ─── Illustration — untouched ─────────────────────────────────────────────────
-function IdIllustration() {
+function IdIllustration({ primaryColor }: { primaryColor: string }) {
   return (
     <View style={{ alignItems: "center", marginTop: 8, marginBottom: 4 }}>
       <Svg width={130} height={130} viewBox="0 0 130 130" fill="none">
@@ -62,7 +61,7 @@ function IdIllustration() {
             <Rect x={16} y={33} width={46} height={50} rx={4} fill="white" />
           </ClipPath>
         </Defs>
-        <Rect width={130} height={130} rx={65} fill="#164951" />
+        <Rect width={130} height={130} rx={65} fill={primaryColor} />
         <G clipPath="url(#clip0)">
           <Circle cx={108.875} cy={101.292} r={45.5} stroke="#2D5B62" strokeWidth={1.08333} />
           <Circle cx={79.625} cy={17.875} r={53.0833} stroke="#2D5B62" strokeWidth={1.08333} />
@@ -70,14 +69,14 @@ function IdIllustration() {
         </G>
         <Rect x={6} y={23} width={118} height={85} rx={6} fill="#45B369" />
         <Rect x={70} y={35} width={44} height={13} rx={3} fill="white" />
-        <Rect x={70} y={55} width={31} height={4} rx={1} fill="#164951" />
-        <Rect x={70} y={67} width={23} height={4} rx={1} fill="#164951" />
-        <Rect x={95} y={67} width={10} height={4} rx={1} fill="#164951" />
-        <Rect x={70} y={79} width={21} height={4} rx={1} fill="#164951" />
-        <Rect x={93} y={79} width={21} height={4} rx={1} fill="#164951" />
+        <Rect x={70} y={55} width={31} height={4} rx={1} fill={primaryColor} />
+        <Rect x={70} y={67} width={23} height={4} rx={1} fill={primaryColor} />
+        <Rect x={95} y={67} width={10} height={4} rx={1} fill={primaryColor} />
+        <Rect x={70} y={79} width={21} height={4} rx={1} fill={primaryColor} />
+        <Rect x={93} y={79} width={21} height={4} rx={1} fill={primaryColor} />
         <G clipPath="url(#clip1)">
           <Rect x={16} y={33} width={46} height={50} rx={4} fill="#FFFFFF" />
-          <Path d="M41.87 69.57C41.86 69.57 41.86 69.57 41.86 69.57L41.84 69.55V65.7C41.84 65.7 41.84 65.69 41.85 65.68C44.62 64.98 47.04 63.33 48.65 61.01C50.25 58.69 50.95 55.88 50.6 53.09C50.24 50.31 48.88 47.74 46.74 45.88C44.6 44.03 41.85 43 39 43C36.15 43 33.4 44.03 31.26 45.88C29.13 47.74 27.75 50.31 27.4 53.09C27.05 55.88 27.74 58.69 29.35 61.01C30.96 63.33 33.37 64.98 36.14 65.67C36.14 65.67 36.15 65.69 36.16 65.7V69.54C36.16 69.55 36.16 69.55 36.15 69.55L36.14 69.57C36.13 69.57 36.13 69.57 36.13 69.57C35.52 69.54 26.01 69.41 26 86.97C26 86.98 26 86.98 26.01 86.99C26.01 87 26.02 87 26.03 87H51.97C51.97 87 51.98 87 51.98 87C51.98 87 51.99 86.99 51.99 86.99C52 86.98 52 86.97 52 86.97C51.98 69.41 42.48 69.54 41.87 69.57Z" fill="#164951" />
+          <Path d="M41.87 69.57C41.86 69.57 41.86 69.57 41.86 69.57L41.84 69.55V65.7C41.84 65.7 41.84 65.69 41.85 65.68C44.62 64.98 47.04 63.33 48.65 61.01C50.25 58.69 50.95 55.88 50.6 53.09C50.24 50.31 48.88 47.74 46.74 45.88C44.6 44.03 41.85 43 39 43C36.15 43 33.4 44.03 31.26 45.88C29.13 47.74 27.75 50.31 27.4 53.09C27.05 55.88 27.74 58.69 29.35 61.01C30.96 63.33 33.37 64.98 36.14 65.67C36.14 65.67 36.15 65.69 36.16 65.7V69.54C36.16 69.55 36.16 69.55 36.15 69.55L36.14 69.57C36.13 69.57 36.13 69.57 36.13 69.57C35.52 69.54 26.01 69.41 26 86.97C26 86.98 26 86.98 26.01 86.99C26.01 87 26.02 87 26.03 87H51.97C51.97 87 51.98 87 51.98 87C51.98 87 51.99 86.99 51.99 86.99C52 86.98 52 86.97 52 86.97C51.98 69.41 42.48 69.54 41.87 69.57Z" fill={primaryColor} />
         </G>
         <Rect x={16} y={88} width={46} height={10} rx={2.16667} fill="white" />
       </Svg>
@@ -120,7 +119,7 @@ function UploadSlot({
       disabled={uploading}
     >
       {uploading ? (
-        <ActivityIndicator size="large" color={TEAL} />
+        <ActivityIndicator size="large" color={c.primary} />
       ) : imageUri ? (
         <Image source={{ uri: imageUri }} style={{ width: "90%", height: 100, borderRadius: 8 }} contentFit="cover" />
       ) : (
@@ -282,7 +281,7 @@ export default function UploadIdScreen() {
   if (starting) {
     return (
       <View style={[{ flex: 1, backgroundColor: c.background, alignItems: "center", justifyContent: "center" }, { paddingTop: topPad }]}>
-        <ActivityIndicator size="large" color={TEAL} />
+        <ActivityIndicator size="large" color={c.primary} />
         <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: c.mutedForeground, marginTop: 12 }}>Starting verification...</Text>
       </View>
     );
@@ -305,9 +304,9 @@ export default function UploadIdScreen() {
     descSub: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, lineHeight: 22, textAlign: "center" },
     slotsContainer: { gap: 12 },
     tipBox: { flexDirection: "row", gap: 10, backgroundColor: c.card, borderRadius: 10, padding: 14, alignItems: "flex-start", borderWidth: 1, borderColor: c.border },
-    tipText: { flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: TEAL, lineHeight: 20 },
+    tipText: { flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, lineHeight: 20 },
     footer: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: c.background, borderTopWidth: 1, borderTopColor: c.border },
-    continueBtn: { backgroundColor: TEAL, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
+    continueBtn: { borderRadius: 12, paddingVertical: 18, alignItems: "center" },
     continueBtnDisabled: { backgroundColor: "#A0B8BC" },
     continueBtnText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
   });
@@ -323,7 +322,7 @@ export default function UploadIdScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <IdIllustration />
+        <IdIllustration primaryColor={c.primary} />
 
         <View style={styles.descBlock}>
           <Text style={styles.descTitle}>
@@ -353,10 +352,10 @@ export default function UploadIdScreen() {
 
         <View style={styles.tipBox}>
           <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-            <Circle cx={8} cy={8} r={7} stroke={TEAL} strokeWidth={1.5} />
-            <Path d="M8 7v5M8 5v1" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" />
+            <Circle cx={8} cy={8} r={7} stroke={c.primary} strokeWidth={1.5} />
+            <Path d="M8 7v5M8 5v1" stroke={c.primary} strokeWidth={1.5} strokeLinecap="round" />
           </Svg>
-          <Text style={styles.tipText}>
+          <Text style={[styles.tipText, { color: c.primary }]}>
             Ensure all 4 corners are visible, text is legible, and there are no glare or shadows.
           </Text>
         </View>
@@ -364,7 +363,7 @@ export default function UploadIdScreen() {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
-          style={[styles.continueBtn, !canContinue && styles.continueBtnDisabled]}
+          style={[styles.continueBtn, { backgroundColor: c.primary }, !canContinue && styles.continueBtnDisabled]}
           onPress={() =>
             canContinue &&
             router.push({

@@ -16,7 +16,6 @@ import { useColors } from "@/hooks/useColors";
 import { guardedBack } from "@/utils/navigation";
 import { useInvalidateNotifications } from "@/hooks/useNotifications";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -66,8 +65,6 @@ function NotificationsIllustration() {
 
 // ─── Category → accent color ────────────────────────────────────────────────
 const CATEGORY_COLORS: Record<string, string> = {
-  TRADE: "#164951",
-  ORDER: "#164951",
   DEPOSIT: "#45B369",
   WALLET: "#45B369",
   NEWS: "#3B82F6",
@@ -76,9 +73,9 @@ const CATEGORY_COLORS: Record<string, string> = {
   KYC: "#F59E0B",
 };
 
-function getAccentColor(category?: string): string {
-  if (!category) return TEAL;
-  return CATEGORY_COLORS[category.toUpperCase()] ?? TEAL;
+function getAccentColor(category: string | undefined, primary: string): string {
+  if (!category) return primary;
+  return CATEGORY_COLORS[category.toUpperCase()] ?? primary;
 }
 
 // ─── Time formatting ────────────────────────────────────────────────────────
@@ -159,7 +156,7 @@ function NotificationRow({
             {item.title}
           </Text>
           {!item.isRead && (
-            <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: TEAL }} />
+            <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: c.primary }} />
           )}
         </View>
 
@@ -239,14 +236,14 @@ export default function NotificationsScreen() {
         </Text>
         {unreadCount > 0 && (
           <TouchableOpacity onPress={markAllRead} style={{ paddingHorizontal: 6, paddingVertical: 4 }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: TEAL }}>Mark all read</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: c.primary }}>Mark all read</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {loading ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <ActivityIndicator size="large" color={TEAL} />
+          <ActivityIndicator size="large" color={c.primary} />
         </View>
       ) : notifications.length === 0 ? (
         loadFailed ? (
@@ -255,7 +252,7 @@ export default function NotificationsScreen() {
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center" }}>Check your connection and try again</Text>
             <TouchableOpacity
               onPress={() => { setLoading(true); fetchNotifications(); }}
-              style={{ marginTop: 8, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 10, backgroundColor: TEAL }}
+              style={{ marginTop: 8, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 10, backgroundColor: c.primary }}
               activeOpacity={0.8}
             >
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: WHITE }}>Retry</Text>
@@ -271,7 +268,7 @@ export default function NotificationsScreen() {
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={TEAL} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />}
         >
           {groups.map((group) => (
             <View key={group.label}>

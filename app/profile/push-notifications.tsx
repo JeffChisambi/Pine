@@ -14,11 +14,10 @@ import Svg, { Path } from "react-native-svg";
 import { notificationsApi, type NotificationPreferences } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
-function CustomToggle({ value, onChange, disabled }: { value: boolean; onChange: () => void; disabled?: boolean }) {
+function CustomToggle({ value, onChange, disabled, primaryColor }: { value: boolean; onChange: () => void; disabled?: boolean; primaryColor: string }) {
   const TRACK_W = 50;
   const TRACK_H = 30;
   const THUMB_SIZE = 26;
@@ -27,11 +26,11 @@ function CustomToggle({ value, onChange, disabled }: { value: boolean; onChange:
 
   return (
     <TouchableOpacity onPress={onChange} activeOpacity={disabled ? 1 : 0.85} disabled={disabled}>
-      <View style={{ width: TRACK_W, height: TRACK_H, borderRadius: TRACK_H / 2, backgroundColor: value ? TEAL : "#EBECEF", justifyContent: "center", overflow: "hidden", opacity: disabled ? 0.5 : 1 }}>
-        <View style={{ width: THUMB_SIZE, height: THUMB_SIZE, borderRadius: THUMB_SIZE / 2, backgroundColor: WHITE, transform: [{ translateX }], alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: value ? TEAL : "#EBECEF", shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
+      <View style={{ width: TRACK_W, height: TRACK_H, borderRadius: TRACK_H / 2, backgroundColor: value ? primaryColor : "#EBECEF", justifyContent: "center", overflow: "hidden", opacity: disabled ? 0.5 : 1 }}>
+        <View style={{ width: THUMB_SIZE, height: THUMB_SIZE, borderRadius: THUMB_SIZE / 2, backgroundColor: WHITE, transform: [{ translateX }], alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: value ? primaryColor : "#EBECEF", shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
           {value ? (
             <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-              <Path d="M3 7l3 3 5-5" stroke={TEAL} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M3 7l3 3 5-5" stroke={primaryColor} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
           ) : (
             <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
@@ -122,7 +121,7 @@ export default function PushNotificationsScreen() {
 
       {loading ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <ActivityIndicator size="large" color={TEAL} />
+          <ActivityIndicator size="large" color={c.primary} />
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
@@ -154,7 +153,7 @@ export default function PushNotificationsScreen() {
                         <View style={{ flex: 1 }}>
                           <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: c.text }}>{CHANNEL_LABELS[channel]}</Text>
                         </View>
-                        <CustomToggle value={prefs?.[channel] ?? false} onChange={() => togglePref(category, channel)} disabled={isMandatory} />
+                        <CustomToggle value={prefs?.[channel] ?? false} onChange={() => togglePref(category, channel)} disabled={isMandatory} primaryColor={c.primary} />
                       </View>
                       {i < Object.keys(CHANNEL_LABELS).length - 1 && <View style={{ height: 1, backgroundColor: c.border, marginHorizontal: 16 }} />}
                     </View>

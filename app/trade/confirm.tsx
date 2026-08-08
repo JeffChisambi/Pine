@@ -20,7 +20,6 @@ import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 import PinVerifyModal from "../../components/PinVerifyModal";
 
-const TEAL  = "#164951";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
@@ -150,7 +149,7 @@ export default function ConfirmScreen() {
             {getStockLogo(symbol) ? (
               <Image source={getStockLogo(symbol)!} style={{ width: 48, height: 48, borderRadius: 24 }} resizeMode="contain" />
             ) : (
-              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: TEAL }}>{symbol.charAt(0)}</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.primary }}>{symbol.charAt(0)}</Text>
             )}
           </View>
           <View style={{ flex: 1 }}>
@@ -181,8 +180,8 @@ export default function ConfirmScreen() {
             flexDirection: "row", alignItems: "center", gap: 10,
           }}>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path d="M21 12a2 2 0 00-2-2h-2a2 2 0 000 4h2a2 2 0 002-2z" stroke={TEAL} strokeWidth={1.5} />
-              <Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2v-1M3 7a2 2 0 012-2h12a2 2 0 012 2v1M3 7h16" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" />
+              <Path d="M21 12a2 2 0 00-2-2h-2a2 2 0 000 4h2a2 2 0 002-2z" stroke={c.primary} strokeWidth={1.5} />
+              <Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2v-1M3 7a2 2 0 012-2h12a2 2 0 012 2v1M3 7h16" stroke={c.primary} strokeWidth={1.5} strokeLinecap="round" />
             </Svg>
             <Text style={{ flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, lineHeight: 18 }}>
               Funds will be deducted from your wallet once the broker confirms your order has been executed.
@@ -197,7 +196,7 @@ export default function ConfirmScreen() {
 
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
         <TouchableOpacity
-          style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: loading ? 0.6 : 1 }}
+          style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: loading ? 0.6 : 1 }}
           onPress={handleConfirmOrder}
           disabled={loading}
         >

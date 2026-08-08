@@ -20,7 +20,6 @@ import { guardedBack } from "@/utils/navigation";
 import { useSupportThread, useReplyTicket } from "@/hooks/useSupport";
 import { logHandledError, type SupportAttachment, type SupportMessage, type SupportTicketThread } from "@/services/api";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -118,7 +117,7 @@ export default function TicketScreen() {
       </View>
 
       {isLoading ? (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={TEAL} /></View>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={c.primary} /></View>
       ) : isError || !thread ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: MUTED, textAlign: "center" }}>Couldn't load this report.</Text>
@@ -131,7 +130,7 @@ export default function TicketScreen() {
           ref={scrollRef}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ padding: 16, gap: 12 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={TEAL} colors={[TEAL]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}
         >
           {thread.messages.map((m) => <Bubble key={m.id} m={m} c={c} />)}
         </ScrollView>
@@ -198,7 +197,7 @@ function Bubble({ m, c }: { m: SupportMessage; c: ReturnType<typeof useColors> }
       )}
       <View style={{
         maxWidth: "82%",
-        backgroundColor: mine ? TEAL : c.card,
+        backgroundColor: mine ? c.primary : c.card,
         borderWidth: mine ? 0 : 1,
         borderColor: c.border,
         borderRadius: 16,

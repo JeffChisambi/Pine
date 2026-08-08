@@ -11,10 +11,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/hooks/useColors";
 import { authApi, getErrorMessage, logHandledError } from "../services/api";
 import { useAuth } from "../services/auth-context";
 
-const TEAL = "#164951";
 const WHITE = "#FFFFFF";
 const DARK = "#111827";
 const MUTED = "#9CA3AF";
@@ -30,6 +30,7 @@ const RESEND_COOLDOWN = 60; // matches backend OTP_RESEND_COOLDOWN_SECONDS
  * broker KYC checklist requires).
  */
 export default function VerifyEmailScreen() {
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
@@ -99,7 +100,7 @@ export default function VerifyEmailScreen() {
     }
   };
 
-  const isComplete = code.every((c) => c !== "");
+  const isComplete = code.every((ch) => ch !== "");
 
   const handleVerify = async () => {
     if (!isComplete || loading) return;
@@ -153,7 +154,7 @@ export default function VerifyEmailScreen() {
                 <TouchableOpacity
                   key={i}
                   activeOpacity={1}
-                  style={[styles.otpBox, isActive && styles.otpBoxActive]}
+                  style={[styles.otpBox, isActive && [styles.otpBoxActive, { borderColor: c.primary }]]}
                   onPress={() => {
                     inputRefs.current[i]?.focus();
                     setFocusedIndex(i);
@@ -183,7 +184,7 @@ export default function VerifyEmailScreen() {
           <View style={styles.resendRow}>
             <Text style={styles.resendText}>Didn't receive the email? </Text>
             <TouchableOpacity activeOpacity={0.7} onPress={handleResend} disabled={cooldown > 0}>
-              <Text style={[styles.resendLink, cooldown > 0 && { color: MUTED }]}>
+              <Text style={[styles.resendLink, { color: c.primary }, cooldown > 0 && { color: MUTED }]}>
                 {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend"}
               </Text>
             </TouchableOpacity>
@@ -198,7 +199,7 @@ export default function VerifyEmailScreen() {
           {/* ── Continue button ── */}
           <View style={styles.ctaWrap}>
             <TouchableOpacity
-              style={[styles.continueBtn, (!isComplete || loading) && styles.continueBtnDisabled]}
+              style={[styles.continueBtn, { backgroundColor: c.primary }, (!isComplete || loading) && styles.continueBtnDisabled]}
               activeOpacity={0.85}
               onPress={handleVerify}
               disabled={!isComplete || loading}
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
     flex: 1, height: 56, borderRadius: 12, backgroundColor: BG_INPUT,
     alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "transparent",
   },
-  otpBoxActive: { borderColor: TEAL },
+  otpBoxActive: { },
   hiddenInput: { position: "absolute", width: "100%", height: "100%", opacity: 0, color: "transparent" },
   otpDigit: { fontSize: 22, fontFamily: "PlusJakartaSans_600SemiBold", color: DARK },
   cursor: { width: 1.5, height: 24, backgroundColor: DARK },
@@ -251,10 +252,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24, marginBottom: 32,
   },
   resendText: { fontSize: 13, fontFamily: "PlusJakartaSans_400Regular", color: MUTED },
-  resendLink: { fontSize: 13, fontFamily: "PlusJakartaSans_600SemiBold", color: TEAL },
+  resendLink: { fontSize: 13, fontFamily: "PlusJakartaSans_600SemiBold" },
   ctaWrap: { paddingHorizontal: 24 },
   continueBtn: {
-    height: 56, backgroundColor: TEAL, borderRadius: 12,
+    height: 56, borderRadius: 12,
     alignItems: "center", justifyContent: "center",
   },
   continueBtnDisabled: { opacity: 0.5 },

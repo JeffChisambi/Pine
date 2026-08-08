@@ -12,7 +12,6 @@ import Svg, { Path } from "react-native-svg";
 import { useAuth } from "../../services/auth-context";
 import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const MUTED = "#9CA3AF";
 
 function AvatarFigure() {

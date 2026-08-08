@@ -8,7 +8,6 @@ import { useColors } from "@/hooks/useColors";
 import { calculateReturns, EMPTY_TBILL } from "@/data/treasury";
 import { useTreasuryProduct } from "@/hooks/useTreasury";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -228,8 +227,8 @@ export default function TreasuryReview() {
                 height: 22,
                 borderRadius: 6,
                 borderWidth: 2,
-                borderColor: termsAccepted ? TEAL : c.border,
-                backgroundColor: termsAccepted ? TEAL : "transparent",
+                borderColor: termsAccepted ? c.primary : c.border,
+                backgroundColor: termsAccepted ? c.primary : "transparent",
                 alignItems: "center",
                 justifyContent: "center",
                 marginTop: 1,
@@ -258,7 +257,7 @@ export default function TreasuryReview() {
             >
               I confirm this bid and understand the funds will be held until auction settlement. I
               agree to the{" "}
-              <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_600SemiBold" }}>
+              <Text style={{ color: c.primary, fontFamily: "PlusJakartaSans_600SemiBold" }}>
                 Terms & Conditions
               </Text>
               .
@@ -291,7 +290,7 @@ export default function TreasuryReview() {
           }
           style={{
             height: 56,
-            backgroundColor: TEAL,
+            backgroundColor: c.primary,
             borderRadius: 14,
             alignItems: "center",
             justifyContent: "center",

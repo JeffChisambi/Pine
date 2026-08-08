@@ -10,7 +10,6 @@ import { useMyInvestments } from "@/hooks/useTreasury";
 import { mapInvestment, investmentYield } from "@/utils/treasury-map";
 import type { ApiTBillInvestment } from "@/services/api";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -328,7 +327,7 @@ export default function MyBills() {
                   alignItems: "center",
                   justifyContent: "center",
                   borderBottomWidth: 2.5,
-                  borderBottomColor: isActive ? TEAL : "transparent",
+                  borderBottomColor: isActive ? c.primary : "transparent",
                 }}
               >
                 <Text

@@ -31,7 +31,6 @@ import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 import { kycApi } from "../../services/api";
 
-const TEAL  = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB client guard
@@ -63,18 +62,18 @@ function CameraIcon({ color }: { color: string }) {
   );
 }
 
-function DocIllustration() {
+function DocIllustration({ primaryColor }: { primaryColor: string }) {
   return (
     <View style={{ alignItems: "center", marginTop: 8, marginBottom: 4 }}>
       <Svg width={130} height={130} viewBox="0 0 130 130" fill="none">
-        <Rect width={130} height={130} rx={65} fill="#164951" />
+        <Rect width={130} height={130} rx={65} fill={primaryColor} />
         <Rect x={30} y={25} width={70} height={80} rx={6} fill="#FFFFFF" />
         <Rect x={40} y={40} width={25} height={6} rx={2} fill="#2D5B62" />
         <Rect x={40} y={55} width={45} height={4} rx={1} fill="#45B369" />
         <Rect x={40} y={65} width={50} height={4} rx={1} fill="#45B369" />
         <Rect x={40} y={75} width={35} height={4} rx={1} fill="#45B369" />
         <Circle cx={85} cy={43} r={8} fill="#2D5B62" />
-        <Rect x={70} y={90} width={20} height={4} rx={1} fill="#164951" />
+        <Rect x={70} y={90} width={20} height={4} rx={1} fill={primaryColor} />
       </Svg>
     </View>
   );
@@ -223,12 +222,12 @@ export default function UploadProofOfResidencyScreen() {
       justifyContent: "center",
       gap: 8,
       borderWidth: 1.5,
-      borderColor: TEAL,
+      borderColor: c.primary,
       borderRadius: 10,
       paddingVertical: 14,
       paddingHorizontal: 20,
     },
-    cameraBtnText:  { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: TEAL },
+    cameraBtnText:  { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.primary },
     tipBox: {
       flexDirection: "row",
       gap: 10,
@@ -239,7 +238,7 @@ export default function UploadProofOfResidencyScreen() {
       borderWidth: 1,
       borderColor: c.border,
     },
-    tipText: { flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: TEAL, lineHeight: 20 },
+    tipText: { flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: c.primary, lineHeight: 20 },
     footer: {
       paddingHorizontal: 24,
       paddingTop: 12,
@@ -247,7 +246,7 @@ export default function UploadProofOfResidencyScreen() {
       borderTopWidth: 1,
       borderTopColor: c.border,
     },
-    continueBtn:         { backgroundColor: TEAL, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
+    continueBtn:         { backgroundColor: c.primary, borderRadius: 12, paddingVertical: 18, alignItems: "center" },
     continueBtnDisabled: { backgroundColor: "#A0B8BC" },
     continueBtnText:     { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE },
   });
@@ -263,7 +262,7 @@ export default function UploadProofOfResidencyScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <DocIllustration />
+        <DocIllustration primaryColor={c.primary} />
 
         <View style={styles.descBlock}>
           <Text style={styles.descTitle}>Address Verification</Text>
@@ -280,7 +279,7 @@ export default function UploadProofOfResidencyScreen() {
           disabled={uploading || processing}
         >
           {uploading ? (
-            <ActivityIndicator size="large" color={TEAL} />
+            <ActivityIndicator size="large" color={c.primary} />
           ) : fileUri && uploaded ? (
             <Image source={{ uri: fileUri }} style={{ width: "90%", height: 110, borderRadius: 8 }} contentFit="cover" />
           ) : (
@@ -309,14 +308,14 @@ export default function UploadProofOfResidencyScreen() {
           disabled={uploading || processing}
           activeOpacity={0.8}
         >
-          <CameraIcon color={TEAL} />
+          <CameraIcon color={c.primary} />
           <Text style={styles.cameraBtnText}>Open Camera</Text>
         </TouchableOpacity>
 
         <View style={styles.tipBox}>
           <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-            <Circle cx={8} cy={8} r={7} stroke={TEAL} strokeWidth={1.5} />
-            <Path d="M8 7v5M8 5v1" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" />
+            <Circle cx={8} cy={8} r={7} stroke={c.primary} strokeWidth={1.5} />
+            <Path d="M8 7v5M8 5v1" stroke={c.primary} strokeWidth={1.5} strokeLinecap="round" />
           </Svg>
           <Text style={styles.tipText}>
             Must be issued within the last 3 months. Ensure your full name and address are clearly visible and legible.

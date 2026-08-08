@@ -13,8 +13,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
+import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const WHITE = "#FFFFFF";
 const DARK = "#111827";
 const MUTED = "#9CA3AF";
@@ -66,6 +66,7 @@ function ClearIcon() {
 }
 
 export default function PhoneNumberScreen() {
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
@@ -117,7 +118,7 @@ export default function PhoneNumberScreen() {
 
           {/* ── Phone field ── */}
           <View style={styles.fieldWrap}>
-            <View style={[styles.phoneRow, focused && styles.phoneRowFocused]}>
+            <View style={[styles.phoneRow, focused && [styles.phoneRowFocused, { borderColor: c.primary }]]}>
               <View style={styles.countrySection}>
                 <MalawiFlag />
                 <Text style={styles.countryCode}>+265</Text>
@@ -150,7 +151,7 @@ export default function PhoneNumberScreen() {
           {/* ── Continue button ── */}
           <View style={styles.ctaWrap}>
             <TouchableOpacity
-              style={[styles.continueBtn, (phone.length < 7 || loading) && styles.continueBtnDisabled]}
+              style={[styles.continueBtn, { backgroundColor: c.primary }, (phone.length < 7 || loading) && styles.continueBtnDisabled]}
               activeOpacity={0.85}
               onPress={handleSendOtp}
               disabled={phone.length < 7 || loading}
@@ -211,7 +212,6 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   phoneRowFocused: {
-    borderColor: TEAL,
   },
   countrySection: {
     flexDirection: "row",
@@ -246,7 +246,6 @@ const styles = StyleSheet.create({
   },
   continueBtn: {
     height: 56,
-    backgroundColor: TEAL,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",

@@ -20,7 +20,6 @@ import { calculateReturns, EMPTY_TBILL } from "@/data/treasury";
 import { useTreasuryProduct } from "@/hooks/useTreasury";
 import { useWalletBalance } from "@/services/wallet-queries";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -269,9 +268,9 @@ export default function TreasuryBidAmount() {
                       flex: 1,
                       height: 40,
                       borderRadius: 10,
-                      backgroundColor: isActive ? TEAL : c.card,
+                      backgroundColor: isActive ? c.primary : c.card,
                       borderWidth: 1,
-                      borderColor: isActive ? TEAL : c.border,
+                      borderColor: isActive ? c.primary : c.border,
                       alignItems: "center",
                       justifyContent: "center",
                     }}
@@ -451,7 +450,7 @@ export default function TreasuryBidAmount() {
             }
             style={{
               height: 56,
-              backgroundColor: TEAL,
+              backgroundColor: c.primary,
               borderRadius: 14,
               alignItems: "center",
               justifyContent: "center",

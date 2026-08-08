@@ -18,7 +18,6 @@ import { guardedBack } from "@/utils/navigation";
 import { useSupportTickets } from "@/hooks/useSupport";
 import type { SupportTicketSummary } from "@/services/api";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -86,7 +85,7 @@ export default function HelpScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={TEAL} colors={[TEAL]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}
       >
         {/* Search */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: c.card, borderWidth: 1, borderColor: c.border, borderRadius: 14, paddingHorizontal: 14, height: 48, marginTop: 6 }}>
@@ -101,7 +100,7 @@ export default function HelpScreen() {
         </View>
 
         {/* Report a problem card */}
-        <View style={{ backgroundColor: TEAL, borderRadius: 18, padding: 20, marginTop: 16 }}>
+        <View style={{ backgroundColor: c.primary, borderRadius: 18, padding: 20, marginTop: 16 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: WHITE }}>Report a problem</Text>
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.82)", lineHeight: 20, marginTop: 6 }}>
             Something broken, a wrong balance, a stuck trade — tell us and we'll investigate.
@@ -143,7 +142,7 @@ export default function HelpScreen() {
           )}
         </View>
         {isLoading ? (
-          <View style={{ paddingVertical: 24, alignItems: "center" }}><ActivityIndicator color={TEAL} /></View>
+          <View style={{ paddingVertical: 24, alignItems: "center" }}><ActivityIndicator color={c.primary} /></View>
         ) : myReports.length === 0 ? (
           <View style={{ backgroundColor: c.card, borderWidth: 1, borderColor: c.border, borderRadius: 16, padding: 20, alignItems: "center" }}>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, textAlign: "center" }}>

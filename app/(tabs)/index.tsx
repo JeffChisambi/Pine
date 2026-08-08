@@ -53,8 +53,6 @@ import { useColors } from "@/hooks/useColors";
 import { useUnreadCount } from "@/hooks/useNotifications";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
-const TEAL = "#164951";
-const TEAL_MED = "#2D5B62";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -308,7 +306,7 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
                   {logoImg ? (
                     <Image source={logoImg} style={{ width: 40, height: 40, borderRadius: 20 }} resizeMode="contain" />
                   ) : (
-                    <View style={{ width: 40, height: 40, backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderRadius: 20 }}>
+                    <View style={{ width: 40, height: 40, backgroundColor: c.primary, alignItems: "center", justifyContent: "center", borderRadius: 20 }}>
                       <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 11 }}>{symbol.slice(0, 3)}</Text>
                     </View>
                   )}
@@ -499,7 +497,7 @@ export default function HomeScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 40 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#164951" colors={["#164951"]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}
         >
           <View style={{ backgroundColor: c.background, paddingHorizontal: 20, paddingTop: 24 }}>
             {/* Invest section */}

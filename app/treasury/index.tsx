@@ -15,7 +15,6 @@ import { useColors } from "@/hooks/useColors";
 import { useTreasuryProducts, useMyInvestments } from "@/hooks/useTreasury";
 import { mapInvestment, investmentYield } from "@/utils/treasury-map";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -335,7 +334,7 @@ export default function TreasuryLanding() {
                   guardedPush(() => router.push("/treasury/my-investments" as any))
                 }
               >
-                <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: TEAL }}>
+                <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: c.primary }}>
                   View All
                 </Text>
               </TouchableOpacity>
@@ -399,7 +398,7 @@ export default function TreasuryLanding() {
           }}
           style={{
             height: 56,
-            backgroundColor: TEAL,
+            backgroundColor: c.primary,
             borderRadius: 14,
             alignItems: "center",
             justifyContent: "center",

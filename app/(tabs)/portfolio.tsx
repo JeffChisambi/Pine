@@ -21,8 +21,6 @@ import { useColors } from "@/hooks/useColors";
 import { StockData } from "@/data/stocks";
 
 // ─── Static brand tokens ───────────────────────────────────────────────────────
-const TEAL = "#164951";
-const CARD_TEAL = "#2D5B62";
 const GREEN = "#45B369";
 const RED = "#EF4770";
 const WHITE = "#FFFFFF";
@@ -54,18 +52,19 @@ function EyeIcon({ hidden, color = "rgba(0,0,0,0.5)" }: { hidden: boolean; color
 }
 
 function BuyIcon() {
+  const c = useColors();
   return (
     <Svg width={28} height={28} viewBox="0 0 28 28" fill="none">
-      <Circle cx={14} cy={14} r={14} fill={CARD_TEAL} />
+      <Circle cx={14} cy={14} r={14} fill={c.primary} />
       <Path d="M14 9v10M9 14h10" stroke={WHITE} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function SellIcon() {
+function SellIcon({ color = "#164951" }: { color?: string }) {
   return (
     <Svg width={41} height={41} viewBox="0 0 41 41" fill="none">
-      <Circle cx={20.5} cy={20.5} r={20} fill="#164951" />
+      <Circle cx={20.5} cy={20.5} r={20} fill={color} />
       <Path d="M18.7667 20.7666L20.9001 18.6333L23.0334 20.7666" stroke="#FFFFFF" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
       <Path d="M20.9 27.1667V18.6917" stroke="#FFFFFF" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
       <Path d="M27.6667 20.3501C27.6667 16.6668 25.1667 13.6834 21 13.6834C16.8334 13.6834 14.3334 16.6668 14.3334 20.3501" stroke="#FFFFFF" strokeWidth={1.5} strokeMiterlimit={10} strokeLinecap="round" strokeLinejoin="round" />
@@ -95,9 +94,10 @@ function ReceiptIcon({ color = "rgba(0,0,0,0.6)" }: { color?: string }) {
 }
 
 function ExchangeIcon() {
+  const c = useColors();
   return (
     <Svg width={28} height={28} viewBox="0 0 28 28" fill="none">
-      <Circle cx={14} cy={14} r={14} fill={CARD_TEAL} />
+      <Circle cx={14} cy={14} r={14} fill={c.primary} />
       <Path d="M9 12h10M9 16h10" stroke={WHITE} strokeWidth={2} strokeLinecap="round" />
       <Path d="M16 9l3 3-3 3" stroke={WHITE} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       <Path d="M12 19l-3-3 3-3" stroke={WHITE} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -228,7 +228,7 @@ export default function PortfolioScreen() {
     listContent: { paddingHorizontal: 20, paddingBottom: 100 },
     sectionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12, marginTop: 4 },
     sectionTitle: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: c.text },
-    viewAll: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: TEAL },
+    viewAll: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: c.primary },
     searchBar: {
       flexDirection: "row",
       alignItems: "center",

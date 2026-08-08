@@ -27,7 +27,6 @@ import { useNews } from "@/hooks/useNews";
 import { API_BASE_URL } from "@/services/api";
 
 // ─── Brand tokens ───────────────────────────────────────────────────────────────
-const TEAL  = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -369,7 +368,7 @@ export default function NewsScreen() {
               style={[
                 { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 20, borderWidth: 1 },
                 active
-                  ? { backgroundColor: TEAL, borderColor: TEAL }
+                  ? { backgroundColor: c.primary, borderColor: c.primary }
                   : { backgroundColor: c.card, borderColor: c.border },
               ]}
             >
@@ -388,7 +387,7 @@ export default function NewsScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         {isLoading && (
           <View style={{ paddingTop: 60, alignItems: "center" }}>
-            <ActivityIndicator color={TEAL} />
+            <ActivityIndicator color={c.primary} />
           </View>
         )}
 

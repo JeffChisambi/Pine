@@ -30,7 +30,6 @@ import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 import { authApi } from "../../services/api";
 
-const TEAL  = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -68,12 +67,12 @@ function BackIcon({ color }: { color: string }) {
   );
 }
 
-function ShieldIcon() {
+function ShieldIcon({ color }: { color: string }) {
   return (
     <Svg width={40} height={40} viewBox="0 0 24 24" fill="none">
       <Path d="M12 3L4 6.5V11C4 15.25 7.4 19.24 12 21C16.6 19.24 20 15.25 20 11V6.5L12 3Z"
-        stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M9 12l2 2 4-4" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+        stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M9 12l2 2 4-4" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -97,21 +96,21 @@ function EyeIcon({ visible, color }: { visible: boolean; color: string }) {
   );
 }
 
-function LockIcon() {
+function LockIcon({ color }: { color: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Rect x={5} y={11} width={14} height={10} rx={2} stroke={TEAL} strokeWidth={1.5} />
-      <Path d="M8 11V7a4 4 0 018 0v4" stroke={TEAL} strokeWidth={1.5} strokeLinecap="round" />
+      <Rect x={5} y={11} width={14} height={10} rx={2} stroke={color} strokeWidth={1.5} />
+      <Path d="M8 11V7a4 4 0 018 0v4" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function PinIcon() {
+function PinIcon({ color }: { color: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Circle cx={12} cy={12} r={9} stroke={TEAL} strokeWidth={1.5} />
+      <Circle cx={12} cy={12} r={9} stroke={color} strokeWidth={1.5} />
       <Path d="M9 9h.01M12 9h.01M15 9h.01M9 12h.01M12 12h.01M15 12h.01M9 15h.01M12 15h.01M15 15h.01"
-        stroke={TEAL} strokeWidth={2} strokeLinecap="round" />
+        stroke={color} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -150,7 +149,7 @@ function PasswordField({ label, value, onChangeText, placeholder, numeric = fals
         backgroundColor: focused ? c.background : c.card,
         borderRadius: 12,
         borderWidth: 1.5,
-        borderColor: error ? RED : focused ? TEAL : c.border,
+        borderColor: error ? RED : focused ? c.primary : c.border,
         height: 56,
         paddingHorizontal: 16,
         flexDirection: "row",
@@ -183,11 +182,11 @@ function PasswordField({ label, value, onChangeText, placeholder, numeric = fals
   );
 }
 
-function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
+function SectionHeader({ icon, title, color }: { icon: React.ReactNode; title: string; color: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 16, marginTop: 8 }}>
       {icon}
-      <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: TEAL }}>{title}</Text>
+      <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color }}>{title}</Text>
     </View>
   );
 }
@@ -354,8 +353,8 @@ export default function SecurityScreen() {
       >
         {/* Shield illustration */}
         <View style={{ alignItems: "center", marginBottom: 32, marginTop: 8 }}>
-          <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: `${TEAL}12`, alignItems: "center", justifyContent: "center" }}>
-            <ShieldIcon />
+          <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: `${c.primary}12`, alignItems: "center", justifyContent: "center" }}>
+            <ShieldIcon color={c.primary} />
           </View>
           <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED, marginTop: 10, textAlign: "center" }}>
             Keep your account safe by using a{"\n"}strong password and a secure PIN.
@@ -365,7 +364,7 @@ export default function SecurityScreen() {
         <View style={{ height: 1, backgroundColor: c.border, marginBottom: 28 }} />
 
         {/* ── Password section ──────────────────────────────────────────── */}
-        <SectionHeader icon={<LockIcon />} title="Change Password" />
+        <SectionHeader icon={<LockIcon color={c.primary} />} title="Change Password" color={c.primary} />
 
         {pwSuccess && <SuccessBanner message="Password changed successfully!" />}
 
@@ -431,7 +430,7 @@ export default function SecurityScreen() {
 
         <TouchableOpacity
           style={{
-            backgroundColor: TEAL, borderRadius: 12, paddingVertical: 15,
+            backgroundColor: c.primary, borderRadius: 12, paddingVertical: 15,
             alignItems: "center", marginBottom: 32,
             opacity: pwLoading ? 0.7 : 1,
           }}
@@ -448,7 +447,7 @@ export default function SecurityScreen() {
         <View style={{ height: 1, backgroundColor: c.border, marginBottom: 28 }} />
 
         {/* ── PIN section ───────────────────────────────────────────────── */}
-        <SectionHeader icon={<PinIcon />} title="Change PIN" />
+        <SectionHeader icon={<PinIcon color={c.primary} />} title="Change PIN" color={c.primary} />
 
         {pinSuccess && <SuccessBanner message="PIN changed successfully!" />}
 
@@ -485,7 +484,7 @@ export default function SecurityScreen() {
 
         <TouchableOpacity
           style={{
-            backgroundColor: TEAL, borderRadius: 12, paddingVertical: 15,
+            backgroundColor: c.primary, borderRadius: 12, paddingVertical: 15,
             alignItems: "center",
             opacity: pinLoading ? 0.7 : 1,
           }}

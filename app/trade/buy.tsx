@@ -21,7 +21,6 @@ import { useStocks } from "../../hooks/useStocks";
 import { ApiStock } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const RED = "#EF4770";
 const WHITE = "#FFFFFF";
@@ -92,7 +91,7 @@ export default function BuyScreen() {
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
         {/* Balance card — always teal */}
-        <View style={{ backgroundColor: TEAL, borderRadius: 16, padding: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <View style={{ backgroundColor: c.primary, borderRadius: 16, padding: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 4 }}>{isBuy ? "Available Cash" : "Available Shares"}</Text>
             <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 28, color: WHITE, marginBottom: 4 }}>
@@ -115,7 +114,7 @@ export default function BuyScreen() {
                     {getStockLogo(selectedStock.symbol) ? (
                       <Image source={getStockLogo(selectedStock.symbol)!} style={{ width: 24, height: 24, borderRadius: 12 }} resizeMode="contain" />
                     ) : (
-                      <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{selectedStock.symbol.slice(0, 3)}</Text>
+                      <Text style={{ color: c.primary, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{selectedStock.symbol.slice(0, 3)}</Text>
                     )}
                   </View>
                   <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text }}>{selectedStock.symbol}</Text>
@@ -137,7 +136,7 @@ export default function BuyScreen() {
                     {getStockLogo(s.symbol) ? (
                       <Image source={getStockLogo(s.symbol)!} style={{ width: 24, height: 24, borderRadius: 12 }} resizeMode="contain" />
                     ) : (
-                      <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{s.symbol.slice(0, 3)}</Text>
+                      <Text style={{ color: c.primary, fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{s.symbol.slice(0, 3)}</Text>
                     )}
                   </View>
                   <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.text }}>{s.symbol} — {s.name}</Text>
@@ -213,7 +212,7 @@ export default function BuyScreen() {
       {/* Bottom CTA */}
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
         <TouchableOpacity
-          style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: rawAmount && selectedStock && (isBuy || availableShares > 0) ? 1 : 0.5 }}
+          style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: rawAmount && selectedStock && (isBuy || availableShares > 0) ? 1 : 0.5 }}
           disabled={!rawAmount || !selectedStock || (!isBuy && availableShares <= 0)}
           onPress={() => router.push({
             pathname: "/trade/confirm" as any,

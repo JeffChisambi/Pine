@@ -14,7 +14,6 @@ import { router } from "expo-router";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -29,11 +28,11 @@ function PayPalIcon() {
   );
 }
 
-function RadioIcon({ selected }: { selected: boolean }) {
+function RadioIcon({ selected, color }: { selected: boolean; color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      <Circle cx={11} cy={11} r={10} stroke={selected ? TEAL : "#D1D5DB"} strokeWidth={1.5} />
-      {selected && <Circle cx={11} cy={11} r={6} fill={TEAL} />}
+      <Circle cx={11} cy={11} r={10} stroke={selected ? color : "#D1D5DB"} strokeWidth={1.5} />
+      {selected && <Circle cx={11} cy={11} r={6} fill={color} />}
     </Svg>
   );
 }
@@ -99,7 +98,7 @@ export default function PaymentScreen() {
                   <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: c.text, marginBottom: 2 }}>{pm.label}</Text>
                   <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{pm.sub}</Text>
                 </View>
-                <RadioIcon selected={selectedPayment === pm.id} />
+                <RadioIcon selected={selectedPayment === pm.id} color={c.primary} />
               </TouchableOpacity>
               {i < PAYMENT_METHODS.length - 1 && <View style={{ height: 1, backgroundColor: c.border, marginHorizontal: 16 }} />}
             </View>
@@ -111,12 +110,12 @@ export default function PaymentScreen() {
         <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, paddingHorizontal: 14, paddingVertical: 4, marginBottom: 16 }}>
           <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-              <Path d="M9.5 2L16 8.5l-6 6L3.5 8V2H9.5z" stroke={TEAL} strokeWidth={1.4} strokeLinejoin="round" />
-              <Circle cx={6} cy={5.5} r={1} fill={TEAL} />
+              <Path d="M9.5 2L16 8.5l-6 6L3.5 8V2H9.5z" stroke={c.primary} strokeWidth={1.4} strokeLinejoin="round" />
+              <Circle cx={6} cy={5.5} r={1} fill={c.primary} />
             </Svg>
             <TextInput style={{ flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.text, paddingVertical: 12, padding: 0 }} value={promoCode} onChangeText={setPromoCode} placeholder="Enter promo code" placeholderTextColor={MUTED} autoCapitalize="characters" />
           </View>
-          <TouchableOpacity style={{ backgroundColor: TEAL, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8 }}>
+          <TouchableOpacity style={{ backgroundColor: c.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: WHITE }}>Apply</Text>
           </TouchableOpacity>
         </View>
@@ -144,13 +143,13 @@ export default function PaymentScreen() {
           <View style={{ height: 1, backgroundColor: c.border }} />
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 12 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: c.text }}>Total</Text>
-            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: TEAL }}>${total.toFixed(2)}</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: c.primary }}>${total.toFixed(2)}</Text>
           </View>
         </View>
       </ScrollView>
 
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
-        <TouchableOpacity style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, alignItems: "center" }} onPress={() => router.push("/trade/confirm" as any)}>
+        <TouchableOpacity style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center" }} onPress={() => router.push("/trade/confirm" as any)}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE }}>Continue to Confirm</Text>
         </TouchableOpacity>
       </View>

@@ -13,9 +13,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import { useColors } from "@/hooks/useColors";
 import { useAuth } from "../services/auth-context";
 
-const TEAL = "#164951";
 const WHITE = "#FFFFFF";
 const DARK = "#111827";
 const MUTED = "#9CA3AF";
@@ -38,6 +38,7 @@ function CloseIcon() {
 }
 
 export default function CreatePinScreen() {
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
@@ -131,7 +132,7 @@ export default function CreatePinScreen() {
                   activeOpacity={1}
                   style={[
                     styles.pinBox,
-                    isActive && styles.pinBoxActive,
+                    isActive && [styles.pinBoxActive, { borderBottomColor: c.primary }],
                     isFilled && styles.pinBoxFilled,
                   ]}
                   onPress={() => {
@@ -163,7 +164,7 @@ export default function CreatePinScreen() {
           {/* ── Buttons ── */}
           <View style={styles.btnSection}>
             <TouchableOpacity
-              style={[styles.continueBtn, (!isComplete || loading) && styles.continueBtnDisabled]}
+              style={[styles.continueBtn, { backgroundColor: c.primary }, (!isComplete || loading) && styles.continueBtnDisabled]}
               activeOpacity={0.85}
               onPress={handleCreatePin}
               disabled={!isComplete || loading}
@@ -238,7 +239,6 @@ const styles = StyleSheet.create({
     borderBottomColor: BORDER_LIGHT,
   },
   pinBoxActive: {
-    borderBottomColor: TEAL,
   },
   pinBoxFilled: {
     borderBottomColor: BORDER_LIGHT,
@@ -270,7 +270,6 @@ const styles = StyleSheet.create({
   },
   continueBtn: {
     height: 56,
-    backgroundColor: TEAL,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",

@@ -1,4 +1,5 @@
 import { guardedBack } from "@/utils/navigation";
+import { useColors } from "@/hooks/useColors";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -16,7 +17,6 @@ import {
 import Svg, { Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const TEAL = "#164951";
 const WHITE = "#FFFFFF";
 const DARK = "#111827";
 const BORDER_LIGHT = "#EBEBEB";
@@ -203,6 +203,7 @@ const COUNTRIES: Country[] = [
 ];
 
 export default function ForgotPasswordScreen() {
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16);
@@ -219,10 +220,10 @@ export default function ForgotPasswordScreen() {
   const fullPhone = selectedCountry.dial + phoneNumber.trim();
   const canSubmit = phoneNumber.trim().length > 0 && !loading;
 
-  const filteredCountries = COUNTRIES.filter((c) =>
-    c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
-    c.code.toLowerCase().includes(countrySearch.toLowerCase()) ||
-    c.dial.includes(countrySearch)
+  const filteredCountries = COUNTRIES.filter((country) =>
+    country.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+    country.code.toLowerCase().includes(countrySearch.toLowerCase()) ||
+    country.dial.includes(countrySearch)
   );
 
   const handleSubmit = async () => {
@@ -340,7 +341,7 @@ export default function ForgotPasswordScreen() {
               </Svg>
             </TouchableOpacity>
             <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/signup")}>
-              <Text style={styles.signUpLink}>Sign Up</Text>
+              <Text style={[styles.signUpLink, { color: c.primary }]}>Sign Up</Text>
             </TouchableOpacity>
           </View>
 
@@ -383,8 +384,8 @@ export default function ForgotPasswordScreen() {
                 </TouchableOpacity>
 
                 {/* Phone number input with floating label */}
-                <View style={[styles.phoneInputWrap, phoneFocused && styles.phoneInputWrapFocused]}>
-                  <Text style={[styles.phoneFloatingLabel, phoneFocused && styles.phoneFloatingLabelFocused]}>
+                <View style={[styles.phoneInputWrap, phoneFocused && [styles.phoneInputWrapFocused, { borderColor: c.primary }]]}>
+                  <Text style={[styles.phoneFloatingLabel, phoneFocused && [styles.phoneFloatingLabelFocused, { color: c.primary }]]}>
                     Phone Number
                   </Text>
                   <TextInput
@@ -418,7 +419,7 @@ export default function ForgotPasswordScreen() {
               {/* ── Next button ── */}
               <View style={styles.ctaWrap}>
                 <TouchableOpacity
-                  style={[styles.nextBtn, !canSubmit && { opacity: 0.5 }]}
+                  style={[styles.nextBtn, { backgroundColor: c.primary }, !canSubmit && { opacity: 0.5 }]}
                   activeOpacity={0.85}
                   onPress={handleSubmit}
                   disabled={!canSubmit}
@@ -436,7 +437,7 @@ export default function ForgotPasswordScreen() {
           {sent && (
             <View style={styles.ctaWrap}>
               <TouchableOpacity
-                style={styles.nextBtn}
+                style={[styles.nextBtn, { backgroundColor: c.primary }]}
                 activeOpacity={0.85}
                 onPress={() => guardedBack("/login")}
               >
@@ -475,7 +476,6 @@ const styles = StyleSheet.create({
   signUpLink: {
     fontSize: 15,
     fontFamily: "PlusJakartaSans_600SemiBold",
-    color: TEAL,
   },
 
   // ── Heading ─────────────────────────────────────────────────────
@@ -553,7 +553,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   phoneInputWrapFocused: {
-    borderColor: TEAL,
   },
   phoneFloatingLabel: {
     position: "absolute",
@@ -567,7 +566,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   phoneFloatingLabelFocused: {
-    color: TEAL,
   },
   phoneInput: {
     fontSize: 15,
@@ -593,7 +591,6 @@ const styles = StyleSheet.create({
   },
   nextBtn: {
     height: 58,
-    backgroundColor: TEAL,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",

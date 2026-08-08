@@ -9,7 +9,6 @@ import { type TBillInvestment } from "@/data/treasury";
 import { useMyInvestments } from "@/hooks/useTreasury";
 import { mapInvestment, investmentYield, EMPTY_INVESTMENT } from "@/utils/treasury-map";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -101,7 +100,7 @@ export default function InvestmentDetail() {
           {/* Investment info card */}
           <View style={{ backgroundColor: c.card, borderRadius: 16, borderWidth: 1, borderColor: c.border, paddingHorizontal: 18, marginBottom: 16 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, paddingTop: 14, paddingBottom: 10 }}>Investment Information</Text>
-            <InfoRow label="Reference" value={investment.referenceNumber} valueColor={TEAL} />
+            <InfoRow label="Reference" value={investment.referenceNumber} valueColor={c.primary} />
             <InfoRow label="Amount Invested" value={`K${investment.amountInvested.toLocaleString()}`} />
             <InfoRow label="Annual Yield" value={`${bill.yieldPct}%`} valueColor={GREEN} />
             <InfoRow label="Est. Earnings" value={`+K${investment.estimatedEarnings.toLocaleString()}`} valueColor={GREEN} />
@@ -126,7 +125,7 @@ export default function InvestmentDetail() {
                       width: 22,
                       height: 22,
                       borderRadius: 11,
-                      backgroundColor: isCompleted ? GREEN : isCurrent ? TEAL : c.border,
+                      backgroundColor: isCompleted ? GREEN : isCurrent ? c.primary : c.border,
                       alignItems: "center",
                       justifyContent: "center",
                     }}>
@@ -151,7 +150,7 @@ export default function InvestmentDetail() {
                       lineHeight: 22,
                     }}>
                       {stage.label}
-                      {isCurrent && <Text style={{ color: TEAL, fontFamily: "PlusJakartaSans_600SemiBold" }}> · Current</Text>}
+                      {isCurrent && <Text style={{ color: c.primary, fontFamily: "PlusJakartaSans_600SemiBold" }}> · Current</Text>}
                     </Text>
                   </View>
                 </View>
@@ -170,7 +169,7 @@ export default function InvestmentDetail() {
             pathname: "/treasury/details" as any,
             params: { id: investment.billId },
           }))}
-          style={{ height: 56, backgroundColor: TEAL, borderRadius: 14, alignItems: "center", justifyContent: "center" }}
+          style={{ height: 56, backgroundColor: c.primary, borderRadius: 14, alignItems: "center", justifyContent: "center" }}
         >
           <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: WHITE }}>Reinvest</Text>
         </TouchableOpacity>

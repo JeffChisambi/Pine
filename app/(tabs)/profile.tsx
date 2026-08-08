@@ -27,8 +27,6 @@ import {
 } from "../../services/biometrics";
 
 // ─── Static brand / semantic tokens (unchanged across themes) ─────────────────
-const TEAL = "#164951";
-const CARD_TEAL = "#2D5B62";
 const WHITE = "#FFFFFF";
 const RED = "#EF4770";
 
@@ -89,6 +87,7 @@ function LogoutMenuIcon() {
 
 // ─── Dark Mode toggle ─────────────────────────────────────────────────────────
 function DarkModeToggle({ value, onChange }: { value: boolean; onChange: () => void }) {
+  const c = useColors();
   const TRACK_W = 46;
   const TRACK_H = 26;
   const THUMB = 22;
@@ -98,7 +97,7 @@ function DarkModeToggle({ value, onChange }: { value: boolean; onChange: () => v
     <TouchableOpacity onPress={onChange} activeOpacity={0.85}>
       <View style={{
         width: TRACK_W, height: TRACK_H, borderRadius: TRACK_H / 2,
-        backgroundColor: value ? "#164951" : "#EBECEF",
+        backgroundColor: value ? c.primary : "#EBECEF",
         justifyContent: "center",
       }}>
         <View style={{
@@ -107,13 +106,13 @@ function DarkModeToggle({ value, onChange }: { value: boolean; onChange: () => v
           transform: [{ translateX: tx }],
           alignItems: "center", justifyContent: "center",
           borderWidth: 1,
-          borderColor: value ? "#164951" : "#EBECEF",
+          borderColor: value ? c.primary : "#EBECEF",
           shadowColor: "#000", shadowOffset: { width: 0, height: 1 },
           shadowOpacity: 0.1, shadowRadius: 2, elevation: 2,
         }}>
           {value ? (
             <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
-              <Path d="M3 7l3 3 5-5" stroke="#164951" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M3 7l3 3 5-5" stroke={c.primary} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
           ) : (
             <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">

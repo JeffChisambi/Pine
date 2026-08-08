@@ -13,7 +13,6 @@ import { router } from "expo-router";
 import { authApi, ApiError, getErrorMessage, logHandledError } from "../services/api";
 import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const WHITE = "#FFFFFF";
 const RED = "#EF4444";
 const PIN_LENGTH = 4;
@@ -133,7 +132,7 @@ export default function PinVerifyModal({
                   onPress={() => inputRefs.current[i]?.focus()}
                   style={{
                     width: 56, height: 60, borderRadius: 14, borderWidth: 1.5,
-                    borderColor: error ? RED : filled ? TEAL : c.border,
+                    borderColor: error ? RED : filled ? c.primary : c.border,
                     backgroundColor: c.card,
                     alignItems: "center", justifyContent: "center",
                   }}
@@ -150,7 +149,7 @@ export default function PinVerifyModal({
                     caretHidden
                     secureTextEntry
                   />
-                  {filled && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: TEAL }} />}
+                  {filled && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: c.primary }} />}
                 </TouchableOpacity>
               );
             })}
@@ -160,7 +159,7 @@ export default function PinVerifyModal({
           <View style={{ minHeight: 34, marginTop: 14, alignItems: "center", justifyContent: "center" }}>
             {verifying ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                <ActivityIndicator size="small" color={TEAL} />
+                <ActivityIndicator size="small" color={c.primary} />
                 <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: c.mutedForeground }}>Verifying…</Text>
               </View>
             ) : error ? (
@@ -172,7 +171,7 @@ export default function PinVerifyModal({
             <TouchableOpacity
               onPress={() => { onCancel(); router.push("/create-pin" as any); }}
               activeOpacity={0.85}
-              style={{ backgroundColor: TEAL, borderRadius: 12, paddingVertical: 13, alignItems: "center", marginBottom: 6 }}
+              style={{ backgroundColor: c.primary, borderRadius: 12, paddingVertical: 13, alignItems: "center", marginBottom: 6 }}
             >
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: WHITE }}>Set up PIN</Text>
             </TouchableOpacity>

@@ -8,7 +8,6 @@ import { calculateReturns, EMPTY_TBILL } from "@/data/treasury";
 import { useTreasuryProduct, useInvest } from "@/hooks/useTreasury";
 import { getErrorMessage } from "@/services/api";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -113,7 +112,7 @@ export default function TreasuryProcessing() {
     <View style={{ flex: 1, backgroundColor: c.background, alignItems: "center", justifyContent: "center", paddingTop: topPad }}>
 
       {/* Spinner or checkmark */}
-      <View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: TEAL + "15", alignItems: "center", justifyContent: "center", marginBottom: 32 }}>
+      <View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: c.primary + "15", alignItems: "center", justifyContent: "center", marginBottom: 32 }}>
         {done ? (
           <Svg width={40} height={40} viewBox="0 0 40 40" fill="none">
             <Circle cx={20} cy={20} r={20} fill={GREEN} />
@@ -123,7 +122,7 @@ export default function TreasuryProcessing() {
           <Animated.View style={{ transform: [{ rotate: spinInterpolate }] }}>
             <Svg width={44} height={44} viewBox="0 0 44 44" fill="none">
               <Circle cx={22} cy={22} r={18} stroke={c.border} strokeWidth={4} />
-              <Path d="M22 4A18 18 0 0 1 40 22" stroke={TEAL} strokeWidth={4} strokeLinecap="round" />
+              <Path d="M22 4A18 18 0 0 1 40 22" stroke={c.primary} strokeWidth={4} strokeLinecap="round" />
             </Svg>
           </Animated.View>
         )}
@@ -155,7 +154,7 @@ export default function TreasuryProcessing() {
                 width: 22,
                 height: 22,
                 borderRadius: 11,
-                backgroundColor: isCompleted ? GREEN : isCurrent ? TEAL : c.border,
+                backgroundColor: isCompleted ? GREEN : isCurrent ? c.primary : c.border,
                 alignItems: "center",
                 justifyContent: "center",
               }}>

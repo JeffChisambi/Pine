@@ -1,5 +1,6 @@
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useColors } from "@/hooks/useColors";
 import React from "react";
 import {
   Platform,
@@ -11,7 +12,6 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const DARK = "#111827";
@@ -48,17 +48,18 @@ function SubRow({
 }
 
 function PhoneIllustration() {
+  const c = useColors();
   return (
     <View style={illStyles.circle}>
       <View style={illStyles.phone}>
         {/* Dynamic island */}
         <View style={illStyles.island} />
         {/* Status bar */}
-        <View style={illStyles.statusBar}>
+        <View style={[illStyles.statusBar, { backgroundColor: c.primary }]}>
           <Text style={illStyles.statusTime}>9:41</Text>
         </View>
         {/* App header */}
-        <View style={illStyles.appHeader}>
+        <View style={[illStyles.appHeader, { backgroundColor: c.primary }]}>
           <Text style={illStyles.headerSub}>Total Portfolio Value</Text>
           <Text style={illStyles.headerAmount}>K1,843</Text>
           <View style={illStyles.headerMeta}>
@@ -134,6 +135,7 @@ function BackIcon() {
 }
 
 export default function OnboardingScreen3() {
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
@@ -178,7 +180,7 @@ export default function OnboardingScreen3() {
       <View style={styles.buttonsWrap}>
         {/* Dark — Sign in with Email */}
         <TouchableOpacity
-          style={styles.darkBtn}
+          style={[styles.darkBtn, { backgroundColor: c.primary }]}
           activeOpacity={0.85}
           onPress={() => markOnboardedAndNavigate("/login")}
         >
@@ -209,14 +211,14 @@ export default function OnboardingScreen3() {
       {/* ── Dots ── */}
       <View style={styles.dotsRow}>
         <View style={[styles.dot, styles.dotInactive]} />
-        <View style={[styles.dot, styles.dotActive]} />
+        <View style={[styles.dot, styles.dotActive, { backgroundColor: c.primary }]} />
       </View>
 
       {/* ── Bottom text ── */}
       <View style={styles.bottomRow}>
         <Text style={styles.bottomText}>Don't have an account? </Text>
         <TouchableOpacity activeOpacity={0.7} onPress={() => markOnboardedAndNavigate("/signup")}>
-          <Text style={styles.bottomLink}>Sign Up</Text>
+          <Text style={[styles.bottomLink, { color: c.primary }]}>Sign Up</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -257,7 +259,6 @@ const illStyles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 6,
     paddingBottom: 2,
-    backgroundColor: TEAL,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -268,7 +269,6 @@ const illStyles = StyleSheet.create({
     fontFamily: "PlusJakartaSans_600SemiBold",
   },
   appHeader: {
-    backgroundColor: TEAL,
     paddingHorizontal: 14,
     paddingTop: 6,
     paddingBottom: 14,
@@ -420,7 +420,6 @@ const styles = StyleSheet.create({
   },
   darkBtn: {
     height: 56,
-    backgroundColor: TEAL,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
@@ -462,7 +461,6 @@ const styles = StyleSheet.create({
   },
   dotActive: {
     width: 20,
-    backgroundColor: TEAL,
   },
   bottomRow: {
     flexDirection: "row",
@@ -479,6 +477,5 @@ const styles = StyleSheet.create({
   bottomLink: {
     fontSize: 13,
     fontFamily: "PlusJakartaSans_600SemiBold",
-    color: TEAL,
   },
 });

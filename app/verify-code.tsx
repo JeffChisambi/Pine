@@ -13,8 +13,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import { useColors } from "@/hooks/useColors";
 
-const TEAL = "#164951";
 const WHITE = "#FFFFFF";
 const DARK = "#111827";
 const MUTED = "#9CA3AF";
@@ -37,6 +37,7 @@ function BackArrow() {
 }
 
 export default function VerifyCodeScreen() {
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
@@ -72,7 +73,7 @@ export default function VerifyCodeScreen() {
     }
   };
 
-  const isComplete = code.every((c) => c !== "");
+  const isComplete = code.every((ch) => ch !== "");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const params = useLocalSearchParams<{ phone?: string }>();
@@ -135,7 +136,7 @@ export default function VerifyCodeScreen() {
                 <TouchableOpacity
                   key={i}
                   activeOpacity={1}
-                  style={[styles.otpBox, isActive && styles.otpBoxActive]}
+                  style={[styles.otpBox, isActive && [styles.otpBoxActive, { borderColor: c.primary }]]}
                   onPress={() => {
                     inputRefs.current[i]?.focus();
                     setFocusedIndex(i);
@@ -165,7 +166,7 @@ export default function VerifyCodeScreen() {
           <View style={styles.resendRow}>
             <Text style={styles.resendText}>Didn't receive a code? </Text>
             <TouchableOpacity activeOpacity={0.7} onPress={handleResend}>
-              <Text style={styles.resendLink}>Resend</Text>
+              <Text style={[styles.resendLink, { color: c.primary }]}>Resend</Text>
             </TouchableOpacity>
           </View>
 
@@ -178,7 +179,7 @@ export default function VerifyCodeScreen() {
           {/* ── Continue button ── */}
           <View style={styles.ctaWrap}>
             <TouchableOpacity
-              style={[styles.continueBtn, (!isComplete || loading) && styles.continueBtnDisabled]}
+              style={[styles.continueBtn, { backgroundColor: c.primary }, (!isComplete || loading) && styles.continueBtnDisabled]}
               activeOpacity={0.85}
               onPress={handleVerify}
               disabled={!isComplete || loading}
@@ -247,7 +248,6 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   otpBoxActive: {
-    borderColor: TEAL,
   },
   hiddenInput: {
     position: "absolute",
@@ -281,14 +281,12 @@ const styles = StyleSheet.create({
   resendLink: {
     fontSize: 13,
     fontFamily: "PlusJakartaSans_600SemiBold",
-    color: TEAL,
   },
   ctaWrap: {
     paddingHorizontal: 24,
   },
   continueBtn: {
     height: 56,
-    backgroundColor: TEAL,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",

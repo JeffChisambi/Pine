@@ -1,5 +1,6 @@
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useColors } from "@/hooks/useColors";
 import React, { useRef, useState } from "react";
 import {
   Platform,
@@ -14,7 +15,6 @@ import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /* ─── Colours ─────────────────────────────────────────────── */
-const TEAL          = "#164951";
 const WHITE         = "#FFFFFF";
 const DARK          = "#111827";
 const MUTED_DARK    = "#6B7280";
@@ -57,6 +57,7 @@ const SLIDES = [
 
 /* ─── Main screen ──────────────────────────────────────────── */
 export default function OnboardingScreen() {
+  const c = useColors();
   const insets   = useSafeAreaInsets();
   const topPad   = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad= Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
@@ -94,7 +95,7 @@ export default function OnboardingScreen() {
       {/* ── Top bar ── */}
       <View style={s.topBar}>
         <TouchableOpacity style={s.skipBtn} activeOpacity={0.7} onPress={markOnboardedAndGoToLogin}>
-          <Text style={s.skipText}>Skip</Text>
+          <Text style={[s.skipText, { color: c.primary }]}>Skip</Text>
         </TouchableOpacity>
       </View>
 
@@ -132,14 +133,14 @@ export default function OnboardingScreen() {
                 s.dot,
                 {
                   width: activeSlide === i ? 20 : 8,
-                  backgroundColor: activeSlide === i ? TEAL : "#EBECEF",
+                  backgroundColor: activeSlide === i ? c.primary : "#EBECEF",
                 },
               ]}
             />
           ))}
         </View>
 
-        <TouchableOpacity style={s.nextBtn} activeOpacity={0.85} onPress={handleNext}>
+        <TouchableOpacity style={[s.nextBtn, { backgroundColor: c.primary }]} activeOpacity={0.85} onPress={handleNext}>
           <Text style={s.nextBtnText}>{activeSlide === SLIDES.length - 1 ? "Get Started" : "Next"}</Text>
         </TouchableOpacity>
       </View>
@@ -172,7 +173,6 @@ const s = StyleSheet.create({
   skipText: {
     fontSize: 13,
     fontFamily: "PlusJakartaSans_500Medium",
-    color: TEAL,
   },
   progressRow: {
     flexDirection: "row",
@@ -242,7 +242,6 @@ const s = StyleSheet.create({
   nextBtn: {
     height: 56,
     borderRadius: 12,
-    backgroundColor: TEAL,
     alignItems: "center",
     justifyContent: "center",
   },

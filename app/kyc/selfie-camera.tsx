@@ -36,7 +36,6 @@ import { kycApi, getErrorMessage, logHandledError } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
 
 const GREEN = "#45B369";
-const TEAL  = "#164951";
 const WHITE = "#FFFFFF";
 const DIM   = "rgba(9,14,18,0.74)";
 
@@ -233,7 +232,7 @@ export default function SelfieCameraScreen() {
         <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, textAlign: "center", lineHeight: 22 }}>
           Pine needs your camera to take a verification selfie.
         </Text>
-        <TouchableOpacity style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 40, marginTop: 8 }} onPress={requestPermission} activeOpacity={0.85}>
+        <TouchableOpacity style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 40, marginTop: 8 }} onPress={requestPermission} activeOpacity={0.85}>
           <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: WHITE }}>Allow Camera</Text>
         </TouchableOpacity>
       </View>

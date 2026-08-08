@@ -28,12 +28,11 @@ function exitToProfile() {
   router.replace("/(tabs)/profile" as any);
 }
 
-const TEAL = "#164951";
 const AMBER = "#B45309";
 const AMBER_BG = "#FFFBEB";
 const AMBER_BORDER = "#FCD34D";
 
-function ClockIllustration() {
+function ClockIllustration({ teal }: { teal: string }) {
   return (
     <View style={{ alignItems: "center", marginBottom: 8 }}>
       <Svg width={130} height={130} viewBox="0 0 130 130" fill="none">
@@ -42,25 +41,25 @@ function ClockIllustration() {
             <Rect width={130} height={130} rx={65} fill="white" />
           </ClipPath>
         </Defs>
-        <Rect width={130} height={130} rx={65} fill={TEAL} />
+        <Rect width={130} height={130} rx={65} fill={teal} />
         <G clipPath="url(#clip0)">
           <Circle cx={108} cy={108} r={45} stroke="#2D5B62" strokeWidth={1.1} />
           <Circle cx={22} cy={22} r={30} stroke="#2D5B62" strokeWidth={1.1} />
         </G>
         {/* Clock face */}
         <Circle cx={65} cy={65} r={36} fill="#FFFFFF" />
-        <Circle cx={65} cy={65} r={32} stroke="#164951" strokeWidth={1.5} fill="none" />
+        <Circle cx={65} cy={65} r={32} stroke={teal} strokeWidth={1.5} fill="none" />
         {/* Hour hand */}
-        <Path d="M65 65 L65 42" stroke={TEAL} strokeWidth={3} strokeLinecap="round" />
+        <Path d="M65 65 L65 42" stroke={teal} strokeWidth={3} strokeLinecap="round" />
         {/* Minute hand */}
         <Path d="M65 65 L80 72" stroke="#45B369" strokeWidth={3} strokeLinecap="round" />
         {/* Center dot */}
-        <Circle cx={65} cy={65} r={3.5} fill={TEAL} />
+        <Circle cx={65} cy={65} r={3.5} fill={teal} />
         {/* Clock ticks */}
-        <Path d="M65 35 L65 39" stroke={TEAL} strokeWidth={2} strokeLinecap="round" />
-        <Path d="M65 91 L65 95" stroke={TEAL} strokeWidth={2} strokeLinecap="round" />
-        <Path d="M35 65 L39 65" stroke={TEAL} strokeWidth={2} strokeLinecap="round" />
-        <Path d="M91 65 L95 65" stroke={TEAL} strokeWidth={2} strokeLinecap="round" />
+        <Path d="M65 35 L65 39" stroke={teal} strokeWidth={2} strokeLinecap="round" />
+        <Path d="M65 91 L65 95" stroke={teal} strokeWidth={2} strokeLinecap="round" />
+        <Path d="M35 65 L39 65" stroke={teal} strokeWidth={2} strokeLinecap="round" />
+        <Path d="M91 65 L95 65" stroke={teal} strokeWidth={2} strokeLinecap="round" />
       </Svg>
     </View>
   );
@@ -187,7 +186,7 @@ export default function UnderReviewScreen() {
       </View>
 
       <View style={styles.content}>
-        <ClockIllustration />
+        <ClockIllustration teal={c.primary} />
 
         <View style={styles.badge}>
           <Svg width={10} height={10} viewBox="0 0 10 10">

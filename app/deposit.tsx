@@ -21,7 +21,6 @@ import Svg, { Path, Circle } from "react-native-svg";
 
 const BANK_CARD_LOGO = require("../assets/images/bank-transfer.png");
 
-const TEAL  = "#164951";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 const GREEN = "#45B369";
@@ -188,8 +187,8 @@ export default function DepositScreen() {
       justifyContent: "center",
     },
     quickBtnActive: {
-      backgroundColor: TEAL,
-      borderColor: TEAL,
+      backgroundColor: c.primary,
+      borderColor: c.primary,
     },
     quickBtnText: {
       fontFamily: "PlusJakartaSans_600SemiBold",
@@ -221,7 +220,7 @@ export default function DepositScreen() {
       marginBottom: 14,
     },
     methodCardActive: {
-      borderColor: TEAL,
+      borderColor: c.primary,
     },
     uncheckCircle: {
       width: 18,
@@ -316,7 +315,7 @@ export default function DepositScreen() {
     },
     ctaBtn: {
       height: 56,
-      backgroundColor: TEAL,
+      backgroundColor: c.primary,
       borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
@@ -433,7 +432,7 @@ export default function DepositScreen() {
                 <Text style={[styles.summaryLabel, { color: c.text, fontFamily: "PlusJakartaSans_600SemiBold" }]}>
                   You receive
                 </Text>
-                <Text style={[styles.summaryValue, { color: TEAL, fontFamily: "PlusJakartaSans_700Bold" }]} numberOfLines={1}>
+                <Text style={[styles.summaryValue, { color: c.primary, fontFamily: "PlusJakartaSans_700Bold" }]} numberOfLines={1}>
                   MK {rawAmount}
                 </Text>
               </View>

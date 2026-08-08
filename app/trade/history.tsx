@@ -20,7 +20,6 @@ import { useMyInvestments } from "@/hooks/useTreasury";
 import { mapInvestment } from "@/utils/treasury-map";
 import { tradingApi, walletApi } from "../../services/api";
 
-const TEAL = "#164951";
 const GREEN = "#45B369";
 const RED = "#EF4770";
 const AMBER = "#F59E0B";
@@ -165,10 +164,10 @@ function TBillsSection({ c, filter }: { c: ReturnType<typeof useColors>; filter:
           ]}
         >
           {/* T-Bill icon */}
-          <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: TEAL + "18", alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.primary + "18", alignItems: "center", justifyContent: "center" }}>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke={TEAL} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-              <Path d="M9 22V12h6v10" stroke={TEAL} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke={c.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M9 22V12h6v10" stroke={c.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
           </View>
 
@@ -305,7 +304,7 @@ export default function HistoryScreen() {
               activeOpacity={0.75}
               style={[
                 { flex: 1, paddingVertical: 9, borderRadius: 20, borderWidth: 1, alignItems: "center" },
-                active ? { backgroundColor: TEAL, borderColor: TEAL } : { backgroundColor: c.card, borderColor: c.border },
+                active ? { backgroundColor: c.primary, borderColor: c.primary } : { backgroundColor: c.card, borderColor: c.border },
               ]}
             >
               <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, lineHeight: 18, color: active ? WHITE : c.text }}>{f}</Text>
@@ -336,7 +335,7 @@ export default function HistoryScreen() {
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20 }} showsVerticalScrollIndicator={false}>
         {isLoading ? (
           <View style={{ paddingVertical: 40, alignItems: "center" }}>
-            <ActivityIndicator color={TEAL} />
+            <ActivityIndicator color={c.primary} />
           </View>
         ) : grouped.length === 0 ? (
           <View style={{ paddingVertical: 40, alignItems: "center" }}>
@@ -359,7 +358,7 @@ export default function HistoryScreen() {
                           {(order.image || getStockLogo(order.ticker)) ? (
                             <Image source={order.image || getStockLogo(order.ticker)!} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
                           ) : (
-                            <View style={{ width: "100%", height: "100%", backgroundColor: TEAL, alignItems: "center", justifyContent: "center" }}>
+                            <View style={{ width: "100%", height: "100%", backgroundColor: c.primary, alignItems: "center", justifyContent: "center" }}>
                               <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>{order.ticker.slice(0, 3)}</Text>
                             </View>
                           )}
@@ -380,7 +379,7 @@ export default function HistoryScreen() {
                   );
                 }
                 const m = row.item;
-                const iconColor = m.kind === "withdrawal" ? RED : m.kind === "dividend" ? TEAL : GREEN;
+                const iconColor = m.kind === "withdrawal" ? RED : m.kind === "dividend" ? c.primary : GREEN;
                 return (
                   <View key={`m-${m.id}`} style={[{ flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 12 }, borderStyle]}>
                     <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: iconColor + "18", alignItems: "center", justifyContent: "center" }}>

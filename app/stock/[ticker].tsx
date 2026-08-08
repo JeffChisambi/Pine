@@ -42,7 +42,6 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const AnimatedLine   = Animated.createAnimatedComponent(Line);
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
-const TEAL  = "#164951";
 const GREEN = "#45B369";
 const RED   = "#EF4770";
 const WHITE = "#FFFFFF";
@@ -57,7 +56,6 @@ type TimePeriod = typeof TIME_TABS[number];
 // ─── Chart color tokens (brand / subtle — fine on both themes) ────────────────
 const SVG_GREEN = "#45B369";
 const SVG_RED   = "#EF4770";
-const SVG_TEAL  = "#164951";
 const SVG_GRID  = "#EBECEF";
 const SVG_LABEL = "#9CA3AF";
 
@@ -88,6 +86,7 @@ interface PricePoint { date: string; close: number; volume: number; changePct: n
 interface PriceChartProps { data: PricePoint[]; positive: boolean; period: string; }
 
 function PriceChart({ data, positive, period }: PriceChartProps) {
+  const c = useColors();
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const animX = useSharedValue(0);
   const animY = useSharedValue(0);
@@ -221,11 +220,11 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
             {fmtXLabel(data[idx].date, period)}
           </SvgText>
         ))}
-        <AnimatedLine animatedProps={vLineAnimProps} y1={PAD_TOP} y2={PAD_TOP + plotH} stroke={SVG_TEAL} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2" />
-        <AnimatedLine animatedProps={hLineAnimProps} x1={Y_PAD} x2={SCREEN_W - PAD_R} stroke={SVG_TEAL} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2" />
+        <AnimatedLine animatedProps={vLineAnimProps} y1={PAD_TOP} y2={PAD_TOP + plotH} stroke={c.primary} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2" />
+        <AnimatedLine animatedProps={hLineAnimProps} x1={Y_PAD} x2={SCREEN_W - PAD_R} stroke={c.primary} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2" />
         <AnimatedCircle animatedProps={dotAnimProps} r={4} fill={WHITE} stroke={SVG_GREEN} strokeWidth={2} />
       </Svg>
-      <Animated.View style={[{ position: "absolute", width: TT_SIZE, backgroundColor: SVG_TEAL, borderRadius: TT_RX, alignItems: "center", justifyContent: "center", paddingHorizontal: 6, paddingVertical: 8 }, tooltipAnimStyle]}>
+      <Animated.View style={[{ position: "absolute", width: TT_SIZE, backgroundColor: c.primary, borderRadius: TT_RX, alignItems: "center", justifyContent: "center", paddingHorizontal: 6, paddingVertical: 8 }, tooltipAnimStyle]}>
         <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: WHITE, fontSize: 12, fontFamily: "PlusJakartaSans_700Bold", textAlign: "center" }}>{priceTxt}</Text>
         <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 10, fontFamily: "PlusJakartaSans_500Medium", marginTop: 4 }}>{dateTxt}</Text>
       </Animated.View>
@@ -270,7 +269,7 @@ export default function StockDetailScreen() {
       <View style={[{ flex: 1, backgroundColor: c.background, paddingTop: topPad, alignItems: "center", justifyContent: "center" }]}>
         <Text style={{ color: RED, fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16 }}>Could not load {ticker}</Text>
         <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", marginTop: 4 }}>Check your connection</Text>
-        <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 16, backgroundColor: TEAL, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 }}>
+        <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 16, backgroundColor: c.primary, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 }}>
           <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_600SemiBold" }}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -350,7 +349,7 @@ export default function StockDetailScreen() {
             {TIME_TABS.map((tab) => (
               <TouchableOpacity
                 key={tab}
-                style={{ paddingVertical: 7, paddingHorizontal: 13, alignItems: "center", borderRadius: 8, backgroundColor: activeTimeTab === tab ? SVG_TEAL : "transparent" }}
+                style={{ paddingVertical: 7, paddingHorizontal: 13, alignItems: "center", borderRadius: 8, backgroundColor: activeTimeTab === tab ? c.primary : "transparent" }}
                 onPress={() => setActiveTimeTab(tab)}
                 activeOpacity={0.75}
               >
@@ -377,7 +376,7 @@ export default function StockDetailScreen() {
             <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: c.text, marginBottom: 10 }}>About {displayStock.name}</Text>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13.5, color: c.text, lineHeight: 22, opacity: 0.75 }} numberOfLines={aboutExpanded ? undefined : 3}>{aboutText}</Text>
             <TouchableOpacity onPress={() => setAboutExpanded((p) => !p)}>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: TEAL, marginTop: 6 }}>{aboutExpanded ? "Read less" : "Read more"}</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: c.primary, marginTop: 6 }}>{aboutExpanded ? "Read less" : "Read more"}</Text>
             </TouchableOpacity>
           </View>
 
@@ -387,7 +386,7 @@ export default function StockDetailScreen() {
           <View style={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 20 }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: c.text }}>Key Statistics</Text>
-              <TouchableOpacity><Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: TEAL }}>See All</Text></TouchableOpacity>
+              <TouchableOpacity><Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: c.primary }}>See All</Text></TouchableOpacity>
             </View>
             <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
               {keyStats.map((stat, idx) => (
@@ -416,7 +415,7 @@ export default function StockDetailScreen() {
 
           {/* MSE badge */}
           <View style={{ marginHorizontal: 24, marginBottom: 8, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: c.card, borderRadius: 10, borderWidth: 1, borderColor: c.border }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: TEAL }}>Data sourced from Malawi Stock Exchange · MSE</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: c.primary }}>Data sourced from Malawi Stock Exchange · MSE</Text>
             {displayStock.lastUpdated && (
               <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 10, color: MUTED, marginTop: 2 }}>
                 Last updated: {new Date(displayStock.lastUpdated).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
@@ -432,19 +431,19 @@ export default function StockDetailScreen() {
           style={[
             { flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1.5 },
             canSell
-              ? { borderColor: TEAL, backgroundColor: c.background }
+              ? { borderColor: c.primary, backgroundColor: c.background }
               : { borderColor: MUTED, backgroundColor: c.background, opacity: 0.45 },
           ]}
           activeOpacity={canSell ? 0.85 : 1}
           onPress={() => canSell && router.push(`/trade/sell?ticker=${ticker}` as any)}
           disabled={!canSell}
         >
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: canSell ? TEAL : MUTED }}>Sell</Text>
+          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: canSell ? c.primary : MUTED }}>Sell</Text>
           {!canSell && (
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 9, color: MUTED, marginTop: 1 }}>No shares owned</Text>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={{ flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: TEAL, shadowColor: TEAL, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 5 }} activeOpacity={0.85} onPress={() => router.push(`/trade/buy?ticker=${ticker}` as any)}>
+        <TouchableOpacity style={{ flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: c.primary, shadowColor: c.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 5 }} activeOpacity={0.85} onPress={() => router.push(`/trade/buy?ticker=${ticker}` as any)}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: WHITE }}>Buy</Text>
         </TouchableOpacity>
       </View>

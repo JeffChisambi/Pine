@@ -43,7 +43,6 @@ import {
 import { useColors } from "@/hooks/useColors";
 
 // ─── Shared tokens ────────────────────────────────────────────────────────────
-const TEAL   = "#164951";
 const GREEN  = "#45B369";
 const RED    = "#EF4770";
 const ORANGE = "#F38744";
@@ -179,14 +178,14 @@ export function NotificationsPanel({ onClose }: { onClose: () => void }) {
           </Text>
           {unreadCount > 0 && (
             <TouchableOpacity onPress={markAllRead} style={{ paddingHorizontal: 6, paddingVertical: 4 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: TEAL }}>Mark all read</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: c.primary }}>Mark all read</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {loading ? (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <ActivityIndicator size="large" color={TEAL} />
+            <ActivityIndicator size="large" color={c.primary} />
           </View>
         ) : notifications.length === 0 ? (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 48, gap: 12 }}>
@@ -218,7 +217,7 @@ export function NotificationsPanel({ onClose }: { onClose: () => void }) {
                       <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, flex: 1 }} numberOfLines={1}>
                         {item.title}
                       </Text>
-                      {!item.isRead && <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: TEAL }} />}
+                      {!item.isRead && <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: c.primary }} />}
                     </View>
                     <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED2, lineHeight: 18 }}>
                       {item.body}
@@ -264,7 +263,7 @@ function FormField({ label, value, onChangeText, placeholder, keyboardType = "de
   return (
     <View style={{ marginBottom: 20 }}>
       <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: c.text, marginBottom: 8 }}>{label}</Text>
-      <View style={{ backgroundColor: editable ? (focused ? c.background : c.card) : c.card, borderRadius: 12, borderWidth: 1.5, borderColor: focused ? TEAL : c.border, height: 56, paddingHorizontal: 16, justifyContent: "center", opacity: editable ? 1 : 0.6 }}>
+      <View style={{ backgroundColor: editable ? (focused ? c.background : c.card) : c.card, borderRadius: 12, borderWidth: 1.5, borderColor: focused ? c.primary : c.border, height: 56, paddingHorizontal: 16, justifyContent: "center", opacity: editable ? 1 : 0.6 }}>
         <TextInput
           style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: editable ? c.text : MUTED, padding: 0 }}
           value={value} onChangeText={onChangeText} placeholder={placeholder}
@@ -306,7 +305,7 @@ export function PersonalDataPanel({ onClose }: { onClose: () => void }) {
                 <Path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
                 <Path d="M4 20C4 17.33 7.58 15 12 15C16.42 15 20 17.33 20 20" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
-              <View style={{ position: "absolute", bottom: 0, right: 0, width: 28, height: 28, borderRadius: 14, backgroundColor: TEAL, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: c.background }}>
+              <View style={{ position: "absolute", bottom: 0, right: 0, width: 28, height: 28, borderRadius: 14, backgroundColor: c.primary, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: c.background }}>
                 <EditPencilIcon />
               </View>
             </View>
@@ -319,7 +318,7 @@ export function PersonalDataPanel({ onClose }: { onClose: () => void }) {
 
         {/* Save */}
         <View style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
-          <TouchableOpacity style={{ backgroundColor: TEAL, borderRadius: 14, paddingVertical: 16, alignItems: "center" }} onPress={onClose}>
+          <TouchableOpacity style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center" }} onPress={onClose}>
             <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE }}>Save Changes</Text>
           </TouchableOpacity>
         </View>
@@ -347,14 +346,15 @@ const CHANNEL_LABELS = { push: "Push Notifications", email: "Email", sms: "SMS" 
 type ChannelKey = keyof typeof CHANNEL_LABELS;
 
 function CustomToggle({ value, onChange, disabled }: { value: boolean; onChange: () => void; disabled?: boolean }) {
+  const c = useColors();
   const TW = 50, TH = 30, TS = 26, TM = 2;
   const tx = value ? TW - TS - TM : TM;
   return (
     <TouchableOpacity onPress={onChange} activeOpacity={disabled ? 1 : 0.85} disabled={disabled}>
-      <View style={{ width: TW, height: TH, borderRadius: TH / 2, backgroundColor: value ? TEAL : "#EBECEF", justifyContent: "center", overflow: "hidden", opacity: disabled ? 0.5 : 1 }}>
-        <View style={{ width: TS, height: TS, borderRadius: TS / 2, backgroundColor: WHITE, transform: [{ translateX: tx }], alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: value ? TEAL : "#EBECEF" }}>
+      <View style={{ width: TW, height: TH, borderRadius: TH / 2, backgroundColor: value ? c.primary : "#EBECEF", justifyContent: "center", overflow: "hidden", opacity: disabled ? 0.5 : 1 }}>
+        <View style={{ width: TS, height: TS, borderRadius: TS / 2, backgroundColor: WHITE, transform: [{ translateX: tx }], alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: value ? c.primary : "#EBECEF" }}>
           {value
-            ? <Svg width={14} height={14} viewBox="0 0 14 14" fill="none"><Path d="M3 7l3 3 5-5" stroke={TEAL} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+            ? <Svg width={14} height={14} viewBox="0 0 14 14" fill="none"><Path d="M3 7l3 3 5-5" stroke={c.primary} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" /></Svg>
             : <Svg width={14} height={14} viewBox="0 0 14 14" fill="none"><Path d="M4 4l6 6M10 4L4 10" stroke={MUTED} strokeWidth={1.4} strokeLinecap="round" /></Svg>
           }
         </View>
@@ -428,7 +428,7 @@ function DevicePushSection({ c }: { c: ReturnType<typeof useColors> }) {
           onPress={status === "denied" ? () => Linking.openSettings().catch(() => {}) : enable}
           disabled={busy}
           activeOpacity={0.85}
-          style={{ marginTop: 14, backgroundColor: TEAL, borderRadius: 10, paddingVertical: 11, alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1, flexDirection: "row", gap: 8 }}
+          style={{ marginTop: 14, backgroundColor: c.primary, borderRadius: 10, paddingVertical: 11, alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1, flexDirection: "row", gap: 8 }}
         >
           {busy && <ActivityIndicator size="small" color={WHITE} />}
           <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: WHITE }}>{meta.action}</Text>
@@ -494,7 +494,7 @@ export function PushNotificationsPanel({ onClose }: { onClose: () => void }) {
 
         {loading ? (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <ActivityIndicator size="large" color={TEAL} />
+            <ActivityIndicator size="large" color={c.primary} />
           </View>
         ) : (
           <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
@@ -536,7 +536,7 @@ export function PushNotificationsPanel({ onClose }: { onClose: () => void }) {
                             <View style={{ flex: 1 }}>
                               <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: c.text }}>{CHANNEL_LABELS[channel]}</Text>
                             </View>
-                            {isSaving && <ActivityIndicator size="small" color={TEAL} />}
+                            {isSaving && <ActivityIndicator size="small" color={c.primary} />}
                             <CustomToggle value={prefs?.[channel] ?? false} onChange={() => togglePref(category, channel)} disabled={isMandatory || isSaving} />
                           </View>
                           {i < Object.keys(CHANNEL_LABELS).length - 1 && <View style={{ height: 1, backgroundColor: c.border, marginHorizontal: 16 }} />}

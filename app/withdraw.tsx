@@ -22,7 +22,6 @@ import { invalidateWalletBalance, useWalletBalance } from "../services/wallet-qu
 
 const BANK_TRANSFER_ART = require("../assets/images/bank-transfer.png");
 
-const TEAL  = "#164951";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 const GREEN = "#45B369";
@@ -209,7 +208,7 @@ export default function WithdrawScreen() {
       alignItems: "center",
       justifyContent: "center",
     },
-    quickBtnActive: { backgroundColor: TEAL, borderColor: TEAL },
+    quickBtnActive: { backgroundColor: c.primary, borderColor: c.primary },
     quickBtnText: {
       fontFamily: "PlusJakartaSans_600SemiBold",
       fontSize: 13,
@@ -234,7 +233,7 @@ export default function WithdrawScreen() {
       padding: 14,
       gap: 14,
     },
-    methodCardActive: { borderColor: TEAL },
+    methodCardActive: { borderColor: c.primary },
     methodLogoWrap: {
       width: 44,
       height: 44,
@@ -303,7 +302,7 @@ export default function WithdrawScreen() {
     },
     ctaBtn: {
       height: 56,
-      backgroundColor: TEAL,
+      backgroundColor: c.primary,
       borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
@@ -413,7 +412,7 @@ export default function WithdrawScreen() {
                 <Text style={[styles.summaryLabel, { color: c.text, fontFamily: "PlusJakartaSans_600SemiBold" }]}>
                   You receive
                 </Text>
-                <Text style={[styles.summaryValue, { color: TEAL, fontFamily: "PlusJakartaSans_700Bold" }]} numberOfLines={1}>
+                <Text style={[styles.summaryValue, { color: c.primary, fontFamily: "PlusJakartaSans_700Bold" }]} numberOfLines={1}>
                   MK {numericValue.toLocaleString()}
                 </Text>
               </View>
