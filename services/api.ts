@@ -832,6 +832,19 @@ export const accountApi = {
     }),
 };
 
+// ─── Mobile theme (broker-configurable brand colors) ──────────────────────────
+
+export type MobileThemeColors = {
+  primary?: string; accent?: string; background?: string; card?: string;
+  text?: string; mutedForeground?: string; border?: string; destructive?: string;
+};
+
+export const mobileThemeApi = {
+  /** Public: the active brand theme (null colors → app uses the Pine default). */
+  get: (): Promise<{ colors: MobileThemeColors | null }> =>
+    request<{ colors: MobileThemeColors | null }>('/mobile-theme', { skipAuth: true }),
+};
+
 // ─── Treasury API ─────────────────────────────────────────────────────────────
 
 /** T-bill product as returned by the backend — matches the mobile TBillOption. */

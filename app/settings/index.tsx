@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  Switch,
   Alert,
   ActivityIndicator,
 } from "react-native";
@@ -29,7 +28,7 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark } = useTheme();
   const { logout } = useAuth();
 
   const [showPin, setShowPin] = useState(false);
@@ -78,9 +77,6 @@ export default function SettingsScreen() {
         {/* Preferences */}
         <Label c={c}>PREFERENCES</Label>
         <Group c={c}>
-          <Row c={c} icon="moon" title="Dark Mode" sub="Switch app appearance"
-            right={<Switch value={isDark} onValueChange={toggleTheme} trackColor={{ true: TEAL, false: "#D1D5DB" }} thumbColor={WHITE} />} />
-          <Divider c={c} />
           <Row c={c} icon="bell" title="Notifications" sub="Manage notification preferences"
             onPress={() => router.push("/profile/push-notifications" as any)} chevron />
         </Group>

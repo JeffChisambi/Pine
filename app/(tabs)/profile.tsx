@@ -18,7 +18,6 @@ import { useAuth } from "../../services/auth-context";
 import { useWalletBalance } from "../../services/wallet-queries";
 import { useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
-import { NotificationsPanel, PersonalDataPanel, PushNotificationsPanel } from "@/components/ProfilePanels";
 import {
   getBiometricInfo,
   authenticate,
@@ -34,47 +33,10 @@ const WHITE = "#FFFFFF";
 const RED = "#EF4770";
 
 // ─── Icon components (accept explicit color props) ────────────────────────────
-function EditIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Path d="M13 2a2 2 0 0 1 2.828 2.828L5.5 15.156 2 16l.844-3.5L13 2z" stroke={color} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
 function ChevronRight({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
       <Path d="M7.5 14.5L12.5 10 7.5 5.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function CalendarIcon({ color }: { color: string }) {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      <Path d="M17.875 3.4375H4.125C2.98591 3.4375 2.0625 4.36091 2.0625 5.5V17.875C2.0625 19.0141 2.98591 19.9375 4.125 19.9375H17.875C19.0141 19.9375 19.9375 19.0141 19.9375 17.875V5.5C19.9375 4.36091 19.0141 3.4375 17.875 3.4375Z" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
-      <Path d="M12.7188 11C13.2883 11 13.75 10.5383 13.75 9.96875C13.75 9.39921 13.2883 8.9375 12.7188 8.9375C12.1492 8.9375 11.6875 9.39921 11.6875 9.96875C11.6875 10.5383 12.1492 11 12.7188 11Z" fill={color} />
-      <Path d="M16.1562 11C16.7258 11 17.1875 10.5383 17.1875 9.96875C17.1875 9.39921 16.7258 8.9375 16.1562 8.9375C15.5867 8.9375 15.125 9.39921 15.125 9.96875C15.125 10.5383 15.5867 11 16.1562 11Z" fill={color} />
-      <Path d="M12.7188 14.4375C13.2883 14.4375 13.75 13.9758 13.75 13.4062C13.75 12.8367 13.2883 12.375 12.7188 12.375C12.1492 12.375 11.6875 12.8367 11.6875 13.4062C11.6875 13.9758 12.1492 14.4375 12.7188 14.4375Z" fill={color} />
-      <Path d="M16.1562 14.4375C16.7258 14.4375 17.1875 13.9758 17.1875 13.4062C17.1875 12.8367 16.7258 12.375 16.1562 12.375C15.5867 12.375 15.125 12.8367 15.125 13.4062C15.125 13.9758 15.5867 14.4375 16.1562 14.4375Z" fill={color} />
-      <Path d="M5.84375 14.4375C6.41329 14.4375 6.875 13.9758 6.875 13.4062C6.875 12.8367 6.41329 12.375 5.84375 12.375C5.27421 12.375 4.8125 12.8367 4.8125 13.4062C4.8125 13.9758 5.27421 14.4375 5.84375 14.4375Z" fill={color} />
-      <Path d="M9.28125 14.4375C9.85079 14.4375 10.3125 13.9758 10.3125 13.4062C10.3125 12.8367 9.85079 12.375 9.28125 12.375C8.71171 12.375 8.25 12.8367 8.25 13.4062C8.25 13.9758 8.71171 14.4375 9.28125 14.4375Z" fill={color} />
-      <Path d="M5.84375 17.875C6.41329 17.875 6.875 17.4133 6.875 16.8438C6.875 16.2742 6.41329 15.8125 5.84375 15.8125C5.27421 15.8125 4.8125 16.2742 4.8125 16.8438C4.8125 17.4133 5.27421 17.875 5.84375 17.875Z" fill={color} />
-      <Path d="M9.28125 17.875C9.85079 17.875 10.3125 17.4133 10.3125 16.8438C10.3125 16.2742 9.85079 15.8125 9.28125 15.8125C8.71171 15.8125 8.25 16.2742 8.25 16.8438C8.25 17.4133 8.71171 17.875 9.28125 17.875Z" fill={color} />
-      <Path d="M12.7188 17.875C13.2883 17.875 13.75 17.4133 13.75 16.8438C13.75 16.2742 13.2883 15.8125 12.7188 15.8125C12.1492 15.8125 11.6875 16.2742 11.6875 16.8438C11.6875 17.4133 12.1492 17.875 12.7188 17.875Z" fill={color} />
-      <Path d="M5.5 2.0625V3.4375M16.5 2.0625V3.4375" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M19.9375 6.875H2.0625" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function NotificationSettingsIcon({ color }: { color: string }) {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      <Path d="M8.9375 19.25a2.0625 2.0625 0 004.125 0" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M11 2.75a5.5 5.5 0 00-5.5 5.5c0 3.094-.688 5.042-1.375 6.188a.687.687 0 00.594 1.062h12.562a.687.687 0 00.594-1.063c-.687-1.145-1.375-3.093-1.375-6.187a5.5 5.5 0 00-5.5-5.5z" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M17.875 4.125l-2.75 2.75M4.125 4.125l2.75 2.75" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -176,7 +138,6 @@ export default function ProfileScreen() {
   const [fingerprintEnabled, setFingerprintEnabled] = useState(false);
   const [biometricInfo, setBiometricInfo] = useState<BiometricInfo>({ available: false, enrolled: false, label: "Biometrics" });
   const [biometricBusy, setBiometricBusy] = useState(false);
-  const [activePanel, setActivePanel] = useState<'notifications' | 'personal-data' | 'push-notifications' | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Load the saved biometric preference and device capability on mount.
@@ -275,25 +236,23 @@ export default function ProfileScreen() {
     icon: React.ReactNode; label: string; sub: string;
     onPress: (() => void) | null; badge?: "verified";
   }> = [
-    { icon: <CalendarIcon color={iconColor} />, label: "Personal Data", sub: "Name, address, email", onPress: () => setActivePanel('personal-data') },
     {
       icon: <SealCheckIcon color={isVerified ? "#45B369" : iconColor} />,
       label: "Identity Verification",
       sub: isVerified ? "Your identity is verified" : "KYC — verify your identity",
-      // Once approved there is nothing left to do in the KYC flow — the row
-      // becomes informational (badge instead of chevron, no navigation).
       onPress: isVerified ? null : () => router.push("/kyc/upload-id" as any),
       badge: isVerified ? "verified" : undefined,
     },
-    { icon: <LockIcon color={iconColor} />, label: "Security", sub: "Password & PIN", onPress: () => router.push("/profile/security" as any) },
-    { icon: <Feather name="help-circle" size={20} color={iconColor} />, label: "Help & Support", sub: "Get help, contact us", onPress: () => router.push("/help" as any) },
     { icon: <Feather name="settings" size={20} color={iconColor} />, label: "Settings", sub: "Preferences & account", onPress: () => router.push("/settings" as any) },
   ];
 
-  const SETTINGS_GROUP_2 = [
+  const SETTINGS_GROUP_2: Array<{
+    icon: React.ReactNode; label: string; sub: string;
+    onPress: (() => void) | null; toggle: boolean;
+    toggleValue?: boolean; onToggle?: () => void;
+  }> = [
     { icon: <FingerprintIcon color={iconColor} />, label: biometricInfo.label === "Biometrics" ? "Fingerprint" : biometricInfo.label, sub: biometricInfo.available ? "Biometric authentication" : "Not available on this device", onPress: null, toggle: true, toggleValue: fingerprintEnabled, onToggle: handleToggleFingerprint },
     { icon: <MoonIcon color={iconColor} />, label: "Dark Mode", sub: "Switch app appearance", onPress: null, toggle: true, toggleValue: isDark, onToggle: toggleTheme },
-    { icon: <NotificationSettingsIcon color={iconColor} />, label: "Notifications", sub: "Manage notification preferences", onPress: () => setActivePanel('push-notifications'), toggle: false },
   ];
 
   const styles = StyleSheet.create({
@@ -428,20 +387,9 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
-      {/* Overlay panels — same pattern as news DetailModal */}
-      {activePanel === 'notifications'      && <NotificationsPanel    onClose={() => setActivePanel(null)} />}
-      {activePanel === 'personal-data'      && <PersonalDataPanel     onClose={() => setActivePanel(null)} />}
-      {activePanel === 'push-notifications' && <PushNotificationsPanel onClose={() => setActivePanel(null)} />}
-
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Account</Text>
-        <TouchableOpacity
-          style={styles.editBtn}
-          onPress={() => setActivePanel('personal-data')}
-        >
-          <EditIcon color={textColor} />
-        </TouchableOpacity>
       </View>
 
       <ScrollView
