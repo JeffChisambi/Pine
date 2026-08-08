@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Platform } from "react-native
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
-import { guardedBack, guardedPush } from "@/utils/navigation";
+import { guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
 import { calculateReturns, EMPTY_TBILL } from "@/data/treasury";
 import { useTreasuryProduct } from "@/hooks/useTreasury";
@@ -13,114 +13,237 @@ const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
-function BackIcon({ color }: { color: string }) {
+function fmt(n: number): string {
+  const [w, d] = n.toFixed(2).split(".");
+  return `${Number(w).toLocaleString()}.${d}`;
+}
+
+function SuccessIcon() {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M15 19l-7-7 7-7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
+    <View
+      style={{
+        width: 96,
+        height: 96,
+        borderRadius: 48,
+        backgroundColor: TEAL + "15",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Svg width={48} height={48} viewBox="0 0 48 48" fill="none">
+        <Circle cx={24} cy={24} r={24} fill={TEAL} />
+        <Path
+          d="M14 24l8 8 12-13"
+          stroke={WHITE}
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </View>
   );
 }
 
-function SuccessIllustration() {
+function InfoRow({
+  label,
+  value,
+  valueColor,
+  bold,
+}: {
+  label: string;
+  value: string;
+  valueColor?: string;
+  bold?: boolean;
+}) {
+  const c = useColors();
   return (
-    <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: GREEN + "20", alignItems: "center", justifyContent: "center" }}>
-      <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: GREEN + "35", alignItems: "center", justifyContent: "center" }}>
-        <Svg width={44} height={44} viewBox="0 0 44 44" fill="none">
-          <Circle cx={22} cy={22} r={22} fill={GREEN} />
-          <Path d="M12 22.5l7 7 13-14" stroke={WHITE} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
-        </Svg>
-      </View>
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingVertical: 12,
+      }}
+    >
+      <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED }}>
+        {label}
+      </Text>
+      <Text
+        style={{
+          fontFamily: bold ? "PlusJakartaSans_700Bold" : "PlusJakartaSans_600SemiBold",
+          fontSize: bold ? 16 : 14,
+          color: valueColor ?? c.text,
+        }}
+      >
+        {value}
+      </Text>
     </View>
   );
 }
 
 export default function TreasurySuccess() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16);
   const c = useColors();
-  const { id, amount, ref } = useLocalSearchParams<{ id: string; amount: string; ref: string }>();
+  const { id, amount, ref } = useLocalSearchParams<{
+    id: string;
+    amount: string;
+    ref: string;
+  }>();
 
   const { data: billData } = useTreasuryProduct(id);
   const bill = billData ?? EMPTY_TBILL;
   const numericAmount = Number(amount) || 0;
-  const { earnings, maturityValue } = calculateReturns(numericAmount, bill.yieldPct, bill.duration);
+  const { maturityValue } = calculateReturns(numericAmount, bill.yieldPct, bill.duration);
 
-  const maturityDateStr = (() => {
-    const d = new Date();
-    d.setDate(d.getDate() + bill.duration);
+  const settleDate = (() => {
+    const d = new Date(bill.issueDate || bill.auctionDate);
+    if (isNaN(d.getTime())) return bill.issueDate || "";
     return d.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
   })();
 
-  // Generate a reference number
-  const refNumber = `TBL-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(Math.floor(Math.random() * 900) + 100)}`;
+  const shortSettleDate = (() => {
+    const d = new Date(bill.issueDate || bill.auctionDate);
+    if (isNaN(d.getTime())) return settleDate;
+    return d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+  })();
+
+  const refNumber =
+    ref ||
+    `TB-${String(Math.floor(Math.random() * 9000) + 1000)}-${String(
+      Math.floor(Math.random() * 9000) + 1000,
+    )}`;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
-      {/* Header */}
-      <View style={{ paddingTop: topPad + 8, paddingHorizontal: 16 }}>
-        <TouchableOpacity
-          onPress={() => router.replace("/(tabs)" as any)}
-          activeOpacity={0.7}
-          style={{ width: 40, height: 40, justifyContent: "center" }}
-        >
-          <BackIcon color={c.text} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 16, paddingHorizontal: 20, paddingBottom: bottomPad + 100 }}
+        contentContainerStyle={{
+          paddingTop: topPad + 40,
+          paddingHorizontal: 20,
+          paddingBottom: bottomPad + 150,
+        }}
       >
         {/* Success illustration */}
-        <View style={{ alignItems: "center", marginBottom: 24 }}>
-          <SuccessIllustration />
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 24, color: c.text, marginTop: 20, marginBottom: 6 }}>
-            Investment Placed!
+        <View style={{ alignItems: "center", marginBottom: 28 }}>
+          <SuccessIcon />
+          <Text
+            style={{
+              fontFamily: "PlusJakartaSans_700Bold",
+              fontSize: 24,
+              color: c.text,
+              marginTop: 24,
+              marginBottom: 8,
+            }}
+          >
+            Bid Submitted
           </Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: MUTED, textAlign: "center", lineHeight: 22 }}>
-            Your Treasury Bill order has been submitted successfully and is pending auction allocation.
+          <Text
+            style={{
+              fontFamily: "PlusJakartaSans_400Regular",
+              fontSize: 14,
+              color: MUTED,
+              textAlign: "center",
+              lineHeight: 21,
+            }}
+          >
+            K{fmt(numericAmount)} is held until the auction settles on {shortSettleDate}.
           </Text>
         </View>
 
-        {/* Reference card */}
-        <View style={{ backgroundColor: c.card, borderRadius: 16, borderWidth: 1, borderColor: c.border, padding: 18, marginBottom: 16 }}>
-          <View style={{ alignItems: "center", paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: c.border, marginBottom: 14 }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, marginBottom: 4 }}>Reference Number</Text>
-            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 17, color: TEAL, letterSpacing: 0.5 }}>{refNumber}</Text>
-          </View>
-
-          {[
-            { label: "Amount Invested", value: `MWK ${numericAmount.toLocaleString()}` },
-            { label: "Treasury Bill", value: `${bill.duration}-Day T-Bill` },
-            { label: "Annual Yield", value: `${bill.yieldPct}%`, color: GREEN },
-            { label: "Estimated Earnings", value: `+MWK ${earnings.toLocaleString()}`, color: GREEN },
-            { label: "Maturity Date", value: maturityDateStr },
-          ].map((row, i, arr) => (
-            <View key={row.label}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 11 }}>
-                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED }}>{row.label}</Text>
-                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: row.color ?? c.text }}>{row.value}</Text>
-              </View>
-              {i < arr.length - 1 && <View style={{ height: 1, backgroundColor: c.border }} />}
-            </View>
-          ))}
+        {/* Details card */}
+        <View
+          style={{
+            backgroundColor: c.card,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: c.border,
+            paddingHorizontal: 18,
+            marginBottom: 20,
+          }}
+        >
+          <InfoRow label="Tenor" value={`${bill.duration} days`} />
+          <View style={{ height: 1, backgroundColor: c.border }} />
+          <InfoRow label="Yield" value={`${bill.yieldPct}%`} />
+          <View style={{ height: 1, backgroundColor: c.border }} />
+          <InfoRow label="Settles" value={settleDate} />
+          <View style={{ height: 1, backgroundColor: c.border }} />
+          <InfoRow label="Reference" value={refNumber} valueColor={TEAL} />
+          <View style={{ height: 1, backgroundColor: c.border }} />
+          <InfoRow
+            label="Value at maturity"
+            value={`K${fmt(maturityValue)}`}
+            valueColor={GREEN}
+            bold
+          />
         </View>
 
-        {/* Maturity value highlight */}
-        <View style={{ backgroundColor: TEAL, borderRadius: 16, padding: 20, marginBottom: 8, alignItems: "center" }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.65)", marginBottom: 6 }}>
-            Estimated Maturity Value
-          </Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 32, color: WHITE, letterSpacing: -0.5 }}>
-            MWK {maturityValue.toLocaleString()}
-          </Text>
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "rgba(255,255,255,0.55)", marginTop: 6 }}>
-            Due on {maturityDateStr}
-          </Text>
-        </View>
+        {/* Disclaimer */}
+        <Text
+          style={{
+            fontFamily: "PlusJakartaSans_400Regular",
+            fontSize: 13,
+            color: MUTED,
+            textAlign: "center",
+            lineHeight: 19,
+            fontStyle: "italic",
+            paddingHorizontal: 10,
+          }}
+        >
+          If your bid is not allotted in full, the balance returns to your wallet.
+        </Text>
       </ScrollView>
 
+      {/* Buttons */}
+      <View
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: Math.max(bottomPad, 24),
+          backgroundColor: c.background,
+        }}
+      >
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() =>
+            guardedPush(() => router.replace("/treasury/my-investments" as any))
+          }
+          style={{
+            height: 56,
+            backgroundColor: TEAL,
+            borderRadius: 14,
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 10,
+          }}
+        >
+          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: WHITE }}>
+            View My Bills
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => router.replace("/(tabs)" as any)}
+          style={{
+            height: 56,
+            backgroundColor: c.card,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: c.border,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text }}>
+            Back to Home
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

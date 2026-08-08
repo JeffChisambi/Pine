@@ -24,6 +24,7 @@ import Svg, { Path, Circle } from "react-native-svg";
 import { ActivityIndicator } from "react-native";
 import { useColors } from "@/hooks/useColors";
 import { useNews } from "@/hooks/useNews";
+import { API_BASE_URL } from "@/services/api";
 
 // ─── Brand tokens ───────────────────────────────────────────────────────────────
 const TEAL  = "#164951";
@@ -54,8 +55,26 @@ const CATEGORIES = ["All", "Banking", "Markets", "Insurance"];
 // The NewsItem shape above matches the API's ApiNewsItem (image is a URL string).
 
 // ─── Helper ─────────────────────────────────────────────────────────────────────
+// News hero images are always served by the same backend the app talks to.
+// A stored URL can be unreachable from the device when the backend baked it
+// from a misconfigured APP_URL (e.g. http://localhost:3000/... — "localhost"
+// on a phone is the phone itself) or when it is a relative path. In those
+// cases resolve it against our own API origin so it actually loads. Genuine
+// external URLs (pasted CDN / publisher links) are left untouched.
+const API_ORIGIN = API_BASE_URL.replace(/\/v1\/?$/, "");
+
+function resolveImageUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith("/")) return `${API_ORIGIN}${url}`;
+  const loopback = url.match(
+    /^https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(?::\d+)?(\/.*)?$/i,
+  );
+  if (loopback) return `${API_ORIGIN}${loopback[1] ?? ""}`;
+  return url;
+}
+
 function imgSrc(image: any) {
-  return typeof image === "string" ? { uri: image } : image;
+  return typeof image === "string" ? { uri: resolveImageUrl(image) } : image;
 }
 
 // ─── Icons ──────────────────────────────────────────────────────────────────────
@@ -160,7 +179,7 @@ function NewsCard({ item, onPress, isLast, c }: { item: NewsItem; onPress: () =>
       {/* Thumbnail */}
       <Image
         source={imgSrc(item.image)}
-        style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.border, flexShrink: 0, borderWidth: 1, borderColor: c.border }}
+        style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: c.border, flexShrink: 0, borderWidth: 1, borderColor: c.border }}
         contentFit="cover"
         cachePolicy="memory-disk"
         transition={150}
@@ -209,7 +228,7 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
     transform: [{ translateX: translateX.value }],
   }));
 
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
 
   return (
     <ReAnimated.View
@@ -290,7 +309,7 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
 // ─── Screen ─────────────────────────────────────────────────────────────────────
 export default function NewsScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const c = useColors();
   const [activeCategory, setActiveCategory] = useState("All");
   const [selected, setSelected] = useState<NewsItem | null>(null);
@@ -314,7 +333,7 @@ export default function NewsScreen() {
       <View style={{
         paddingTop: topPad,
         paddingHorizontal: 20,
-        paddingBottom: 16,
+        paddingBottom: 10,
       }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 24, color: c.text }}>

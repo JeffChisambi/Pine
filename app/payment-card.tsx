@@ -346,10 +346,8 @@ export default function PaymentCardScreen() {
     } catch (err: any) {
       // Transport / gateway-unavailable errors (payment did not complete)
       attemptKeyRef.current = makeAttemptKey();
-      const msg =
-        err?.message ??
-        "Your card could not be charged. Please check your details and try again.";
-      Alert.alert("Payment Failed", msg);
+      const { getErrorMessage } = require("../services/api");
+      Alert.alert("Payment Unsuccessful", getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -370,6 +368,9 @@ export default function PaymentCardScreen() {
   // ── Test Transaction mode ──
   const [showTestSheet, setShowTestSheet] = useState(false);
   const runTestTransaction = async (scenario: string) => {
+    // Development-only. The mock gateway credits the wallet with no real
+    // charge, so this must never run in a production build.
+    if (!__DEV__) return;
     setShowTestSheet(false);
     // Standard test card — real card details are never required in test mode.
     await runPayment(
@@ -389,7 +390,7 @@ export default function PaymentCardScreen() {
       keyboardVerticalOffset={0}
     >
       {/* Header — clean white, dark text */}
-      <View style={[styles.header, { paddingTop: topPad + 8 }]}>
+      <View style={[styles.header, { paddingTop: topPad }]}>
         <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/deposit")}>
           <BackIcon color={DARK} />
         </TouchableOpacity>
@@ -510,19 +511,23 @@ export default function PaymentCardScreen() {
           )}
         </TouchableOpacity>
 
-        {/* Test Transaction — full workflow through the mock gateway */}
-        <TouchableOpacity
-          style={styles.testBtn}
-          activeOpacity={0.7}
-          disabled={loading}
-          onPress={() => setShowTestSheet(true)}
-        >
-          <Text style={styles.testBtnText}>Test Transaction</Text>
-        </TouchableOpacity>
+        {/* Test Transaction — full workflow through the mock gateway.
+            Development builds only: stripped from production so the mock
+            gateway can never be reached by end users. */}
+        {__DEV__ && (
+          <TouchableOpacity
+            style={styles.testBtn}
+            activeOpacity={0.7}
+            disabled={loading}
+            onPress={() => setShowTestSheet(true)}
+          >
+            <Text style={styles.testBtnText}>Test Transaction</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Scenario picker */}
-      <Modal transparent visible={showTestSheet} animationType="fade" onRequestClose={() => setShowTestSheet(false)}>
+      {/* Scenario picker (development builds only) */}
+      <Modal transparent visible={__DEV__ && showTestSheet} animationType="fade" onRequestClose={() => setShowTestSheet(false)}>
         <TouchableOpacity style={styles.sheetOverlay} activeOpacity={1} onPress={() => setShowTestSheet(false)}>
           <View style={styles.sheet} onStartShouldSetResponder={() => true}>
             <View style={styles.sheetHandle} />

@@ -336,7 +336,7 @@ export default function DepositScreen() {
       <View style={[styles.root, { paddingBottom: bottomPad }]}>
 
         {/* ── Header ── */}
-        <View style={[styles.header, { paddingTop: topPad + 8 }]}>
+        <View style={[styles.header, { paddingTop: topPad }]}>
           <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/(tabs)")}>
             <BackIcon color={c.text} />
           </TouchableOpacity>

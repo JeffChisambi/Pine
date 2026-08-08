@@ -65,7 +65,7 @@ type ChannelKey = keyof typeof CHANNEL_LABELS;
 
 export default function PushNotificationsScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
 
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);

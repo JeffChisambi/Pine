@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   Platform,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle, Rect, G, Defs, ClipPath } from "react-native-svg";
@@ -18,7 +17,7 @@ import { guardedBack } from "@/utils/navigation";
 import { useInvalidateNotifications } from "@/hooks/useNotifications";
 
 const TEAL = "#164951";
-const RED = "#EF4770";
+const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
@@ -65,119 +64,133 @@ function NotificationsIllustration() {
   );
 }
 
+// ─── Category → accent color ────────────────────────────────────────────────
+const CATEGORY_COLORS: Record<string, string> = {
+  TRADE: "#164951",
+  ORDER: "#164951",
+  DEPOSIT: "#45B369",
+  WALLET: "#45B369",
+  NEWS: "#3B82F6",
+  TREASURY: "#8B5CF6",
+  SECURITY: "#EF4770",
+  KYC: "#F59E0B",
+};
 
-function formatRelativeTime(dateStr: string): string {
+function getAccentColor(category?: string): string {
+  if (!category) return TEAL;
+  return CATEGORY_COLORS[category.toUpperCase()] ?? TEAL;
+}
+
+// ─── Time formatting ────────────────────────────────────────────────────────
+function formatTime(dateStr: string): string {
   try {
-    const now = Date.now();
-    const then = new Date(dateStr).getTime();
-    const diffMs = now - then;
-    const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return "Just now";
-    if (diffMin < 60) return `${diffMin}m ago`;
-    const diffHr = Math.floor(diffMin / 60);
-    if (diffHr < 24) return `${diffHr}h ago`;
-    const diffDay = Math.floor(diffHr / 24);
-    if (diffDay < 7) return `${diffDay}d ago`;
-    return new Date(dateStr).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
   } catch {
     return "";
   }
 }
 
-// ─── Expandable notification row ─────────────────────────────────────────────
-function NotificationItem({
+function getDateGroup(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today.getTime() - 86400000);
+    const itemDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    if (itemDate.getTime() === today.getTime()) return "TODAY";
+    if (itemDate.getTime() === yesterday.getTime()) return "YESTERDAY";
+
+    const diff = today.getTime() - itemDate.getTime();
+    if (diff < 7 * 86400000) {
+      return d.toLocaleDateString("en-GB", { weekday: "long" }).toUpperCase();
+    }
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }).toUpperCase();
+  } catch {
+    return "";
+  }
+}
+
+function groupNotifications(items: Notification[]): { label: string; items: Notification[] }[] {
+  const groups: { label: string; items: Notification[] }[] = [];
+  let currentLabel = "";
+  for (const item of items) {
+    const label = getDateGroup(item.createdAt);
+    if (label !== currentLabel) {
+      currentLabel = label;
+      groups.push({ label, items: [] });
+    }
+    groups[groups.length - 1].items.push(item);
+  }
+  return groups;
+}
+
+// ─── Notification row ───────────────────────────────────────────────────────
+function NotificationRow({
   item,
   isLast,
   onMarkRead,
-  onDelete,
   colors: c,
 }: {
   item: Notification;
   isLast: boolean;
   onMarkRead: (id: string) => void;
-  onDelete: (id: string) => void;
   colors: ReturnType<typeof useColors>;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  // We need to know whether the body actually overflows 2 lines before showing
-  // the toggle. We detect this by comparing the full-text height vs 2-line cap.
-  const [needsToggle, setNeedsToggle] = useState(false);
-
   return (
     <TouchableOpacity
-      activeOpacity={0.75}
+      activeOpacity={0.7}
       onPress={() => { if (!item.isRead) onMarkRead(item.id); }}
-      onLongPress={() => onDelete(item.id)}
-      style={[
-        { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 24, paddingVertical: 18, gap: 14 },
-        !item.isRead && { backgroundColor: c.card },
-        !isLast && { borderBottomWidth: 1, borderBottomColor: c.border },
-      ]}
+      style={{
+        paddingHorizontal: 24,
+        paddingVertical: 16,
+        borderBottomWidth: isLast ? 0 : 1,
+        borderBottomColor: c.border,
+      }}
     >
       <View style={{ flex: 1 }}>
-        {/* Title + unread dot */}
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text, flex: 1 }} numberOfLines={1}>
+        {/* Title row */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 3 }}>
+          <Text
+            style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, flex: 1 }}
+            numberOfLines={1}
+          >
             {item.title}
           </Text>
-          {!item.isRead && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: TEAL }} />}
+          {!item.isRead && (
+            <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: TEAL }} />
+          )}
         </View>
 
-        {/* Body — truncated unless expanded */}
+        {/* Body */}
         <Text
-          style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, lineHeight: 19, marginBottom: 2 }}
-          numberOfLines={expanded ? undefined : 2}
-          onTextLayout={(e) => {
-            if (!needsToggle && e.nativeEvent.lines.length > 2) setNeedsToggle(true);
-          }}
+          style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, lineHeight: 18 }}
+          numberOfLines={undefined}
         >
           {item.body}
         </Text>
 
-        {/* Show more / Show less toggle */}
-        {needsToggle && (
-          <TouchableOpacity
-            onPress={() => setExpanded((v) => !v)}
-            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-            style={{ marginBottom: 4 }}
-          >
-            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: TEAL }}>
-              {expanded ? "Show less" : "Show more"}
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "#C4C4C4", marginTop: 2 }}>
-          {formatRelativeTime(item.createdAt)}
+        {/* Time */}
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "#C4C4C4", marginTop: 6 }}>
+          {formatTime(item.createdAt)}
         </Text>
       </View>
-
-      {/* Dismiss button */}
-      <TouchableOpacity
-        onPress={() => onDelete(item.id)}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        style={{ padding: 4, marginTop: 2 }}
-      >
-        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-          <Path d="M18 6L6 18M6 6l12 12" stroke={MUTED} strokeWidth={1.8} strokeLinecap="round" />
-        </Svg>
-      </TouchableOpacity>
     </TouchableOpacity>
   );
 }
 
+// ─── Screen ─────────────────────────────────────────────────────────────────
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
   const invalidateNotifications = useInvalidateNotifications();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  // The "no notifications" illustration may only appear when a fetch has
-  // SUCCEEDED and returned zero items — never on a failed/uncertain load.
   const [loadFailed, setLoadFailed] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
@@ -187,7 +200,6 @@ export default function NotificationsScreen() {
       setUnreadCount(result.unreadCount ?? 0);
       setLoadFailed(false);
     } catch {
-      // Keep existing items; flag the failure so we don't claim "no notifications"
       setLoadFailed(true);
     } finally {
       setLoading(false);
@@ -195,10 +207,6 @@ export default function NotificationsScreen() {
     }
   }, []);
 
-  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
-
-  // Refresh whenever the screen regains focus so newly arrived notifications
-  // show without requiring a manual pull-to-refresh.
   useFocusEffect(useCallback(() => { fetchNotifications(); }, [fetchNotifications]));
 
   const onRefresh = () => { setRefreshing(true); fetchNotifications(); };
@@ -215,54 +223,23 @@ export default function NotificationsScreen() {
     try { await notificationsApi.markAllRead(); invalidateNotifications(); } catch { fetchNotifications(); }
   };
 
-  const deleteNotification = async (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-    setUnreadCount((c) => {
-      const wasUnread = notifications.find((n) => n.id === id && !n.isRead);
-      return wasUnread ? Math.max(0, c - 1) : c;
-    });
-    try { await notificationsApi.delete(id); invalidateNotifications(); } catch { fetchNotifications(); }
-  };
-
-  const clearAll = () => {
-    Alert.alert(
-      "Clear all notifications?",
-      "This permanently removes every notification from your inbox.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Clear all",
-          style: "destructive",
-          onPress: async () => {
-            setNotifications([]);
-            setUnreadCount(0);
-            try { await notificationsApi.clearAll(); invalidateNotifications(); } catch { fetchNotifications(); }
-          },
-        },
-      ],
-    );
-  };
+  const groups = groupNotifications(notifications);
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background, paddingTop: topPad }}>
       {/* Header */}
       <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingBottom: 12, gap: 8 }}>
-        <TouchableOpacity onPress={() => guardedBack("/(tabs)/profile")} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
-          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+        <TouchableOpacity onPress={() => guardedBack("/(tabs)/profile")} style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
+          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
             <Path d="M15 19l-7-7 7-7" stroke={c.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
         </TouchableOpacity>
-        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text }}>Notifications</Text>
-        </View>
+        <Text style={{ flex: 1, fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text }}>
+          Notifications
+        </Text>
         {unreadCount > 0 && (
           <TouchableOpacity onPress={markAllRead} style={{ paddingHorizontal: 6, paddingVertical: 4 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: TEAL }}>Mark all read</Text>
-          </TouchableOpacity>
-        )}
-        {notifications.length > 0 && (
-          <TouchableOpacity onPress={clearAll} style={{ paddingHorizontal: 6, paddingVertical: 4 }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: RED }}>Clear</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -296,15 +273,26 @@ export default function NotificationsScreen() {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={TEAL} />}
         >
-          {notifications.map((item, i) => (
-            <NotificationItem
-              key={item.id}
-              item={item}
-              isLast={i === notifications.length - 1}
-              onMarkRead={markRead}
-              onDelete={deleteNotification}
-              colors={c}
-            />
+          {groups.map((group) => (
+            <View key={group.label}>
+              {/* Section header */}
+              <View style={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 10 }}>
+                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: MUTED, letterSpacing: 0.8 }}>
+                  {group.label}
+                </Text>
+              </View>
+
+              {/* Items */}
+              {group.items.map((item, i) => (
+                <NotificationRow
+                  key={item.id}
+                  item={item}
+                  isLast={i === group.items.length - 1}
+                  onMarkRead={markRead}
+                  colors={c}
+                />
+              ))}
+            </View>
           ))}
           <View style={{ height: 32 }} />
         </ScrollView>

@@ -74,7 +74,7 @@ function StepItem({ label, c }: { label: string; c: ReturnType<typeof useColors>
 
 export default function VerifySuccessScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const params = useLocalSearchParams<{ decision: string; confidenceScore: string }>();
   const { refreshProfile } = useAuth();
   const c = useColors();

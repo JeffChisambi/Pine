@@ -35,7 +35,7 @@ function SwapIcon() {
 
 export default function ExchangeScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
 
   const { data: stocks = [] } = useStocks();

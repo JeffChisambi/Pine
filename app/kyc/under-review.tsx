@@ -83,7 +83,7 @@ function ChecklistItem({ text }: { text: string }) {
 
 export default function UnderReviewScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
 
   // Android hardware back should also leave KYC entirely, not pop into the

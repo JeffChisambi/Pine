@@ -89,7 +89,8 @@ export default function CreatePinScreen() {
       // Email verification is the last (skippable) onboarding step.
       router.replace("/verify-email");
     } catch (err: any) {
-      setErrorMsg(err?.message || "Failed to create PIN. Try again.");
+      const { getErrorMessage } = require("../services/api");
+      setErrorMsg(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

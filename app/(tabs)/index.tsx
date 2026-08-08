@@ -23,6 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useAuth } from "../../services/auth-context";
+import { NotificationsPanel } from "@/components/ProfilePanels";
 import {
   useWalletBalance,
   useWalletQueryClient,
@@ -338,8 +339,9 @@ function SwipeableWatchCard({ logoImg, symbol, name, type, price, change, positi
 // ─── Main screen ───────────────────────────────────────────────────────────────
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const { visible: balanceVisible, requestToggle: requestBalanceToggle } = useBalanceVisibility();
+  const [showNotifications, setShowNotifications] = useState(false);
   const c = useColors();
 
   const searchParams = useLocalSearchParams<{
@@ -416,9 +418,10 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
+      {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
       {/* Themed header */}
-      <View style={{ backgroundColor: c.background, paddingHorizontal: 20, paddingBottom: 16, paddingTop: topPad }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 26 }}>
+      <View style={{ backgroundColor: c.background, paddingHorizontal: 20, paddingBottom: 12, paddingTop: topPad }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <View>
             <Text style={{ fontSize: 20, color: c.text, lineHeight: 28 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_400Regular" }}>Hi, </Text>
@@ -426,7 +429,7 @@ export default function HomeScreen() {
             </Text>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED2, lineHeight: 20, marginTop: 2 }}>{currentDate}</Text>
           </View>
-          <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/profile/notifications" as any)}>
+          <TouchableOpacity activeOpacity={0.7} onPress={() => setShowNotifications(true)}>
             <NotificationIcon />
           </TouchableOpacity>
         </View>

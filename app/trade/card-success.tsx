@@ -114,7 +114,7 @@ function normaliseBrand(brand: string): string {
 
 export default function CardSuccessScreen() {
   const insets    = useSafeAreaInsets();
-  const topPad    = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad    = Platform.OS === "web" ? 48 : insets.top || 16;
   const bottomPad = insets.bottom || 24;
   const c         = useColors();
 

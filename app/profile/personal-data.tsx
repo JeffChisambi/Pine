@@ -56,7 +56,7 @@ function formatMemberSince(iso: string | null | undefined): string {
 
 export default function PersonalDataScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const { user } = useAuth();
   const c = useColors();
 

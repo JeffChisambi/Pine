@@ -38,7 +38,7 @@ function ArrowCircle({ positive }: { positive: boolean }) {
 
 export default function StockSearchScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const c = useColors();
   const [query, setQuery] = useState("");
 

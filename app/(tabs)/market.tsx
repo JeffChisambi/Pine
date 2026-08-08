@@ -30,7 +30,9 @@ const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 const SECTOR_ICON_BG_LIGHT = "#DFE9EB";
 
-import { useStocks } from "../../hooks/useStocks";
+import { TextInput } from "react-native";
+import { useStocks, useStockSearch } from "../../hooks/useStocks";
+import { SlidePanel } from "@/components/ProfilePanels";
 
 type Colors = ReturnType<typeof useColors>;
 
@@ -400,10 +402,11 @@ function StockLogoSmall({ symbol, c }: { symbol: string; c: Colors }) {
 
 export default function MarketScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const c = useColors();
   const { isDark } = useTheme();
   const [showSectors, setShowSectors] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   const { data: stocks = [], isLoading, error, refetch, isRefetching } = useStocks();
 
@@ -438,11 +441,13 @@ export default function MarketScreen() {
   const iconColor = isDark ? WHITE : ICON_COLOR_LIGHT;
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: c.background, paddingTop: topPad }} showsVerticalScrollIndicator={false}>
+    <View style={{ flex: 1, backgroundColor: c.background }}>
+    {showSearch && <StockSearchOverlay onClose={() => setShowSearch(false)} />}
+    <ScrollView style={{ flex: 1, paddingTop: topPad }} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 12, paddingBottom: 16 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 4, paddingBottom: 12 }}>
         <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 24, color: c.text }}>Market</Text>
-        <TouchableOpacity activeOpacity={0.7} onPress={() => guardedPush(() => router.push("/stock-search"))} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.card, alignItems: "center", justifyContent: "center" }}>
+        <TouchableOpacity activeOpacity={0.7} onPress={() => setShowSearch(true)} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.card, alignItems: "center", justifyContent: "center" }}>
           <SearchIcon color={c.text} />
         </TouchableOpacity>
       </View>
@@ -625,5 +630,106 @@ export default function MarketScreen() {
 
       <View style={{ height: 32 }} />
     </ScrollView>
+    </View>
+  );
+}
+
+// ─── Stock search overlay ───────────────────────────────────────────────────
+function StockSearchOverlay({ onClose }: { onClose: () => void }) {
+  const c = useColors();
+  const [query, setQuery] = useState("");
+  const { data: allStocks = [], isLoading: allLoading } = useStocks();
+  const { data: searchResults = [], isLoading: searching } = useStockSearch(query);
+
+  const isQuerying = query.trim().length > 0;
+  const displayList = isQuerying ? searchResults : allStocks;
+  const isLoading = isQuerying ? searching : allLoading;
+
+  return (
+    <SlidePanel onClose={onClose}>
+      <View style={{ flex: 1 }}>
+        {/* Search bar */}
+        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingBottom: 12, gap: 12 }}>
+          <TouchableOpacity onPress={onClose} style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
+            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+              <Path d="M15 19l-7-7 7-7" stroke={c.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
+          <View style={{ flex: 1, height: 48, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, flexDirection: "row", alignItems: "center", paddingHorizontal: 14, gap: 10 }}>
+            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+              <Circle cx={11} cy={11} r={7.5} stroke={query.length > 0 ? TEAL : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M16.5 16.5L20.5 20.5" stroke={query.length > 0 ? TEAL : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+            <TextInput
+              style={{ flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: c.text, height: "100%" }}
+              placeholder="Search stocks…"
+              placeholderTextColor={MUTED}
+              value={query}
+              onChangeText={setQuery}
+              returnKeyType="search"
+              autoFocus
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => setQuery("")}>
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                  <Circle cx={12} cy={12} r={10} fill={MUTED} />
+                  <Path d="M15 9L9 15M9 9L15 15" stroke={WHITE} strokeWidth={1.8} strokeLinecap="round" />
+                </Svg>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Results */}
+        <ScrollView style={{ flex: 1, paddingHorizontal: 24 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          {!isQuerying && (
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: c.text, marginBottom: 12 }}>All MSE Stocks</Text>
+          )}
+          {isLoading && (
+            <View style={{ alignItems: "center", marginTop: 60 }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: MUTED }}>Searching…</Text>
+            </View>
+          )}
+          {!isLoading && isQuerying && displayList.length === 0 && (
+            <View style={{ alignItems: "center", marginTop: 60 }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: MUTED }}>No results for "{query}"</Text>
+            </View>
+          )}
+          {!isLoading && displayList.map((s, i) => (
+            <TouchableOpacity
+              key={s.id}
+              style={[
+                { flexDirection: "row", alignItems: "center", paddingVertical: 14 },
+                i < displayList.length - 1 && { borderBottomWidth: 1, borderBottomColor: c.border },
+              ]}
+              onPress={() => guardedPush(() => router.push(`/stock/${s.symbol}` as any))}
+              activeOpacity={0.8}
+            >
+              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, overflow: "hidden", borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}>
+                {getStockLogo(s.symbol) ? (
+                  <Image source={getStockLogo(s.symbol)!} style={{ width: 34, height: 34, borderRadius: 17 }} resizeMode="contain" />
+                ) : (
+                  <View style={{ width: 44, height: 44, backgroundColor: TEAL, justifyContent: "center", alignItems: "center" }}>
+                    <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>{s.symbol.slice(0, 3)}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text }}>{s.symbol}</Text>
+                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, marginTop: 2 }} numberOfLines={1}>{s.name}</Text>
+              </View>
+              <View style={{ alignItems: "flex-end", gap: 4 }}>
+                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text }}>{s.price}</Text>
+                <View style={{ width: 70, flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: 4 }}>
+                  <ArrowCircle positive={s.positive} />
+                  <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: s.positive ? GREEN : RED }}>{s.change}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+          <View style={{ height: 32 }} />
+        </ScrollView>
+      </View>
+    </SlidePanel>
   );
 }

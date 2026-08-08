@@ -82,7 +82,7 @@ function DocIllustration() {
 
 export default function UploadProofOfResidencyScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const { applicationId } = useLocalSearchParams<{ applicationId: string }>();
 
   const [fileUri, setFileUri] = useState<string | null>(null);
@@ -127,7 +127,7 @@ export default function UploadProofOfResidencyScreen() {
 
   const doUpload = async (uri: string, name: string, mime: string) => {
     if (!applicationId) {
-      Alert.alert("Session Error", "Verification session not found. Please start again.");
+      Alert.alert("Please Start Over", "Your verification session has expired. Please start again.");
       guardedBack("/(tabs)/profile");
       return;
     }

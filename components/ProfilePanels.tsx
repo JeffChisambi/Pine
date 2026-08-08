@@ -62,10 +62,10 @@ function BackChevron({ color }: { color: string }) {
 }
 
 // ─── Shared slide-in wrapper ──────────────────────────────────────────────────
-function SlidePanel({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+export function SlidePanel({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
   const translateX = useSharedValue(width);
 
@@ -98,39 +98,47 @@ function SlidePanel({ children, onClose }: { children: React.ReactNode; onClose:
 // 1. NOTIFICATIONS PANEL
 // ══════════════════════════════════════════════════════════════════════════════
 
-function getIconForCategory(category: string, c: ReturnType<typeof useColors>) {
-  const props = { width: 32, height: 32, viewBox: "0 0 32 32" };
-  switch (category?.toUpperCase()) {
-    case "TRADING":   return <Svg {...props}><Circle cx={16} cy={16} r={16} fill={GREEN} /><Path d="M10 20l4-4 3 2 5-6" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" /><Path d="M18 12h4v4" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" /></Svg>;
-    case "PORTFOLIO": return <Svg {...props}><Circle cx={16} cy={16} r={16} fill={TEAL} /><Path d="M11 22V15l5-4 5 4v7H11z" stroke={WHITE} strokeWidth={1.3} strokeLinejoin="round" fill="none" /></Svg>;
-    case "WALLET":    return <Svg {...props}><Circle cx={16} cy={16} r={16} fill={ORANGE} /><Path d="M10 12h12v9H10z" stroke={WHITE} strokeWidth={1.3} fill="none" strokeLinejoin="round" /></Svg>;
-    case "SECURITY":  return <Svg {...props}><Circle cx={16} cy={16} r={16} fill={RED} /><Path d="M16 10l5 2.5v4c0 3.5-2.2 6-5 7-2.8-1-5-3.5-5-7v-4L16 10z" stroke={WHITE} strokeWidth={1.3} fill="none" /></Svg>;
-    case "KYC":       return <Svg {...props}><Circle cx={16} cy={16} r={16} fill={PURPLE} /></Svg>;
-    default:          return <Svg {...props}><Circle cx={16} cy={16} r={16} fill={TEAL} /><Circle cx={16} cy={16} r={5} stroke={WHITE} strokeWidth={1.3} fill="none" /></Svg>;
-  }
+function formatTime(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
+  } catch { return ""; }
 }
 
-function formatRelativeTime(dateStr: string): string {
+function getDateGroup(dateStr: string): string {
   try {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 1) return "Just now";
-    if (m < 60) return `${m}m ago`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
-    const d = Math.floor(h / 24);
-    if (d < 7) return `${d}d ago`;
-    return new Date(dateStr).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    const d = new Date(dateStr);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today.getTime() - 86400000);
+    const itemDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    if (itemDate.getTime() === today.getTime()) return "TODAY";
+    if (itemDate.getTime() === yesterday.getTime()) return "YESTERDAY";
+    const diff = today.getTime() - itemDate.getTime();
+    if (diff < 7 * 86400000) return d.toLocaleDateString("en-GB", { weekday: "long" }).toUpperCase();
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }).toUpperCase();
   } catch { return ""; }
+}
+
+function groupNotifications(items: Notification[]): { label: string; items: Notification[] }[] {
+  const groups: { label: string; items: Notification[] }[] = [];
+  let currentLabel = "";
+  for (const item of items) {
+    const label = getDateGroup(item.createdAt);
+    if (label !== currentLabel) {
+      currentLabel = label;
+      groups.push({ label, items: [] });
+    }
+    groups[groups.length - 1].items.push(item);
+  }
+  return groups;
 }
 
 export function NotificationsPanel({ onClose }: { onClose: () => void }) {
   const c = useColors();
-  const insets = useSafeAreaInsets();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -138,7 +146,7 @@ export function NotificationsPanel({ onClose }: { onClose: () => void }) {
       setNotifications(result.notifications ?? []);
       setUnreadCount(result.unreadCount ?? 0);
     } catch { /* keep existing */ } finally {
-      setLoading(false); setRefreshing(false);
+      setLoading(false);
     }
   }, []);
 
@@ -156,27 +164,19 @@ export function NotificationsPanel({ onClose }: { onClose: () => void }) {
     try { await notificationsApi.markAllRead(); } catch { fetchNotifications(); }
   };
 
-  const deleteNotification = async (id: string) => {
-    setNotifications(p => p.filter(n => n.id !== id));
-    try { await notificationsApi.delete(id); } catch { fetchNotifications(); }
-  };
+  const groups = groupNotifications(notifications);
 
   return (
     <SlidePanel onClose={onClose}>
       <View style={{ flex: 1 }}>
         {/* Header */}
         <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingBottom: 12, gap: 8 }}>
-          <TouchableOpacity onPress={onClose} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
+          <TouchableOpacity onPress={onClose} style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
             <BackChevron color={c.text} />
           </TouchableOpacity>
-          <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text }}>Notifications</Text>
-            {unreadCount > 0 && (
-              <View style={{ backgroundColor: RED, borderRadius: 10, minWidth: 20, height: 20, alignItems: "center", justifyContent: "center", paddingHorizontal: 5 }}>
-                <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 11, color: WHITE }}>{unreadCount}</Text>
-              </View>
-            )}
-          </View>
+          <Text style={{ flex: 1, fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: c.text }}>
+            Notifications
+          </Text>
           {unreadCount > 0 && (
             <TouchableOpacity onPress={markAllRead} style={{ paddingHorizontal: 6, paddingVertical: 4 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: TEAL }}>Mark all read</Text>
@@ -195,26 +195,40 @@ export function NotificationsPanel({ onClose }: { onClose: () => void }) {
           </View>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false}>
-            {notifications.map((item, i) => (
-              <TouchableOpacity
-                key={item.id}
-                activeOpacity={0.75}
-                onPress={() => { if (!item.isRead) markRead(item.id); }}
-                style={[
-                  { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 20, paddingVertical: 14, gap: 14, backgroundColor: item.isRead ? "transparent" : (c.card + "88") },
-                  i < notifications.length - 1 && { borderBottomWidth: 1, borderBottomColor: c.border },
-                ]}
-              >
-                <View style={{ flexShrink: 0 }}>{getIconForCategory(item.category, c)}</View>
-                <View style={{ flex: 1, gap: 3 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "space-between" }}>
-                    <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, flex: 1 }} numberOfLines={1}>{item.title}</Text>
-                    <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, flexShrink: 0 }}>{formatRelativeTime(item.createdAt)}</Text>
-                  </View>
-                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED2, lineHeight: 19 }} numberOfLines={2}>{item.body}</Text>
+            {groups.map((group) => (
+              <View key={group.label}>
+                <View style={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 10 }}>
+                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, color: MUTED, letterSpacing: 0.8 }}>
+                    {group.label}
+                  </Text>
                 </View>
-                {!item.isRead && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: GREEN, flexShrink: 0, marginTop: 4 }} />}
-              </TouchableOpacity>
+                {group.items.map((item, i) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    activeOpacity={0.7}
+                    onPress={() => { if (!item.isRead) markRead(item.id); }}
+                    style={{
+                      paddingHorizontal: 24,
+                      paddingVertical: 16,
+                      borderBottomWidth: i < group.items.length - 1 ? 1 : 0,
+                      borderBottomColor: c.border,
+                    }}
+                  >
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                      <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, flex: 1 }} numberOfLines={1}>
+                        {item.title}
+                      </Text>
+                      {!item.isRead && <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: TEAL }} />}
+                    </View>
+                    <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED2, lineHeight: 18 }}>
+                      {item.body}
+                    </Text>
+                    <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "#C4C4C4", marginTop: 6 }}>
+                      {formatTime(item.createdAt)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             ))}
             <View style={{ height: 32 }} />
           </ScrollView>

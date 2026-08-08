@@ -86,7 +86,8 @@ export default function PhoneNumberScreen() {
       await authApi.sendOtp(fullPhone, "phone_verification");
       router.push({ pathname: "/verify-code", params: { phone: fullPhone } } as any);
     } catch (err: any) {
-      setErrorMsg(err?.message || "Failed to send code. Try again.");
+      const { getErrorMessage } = require("../services/api");
+      setErrorMsg(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

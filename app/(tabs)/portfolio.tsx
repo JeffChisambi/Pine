@@ -132,7 +132,7 @@ function ArrowDownIcon({ color }: { color: string }) {
 
 export default function PortfolioScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
   const { visible: balanceShown, requestToggle: requestBalanceToggle } = useBalanceVisibility();
   const balanceHidden = !balanceShown;
@@ -193,9 +193,9 @@ export default function PortfolioScreen() {
 
   const styles = useMemo(() => StyleSheet.create({
     root: { flex: 1, backgroundColor: c.background },
-    header: { backgroundColor: c.background, paddingHorizontal: 24, paddingBottom: 48, minHeight: 200, position: "relative" },
+    header: { backgroundColor: c.background, paddingHorizontal: 24, paddingBottom: 32, minHeight: 180, position: "relative" },
     whiteSheet: { flex: 1, backgroundColor: c.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -24, overflow: "hidden" },
-    topRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", marginBottom: 20, marginTop: 12 },
+    topRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", marginBottom: 12, marginTop: 4 },
     receiptBtn: { padding: 4 },
     titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
     titleLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.mutedForeground, letterSpacing: 0.3 },
@@ -251,7 +251,7 @@ export default function PortfolioScreen() {
     assetShares: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: c.mutedForeground },
     assetRight: { alignItems: "flex-end" },
     assetValue: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text, marginBottom: 4 },
-    assetChangePill: { flexDirection: "row", alignItems: "center", gap: 2 },
+    assetChangePill: { flexDirection: "row", alignItems: "center", gap: 3 },
     assetChangePct: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 12 },
     emptyState: { paddingVertical: 48, alignItems: "center" },
     emptyText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16, color: c.text, marginBottom: 6 },
@@ -345,7 +345,9 @@ export default function PortfolioScreen() {
               <View style={styles.assetRight}>
                 <Text style={styles.assetValue}>{asset.value}</Text>
                 <View style={styles.assetChangePill}>
-                  {asset.positive ? <ArrowUpIcon color={GREEN} /> : <ArrowDownIcon color={RED} />}
+                  <View style={{ justifyContent: "center", height: 14 }}>
+                    {asset.positive ? <ArrowUpIcon color={GREEN} /> : <ArrowDownIcon color={RED} />}
+                  </View>
                   <Text style={[styles.assetChangePct, { color: asset.positive ? GREEN : RED }]}>
                     {asset.changePct ?? asset.change}
                   </Text>

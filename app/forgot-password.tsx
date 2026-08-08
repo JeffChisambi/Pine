@@ -234,7 +234,8 @@ export default function ForgotPasswordScreen() {
       await authApi.forgotPassword(fullPhone);
       setSent(true);
     } catch (err: any) {
-      setErrorMsg(err?.message || "Something went wrong. Try again.");
+      const { getErrorMessage } = require("../services/api");
+      setErrorMsg(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

@@ -40,7 +40,7 @@ function PortfolioIcon() {
 
 export default function BuyScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const params = useLocalSearchParams<{ mode?: string; ticker?: string }>();
   const c = useColors();
 

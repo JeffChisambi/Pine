@@ -15,10 +15,10 @@ const MUTED = "#9CA3AF";
 
 const STEPS = [
   "Verifying wallet balance",
-  "Validating investment",
-  "Submitting order",
-  "Sending to broker",
-  "Completing order",
+  "Validating bid",
+  "Submitting bid",
+  "Processing auction order",
+  "Completing bid",
 ];
 
 export default function TreasuryProcessing() {
@@ -49,7 +49,7 @@ export default function TreasuryProcessing() {
       {
         onSuccess: (res) => { investIdRef.current = res.investmentId; },
         onError: (e) => {
-          Alert.alert("Investment failed", getErrorMessage(e), [
+          Alert.alert("Investment Unsuccessful", getErrorMessage(e), [
             { text: "OK", onPress: () => router.back() },
           ]);
         },
@@ -107,7 +107,7 @@ export default function TreasuryProcessing() {
     outputRange: ["0deg", "360deg"],
   });
 
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background, alignItems: "center", justifyContent: "center", paddingTop: topPad }}>
@@ -138,10 +138,10 @@ export default function TreasuryProcessing() {
         opacity: fadeAnim,
         textAlign: "center",
       }}>
-        {done ? "Order Complete!" : STEPS[currentStep]}
+        {done ? "Bid Submitted!" : STEPS[currentStep]}
       </Animated.Text>
       <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: MUTED, textAlign: "center", lineHeight: 21, paddingHorizontal: 40 }}>
-        {done ? "Your investment has been submitted successfully." : "Please wait while we process your investment..."}
+        {done ? "Your bid has been submitted successfully." : "Please wait while we process your bid..."}
       </Text>
 
       {/* Steps list */}

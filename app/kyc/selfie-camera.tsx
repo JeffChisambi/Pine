@@ -102,7 +102,7 @@ function FrequencyWaves({ side, cx, cy, rx, ry }: { side: "left" | "right"; cx: 
 
 export default function SelfieCameraScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const { width: W, height: H } = useWindowDimensions();
   const params = useLocalSearchParams<{ applicationId: string }>();
   const applicationId = params.applicationId;
@@ -138,7 +138,7 @@ export default function SelfieCameraScreen() {
 
   useEffect(() => {
     if (!applicationId) {
-      Alert.alert("Session Error", "Verification session not found. Please start again.",
+      Alert.alert("Please Start Over", "Your verification session has expired. Please start again.",
         [{ text: "OK", onPress: () => guardedBack("/(tabs)/profile") }]);
     }
   }, [applicationId]);
@@ -180,7 +180,7 @@ export default function SelfieCameraScreen() {
       logHandledError("KYC Selfie capture", err);
       setUploading(false);
       setPhase("center");
-      Alert.alert("Camera error", getErrorMessage(err));
+      Alert.alert("Camera Unavailable", getErrorMessage(err));
     }
   }, [uploadSelfie]);
 

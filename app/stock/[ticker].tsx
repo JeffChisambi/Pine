@@ -10,7 +10,6 @@ import {
   Dimensions,
   ActivityIndicator,
   Image,
-  Alert,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -33,7 +32,7 @@ import Svg, {
 } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStockDetail, stockKeys } from "../../hooks/useStocks";
-import { useIsWatched, useToggleWatchlist } from "../../hooks/useWatchlist";
+
 import { useHoldingQuantity } from "../../hooks/usePortfolio";
 import { ApiStock } from "../../services/api";
 import { getStockLogo } from "../../utils/stock-logos";
@@ -238,7 +237,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
 // ─── Main screen ────────────────────────────────────────────────────────────────
 export default function StockDetailScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const bottomPad = insets.bottom || 16;
   const { ticker } = useLocalSearchParams<{ ticker: string }>();
   const c = useColors();
@@ -248,8 +247,6 @@ export default function StockDetailScreen() {
 
   const { data: stock, isLoading, error, refetch } = useStockDetail(ticker, activeTimeTab);
 
-  const isInWatchlist = useIsWatched(ticker);
-  const toggleMutation = useToggleWatchlist();
   const holdingQty = useHoldingQuantity(ticker);
   const canSell = holdingQty > 0;
 
@@ -267,21 +264,6 @@ export default function StockDetailScreen() {
   }, [ticker]);
 
   const displayStock = stock ?? cachedStock;
-
-  const toggleWatchlist = useCallback(() => {
-    if (toggleMutation.isPending) return; // debounce rapid taps
-    toggleMutation.mutate(
-      { symbol: ticker ?? '', currentlyWatched: isInWatchlist },
-      {
-        onError: (err) => {
-          Alert.alert(
-            "Watchlist Error",
-            err.message ?? "Could not update watchlist. Please try again."
-          );
-        },
-      }
-    );
-  }, [ticker, isInWatchlist, toggleMutation]);
 
   if (error && !displayStock) {
     return (
@@ -329,17 +311,12 @@ export default function StockDetailScreen() {
         contentContainerStyle={{ paddingBottom: 100 + bottomPad }}
       >
         {/* Top section */}
-        <View style={{ backgroundColor: c.background, paddingTop: topPad, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: c.border }}>
+        <View style={{ backgroundColor: c.background, paddingTop: topPad, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: c.border }}>
           {/* Nav */}
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingBottom: 12 }}>
-            <TouchableOpacity onPress={() => guardedBack("/stock-search")} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ paddingHorizontal: 20 }}>
+            <TouchableOpacity onPress={() => guardedBack("/stock-search")} style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
               <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
                 <Path d="M15 19l-7-7 7-7" stroke={c.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </TouchableOpacity>
-            <TouchableOpacity style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }} onPress={toggleWatchlist}>
-              <Svg width={23} height={21} viewBox="0 0 23 21" fill="none">
-                <Path d="M21.75 8.25H13.6875L11.25 0.75L8.8125 8.25H0.75L7.3125 12.75L4.78125 20.25L11.25 15.5625L17.7188 20.25L15.1875 12.75L21.75 8.25Z" stroke={isInWatchlist ? TEAL : MUTED} strokeWidth={1.5} strokeLinejoin="round" fill={isInWatchlist ? TEAL : "none"} />
               </Svg>
             </TouchableOpacity>
           </View>

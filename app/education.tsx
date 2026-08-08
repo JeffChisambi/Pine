@@ -58,7 +58,7 @@ const STATS = [
 
 export default function EducationScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const c = useColors();
 
   return (
@@ -66,7 +66,7 @@ export default function EducationScreen() {
 
       {/* ── Nav header ── */}
       <View style={{
-        paddingTop: topPad + 8,
+        paddingTop: topPad,
         paddingHorizontal: 20,
         paddingBottom: 10,
         flexDirection: "row",

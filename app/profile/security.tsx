@@ -212,7 +212,7 @@ function SuccessBanner({ message }: { message: string }) {
 
 export default function SecurityScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
 
   // Password state
@@ -275,11 +275,10 @@ export default function SecurityScreen() {
       const msg = typeof err?.message === "string"
         ? err.message
         : "Failed to change password. Please check your current password and try again.";
-      // Show inline error if it's about current password
       if (msg.toLowerCase().includes("incorrect") || msg.toLowerCase().includes("invalid") || msg.toLowerCase().includes("wrong")) {
         setPwErrors({ currentPassword: "Incorrect current password" });
       } else {
-        Alert.alert("Error", msg);
+        Alert.alert("Couldn't Change Password", "Please check your current password and try again.");
       }
     } finally {
       setPwLoading(false);
@@ -319,7 +318,7 @@ export default function SecurityScreen() {
       if (msg.toLowerCase().includes("incorrect") || msg.toLowerCase().includes("invalid") || msg.toLowerCase().includes("wrong")) {
         setPinErrors({ currentPin: "Incorrect current PIN" });
       } else {
-        Alert.alert("Error", msg);
+        Alert.alert("Couldn't Change PIN", "Please check your current PIN and try again.");
       }
     } finally {
       setPinLoading(false);

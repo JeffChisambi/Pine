@@ -67,6 +67,16 @@ function CalendarIcon({ color }: { color: string }) {
   );
 }
 
+function NotificationSettingsIcon({ color }: { color: string }) {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+      <Path d="M8.9375 19.25a2.0625 2.0625 0 004.125 0" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M11 2.75a5.5 5.5 0 00-5.5 5.5c0 3.094-.688 5.042-1.375 6.188a.687.687 0 00.594 1.062h12.562a.687.687 0 00.594-1.063c-.687-1.145-1.375-3.093-1.375-6.187a5.5 5.5 0 00-5.5-5.5z" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M17.875 4.125l-2.75 2.75M4.125 4.125l2.75 2.75" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 function LockIcon({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
@@ -155,7 +165,7 @@ function DarkModeToggle({ value, onChange }: { value: boolean; onChange: () => v
 // ─── Screen ───────────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
   const { isDark, toggleTheme } = useTheme();
 
@@ -269,7 +279,7 @@ export default function ProfileScreen() {
   const SETTINGS_GROUP_2 = [
     { icon: <FingerprintIcon color={iconColor} />, label: biometricInfo.label === "Biometrics" ? "Fingerprint" : biometricInfo.label, sub: biometricInfo.available ? "Biometric authentication" : "Not available on this device", onPress: null, toggle: true, toggleValue: fingerprintEnabled, onToggle: handleToggleFingerprint },
     { icon: <MoonIcon color={iconColor} />, label: "Dark Mode", sub: "Switch app appearance", onPress: null, toggle: true, toggleValue: isDark, onToggle: toggleTheme },
-    { icon: <CalendarIcon color={iconColor} />, label: "Notifications", sub: "Manage notification preferences", onPress: () => setActivePanel('push-notifications'), toggle: false },
+    { icon: <NotificationSettingsIcon color={iconColor} />, label: "Notifications", sub: "Manage notification preferences", onPress: () => setActivePanel('push-notifications'), toggle: false },
   ];
 
   const styles = StyleSheet.create({
@@ -279,7 +289,7 @@ export default function ProfileScreen() {
       alignItems: "center",
       justifyContent: "space-between",
       paddingHorizontal: 24,
-      paddingBottom: 16,
+      paddingBottom: 10,
     },
     headerTitle: {
       fontFamily: "PlusJakartaSans_600SemiBold",

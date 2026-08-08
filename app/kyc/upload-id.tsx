@@ -140,7 +140,7 @@ function UploadSlot({
 
 export default function UploadIdScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const { user } = useAuth();
   const c = useColors();
   const params = useLocalSearchParams<{ docType?: string }>();
@@ -169,7 +169,7 @@ export default function UploadIdScreen() {
     (async () => {
       try {
         if (!user?.id) {
-          Alert.alert("Error", "Please log in to start verification.");
+          Alert.alert("Login Required", "Please log in to start verification.");
           guardedBack("/(tabs)/profile");
           return;
         }

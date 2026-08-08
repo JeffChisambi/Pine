@@ -1,5 +1,5 @@
 import { guardedBack } from "@/utils/navigation";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -43,7 +43,7 @@ function Divider() {
 
 export default function ConfirmScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
   const [loading, setLoading] = useState(false);
 
@@ -77,11 +77,19 @@ export default function ConfirmScreen() {
 
   const qc = useQueryClient();
 
+  // One stable idempotency key per order attempt (this screen instance). If the
+  // request times out on-device but the server actually processed it, the user
+  // taps Confirm again — the SAME key lets the server dedupe instead of placing
+  // a second buy/sell and charging twice. Must NOT be regenerated on retry.
+  const idemKeyRef = useRef(
+    `${params.stockId ?? "order"}-${params.side ?? "BUY"}-${params.amount ?? "0"}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+  );
+
   const submitOrder = async (pinToken: string) => {
     setShowPinModal(false);
     setLoading(true);
     try {
-      const idempotencyKey = `${params.stockId}-${Date.now()}`;
+      const idempotencyKey = idemKeyRef.current;
       let result: any;
       if (isBuy) {
         result = await tradingApi.buy({ stockSymbol: symbol, quantity, orderType: "MARKET", idempotencyKey, pinToken });
@@ -113,7 +121,7 @@ export default function ConfirmScreen() {
           { text: "OK", onPress: () => setShowPinModal(true) },
         ]);
       } else {
-        Alert.alert("Trade Error", getErrorMessage(err));
+        Alert.alert("Order Not Placed", getErrorMessage(err));
       }
     } finally {
       setLoading(false);

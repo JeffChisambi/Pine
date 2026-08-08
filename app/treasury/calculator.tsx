@@ -39,7 +39,7 @@ const QUICK_AMOUNTS = [
 
 export default function TreasuryCalculator() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16);
   const c = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -83,7 +83,7 @@ export default function TreasuryCalculator() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{ flex: 1, backgroundColor: c.background }}>
         {/* Header */}
-        <View style={{ backgroundColor: c.background, paddingTop: topPad + 8, paddingBottom: 0, paddingHorizontal: 16 }}>
+        <View style={{ backgroundColor: c.background, paddingTop: topPad, paddingBottom: 0, paddingHorizontal: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
             <TouchableOpacity onPress={() => guardedBack("/treasury/details")} activeOpacity={0.7} style={{ width: 40, height: 40, justifyContent: "center" }}>
               <BackIcon color={c.text} />

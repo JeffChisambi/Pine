@@ -96,10 +96,11 @@ export const MOCK_INVESTMENTS: TBillInvestment[] = [
 
 export function calculateReturns(amount: number, yieldPct: number, days: number) {
   const annualRate = yieldPct / 100;
-  const periodRate = annualRate * (days / 365);
-  const earnings = Math.floor(amount * periodRate);
-  const maturityValue = amount + earnings;
-  return { earnings, maturityValue };
+  const interest = Math.round(amount * annualRate * (days / 365) * 100) / 100;
+  const withholdingTax = Math.round(interest * 0.15 * 100) / 100;
+  const netReturn = interest - withholdingTax;
+  const maturityValue = Math.round((amount + netReturn) * 100) / 100;
+  return { interest, withholdingTax, netReturn, maturityValue, earnings: netReturn };
 }
 
 /** Safe placeholder used while a DB-backed product is still loading. */

@@ -923,27 +923,4 @@ export const cardPaymentsApi = {
     request<CardPaymentVerification>(`/payments/card/verify/${txRef}`),
 };
 
-// ─── Watchlist API ────────────────────────────────────────────────────────────
-
-export const watchlistApi = {
-  /** Get the full watchlist with latest stock prices. */
-  list: (): Promise<{ stocks: any[]; count: number }> =>
-    request('/watchlist'),
-
-  /** Get just the set of watched symbols (cheap, for icon state). */
-  symbols: (): Promise<{ symbols: string[] }> =>
-    request('/watchlist/symbols'),
-
-  /** Check if a specific symbol is watched. */
-  isWatched: (symbol: string): Promise<{ watched: boolean }> =>
-    request(`/watchlist/${encodeURIComponent(symbol.toUpperCase())}`),
-
-  /** Add a stock to the watchlist (idempotent). */
-  add: (symbol: string): Promise<{ message: string; symbol: string; addedAt: string }> =>
-    request(`/watchlist/${encodeURIComponent(symbol.toUpperCase())}`, { method: 'POST' }),
-
-  /** Remove a stock from the watchlist (idempotent). */
-  remove: (symbol: string): Promise<{ message: string; symbol: string }> =>
-    request(`/watchlist/${encodeURIComponent(symbol.toUpperCase())}`, { method: 'DELETE' }),
-};
 

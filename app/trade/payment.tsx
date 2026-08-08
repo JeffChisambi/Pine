@@ -46,7 +46,7 @@ const PAYMENT_METHODS = [
 
 export default function PaymentScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
   const [selectedPayment, setSelectedPayment] = useState("paypal");
   const [promoCode, setPromoCode] = useState("");

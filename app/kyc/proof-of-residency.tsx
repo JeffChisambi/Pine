@@ -78,7 +78,7 @@ const DOCS = [
 
 export default function ProofOfResidencyScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const [selected, setSelected] = useState("national_id");
   const c = useColors();
 

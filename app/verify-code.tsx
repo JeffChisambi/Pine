@@ -88,7 +88,8 @@ export default function VerifyCodeScreen() {
       // Phone verified — next verify the account email before PIN setup.
       router.push("/verify-email" as any);
     } catch (err: any) {
-      setErrorMsg(err?.message || "Invalid code. Try again.");
+      const { getErrorMessage } = require("../services/api");
+      setErrorMsg(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

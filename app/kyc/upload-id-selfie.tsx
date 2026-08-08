@@ -81,7 +81,7 @@ function SelfieIllustration({ size = 280 }: { size?: number }) {
 
 export default function UploadIdSelfieScreen() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 48 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const params = useLocalSearchParams<{ applicationId: string }>();
   const applicationId = params.applicationId;
   const c = useColors();

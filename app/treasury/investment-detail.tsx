@@ -45,7 +45,7 @@ function InfoRow({ label, value, valueColor }: { label: string; value: string; v
 
 export default function InvestmentDetail() {
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 44 : insets.top || 44;
+  const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16);
   const c = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -61,13 +61,13 @@ export default function InvestmentDetail() {
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
       {/* Header */}
-      <View style={{ backgroundColor: c.background, paddingTop: topPad + 8, paddingBottom: 24, paddingHorizontal: 16 }}>
+      <View style={{ backgroundColor: c.background, paddingTop: topPad, paddingBottom: 24, paddingHorizontal: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
-          <TouchableOpacity onPress={() => guardedBack("/trade/history")} activeOpacity={0.7} style={{ width: 40, height: 40, justifyContent: "center" }}>
+          <TouchableOpacity onPress={() => guardedBack("/treasury/my-investments")} activeOpacity={0.7} style={{ width: 40, height: 40, justifyContent: "center" }}>
             <BackIcon color={c.text} />
           </TouchableOpacity>
           <Text style={{ flex: 1, textAlign: "center", fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>
-            Investment Detail
+            Bill Detail
           </Text>
           <View style={{ width: 40 }} />
         </View>
@@ -76,7 +76,7 @@ export default function InvestmentDetail() {
         <View style={{ alignItems: "center" }}>
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED, marginBottom: 6 }}>Amount Invested</Text>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 40, color: c.text, letterSpacing: -0.5 }}>
-            MWK {investment.amountInvested.toLocaleString()}
+            K{investment.amountInvested.toLocaleString()}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 }}>
             <View style={{ backgroundColor: investment.status === "active" ? "rgba(69, 179, 105, 0.15)" : c.card, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: investment.status === "active" ? 0 : 1, borderColor: c.border }}>
@@ -85,7 +85,7 @@ export default function InvestmentDetail() {
               </Text>
             </View>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED }}>
-              {investment.duration}-Day T-Bill
+              {investment.duration}-day bill
             </Text>
           </View>
         </View>
@@ -102,10 +102,10 @@ export default function InvestmentDetail() {
           <View style={{ backgroundColor: c.card, borderRadius: 16, borderWidth: 1, borderColor: c.border, paddingHorizontal: 18, marginBottom: 16 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text, paddingTop: 14, paddingBottom: 10 }}>Investment Information</Text>
             <InfoRow label="Reference" value={investment.referenceNumber} valueColor={TEAL} />
-            <InfoRow label="Amount Invested" value={`MWK ${investment.amountInvested.toLocaleString()}`} />
+            <InfoRow label="Amount Invested" value={`K${investment.amountInvested.toLocaleString()}`} />
             <InfoRow label="Annual Yield" value={`${bill.yieldPct}%`} valueColor={GREEN} />
-            <InfoRow label="Est. Earnings" value={`+MWK ${investment.estimatedEarnings.toLocaleString()}`} valueColor={GREEN} />
-            <InfoRow label="Est. Maturity Value" value={`MWK ${investment.estimatedMaturityValue.toLocaleString()}`} />
+            <InfoRow label="Est. Earnings" value={`+K${investment.estimatedEarnings.toLocaleString()}`} valueColor={GREEN} />
+            <InfoRow label="Est. Maturity Value" value={`K${investment.estimatedMaturityValue.toLocaleString()}`} />
             <InfoRow label="Investment Date" value={investment.investmentDate} />
             <InfoRow label="Maturity Date" value={investment.maturityDate} />
             <InfoRow label="Broker" value="Reserve Bank of Malawi" />
@@ -167,8 +167,8 @@ export default function InvestmentDetail() {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={() => guardedPush(() => router.push({
-            pathname: "/treasury/calculator" as any,
-            params: { id: investment.billId, amount: String(investment.amountInvested) },
+            pathname: "/treasury/details" as any,
+            params: { id: investment.billId },
           }))}
           style={{ height: 56, backgroundColor: TEAL, borderRadius: 14, alignItems: "center", justifyContent: "center" }}
         >

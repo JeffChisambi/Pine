@@ -106,7 +106,8 @@ export default function WithdrawScreen() {
       if (code === "AUTH_PIN_INVALID" || code === "AUTH_PIN_NOT_SET") {
         setShowPin(true);
       } else {
-        Alert.alert("Withdrawal failed", e?.message || "Something went wrong. Please try again.");
+        const { getErrorMessage } = require("../services/api");
+        Alert.alert("Withdrawal Unsuccessful", getErrorMessage(e));
       }
     } finally {
       setSubmitting(false);
@@ -320,7 +321,7 @@ export default function WithdrawScreen() {
       <View style={[styles.root, { paddingBottom: bottomPad }]}>
 
         {/* ── Header ── */}
-        <View style={[styles.header, { paddingTop: topPad + 8 }]}>
+        <View style={[styles.header, { paddingTop: topPad }]}>
           <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/(tabs)")}>
             <BackIcon color={c.text} />
           </TouchableOpacity>
