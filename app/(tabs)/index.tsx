@@ -8,6 +8,7 @@ import {
   Platform,
   Image,
   ImageSourcePropType,
+  RefreshControl,
 } from "react-native";
 import ReAnimated, {
   useSharedValue,
@@ -358,9 +359,21 @@ export default function HomeScreen() {
 
   const qc = useWalletQueryClient();
   const { data: walletBalance, refetch: refetchBalance } = useWalletBalance();
-  const totalBalance = walletBalance
-    ? `K ${Number(walletBalance.availableBalance ?? walletBalance.balance ?? 0).toLocaleString()}`
-    : null;
+
+  // Pull-to-refresh — refetch the wallet balance and let dependent home queries
+  // revalidate, matching the swipe-down-to-refresh gesture users expect.
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetchBalance();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchBalance]);
+  // Always render a number. A brand-new account (or the brief pre-load window)
+  // shows "K 0" rather than a dash.
+  const totalBalance = `K ${Number(walletBalance?.availableBalance ?? walletBalance?.balance ?? 0).toLocaleString()}`;
 
   const reconcileRef = useRef(false);
   const reconcilingRef = useRef(false);
@@ -483,7 +496,11 @@ export default function HomeScreen() {
 
       {/* White/dark sheet */}
       <View style={{ flex: 1, backgroundColor: c.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: 12, overflow: "hidden" }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#164951" colors={["#164951"]} />}
+        >
           <View style={{ backgroundColor: c.background, paddingHorizontal: 20, paddingTop: 24 }}>
             {/* Invest section */}
             <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text, marginBottom: 4 }}>Invest</Text>

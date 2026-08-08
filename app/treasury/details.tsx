@@ -8,6 +8,7 @@ import {
   ScrollView,
   Keyboard,
   TouchableWithoutFeedback,
+  KeyboardAvoidingView,
   Switch,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -101,8 +102,11 @@ export default function TreasuryBidAmount() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{ flex: 1, backgroundColor: c.background }}>
-        {/* Header */}
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: c.background }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        {/* Fixed header — just the back row + title */}
         <View style={{ paddingTop: topPad, paddingHorizontal: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
             <TouchableOpacity
@@ -125,9 +129,17 @@ export default function TreasuryBidAmount() {
             </Text>
             <View style={{ width: 40 }} />
           </View>
+        </View>
 
-          {/* Yield + Maturity stats */}
-          <View style={{ flexDirection: "row", gap: 12, marginBottom: 24 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: bottomPad + 80 }}
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Yield + Maturity stats — moved inside the scroll area so nothing
+              is cut off on shorter screens or when the keyboard is open. */}
+          <View style={{ flexDirection: "row", gap: 12, marginBottom: 24, paddingHorizontal: 16 }}>
             <View
               style={{
                 flex: 1,
@@ -179,13 +191,7 @@ export default function TreasuryBidAmount() {
               </Text>
             </View>
           </View>
-        </View>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: bottomPad + 80 }}
-          style={{ flex: 1 }}
-        >
           <View style={{ paddingHorizontal: 20 }}>
             {/* BID AMOUNT label */}
             <Text
@@ -457,7 +463,7 @@ export default function TreasuryBidAmount() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }

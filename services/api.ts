@@ -746,6 +746,92 @@ export const newsApi = {
     request<string[]>('/news/categories'),
 };
 
+// ─── Support API (Help & Support / Report a problem) ──────────────────────────
+
+export type SupportCategory =
+  | 'DEPOSITS' | 'WITHDRAWALS' | 'TRADING' | 'TREASURY' | 'ACCOUNT' | 'OTHER';
+
+export type SupportAuthorType = 'USER' | 'ADMIN' | 'SYSTEM';
+
+export type SupportMessage = {
+  id: string;
+  authorType: SupportAuthorType;
+  authorName: string | null;
+  body: string;
+  attachmentUrl: string | null;
+  createdAt: string;
+};
+
+export type SupportTicketSummary = {
+  ticketId: string;
+  reference: string;
+  category: SupportCategory;
+  subject: string;
+  status: 'OPEN' | 'IN_REVIEW' | 'RESOLVED' | 'CLOSED';
+  statusLabel: string;
+  unread: boolean;
+  relatedTransactionId: string | null;
+  lastMessageAt: string;
+  createdAt: string;
+  lastMessage: { authorType: SupportAuthorType; authorName: string | null; preview: string; createdAt: string } | null;
+};
+
+export type SupportTicketThread = SupportTicketSummary & {
+  messages: SupportMessage[];
+};
+
+export type SupportAttachment = { uri: string; name: string; type: string };
+
+export const supportApi = {
+  list: (): Promise<SupportTicketSummary[]> =>
+    request<SupportTicketSummary[]>('/support'),
+
+  thread: (id: string): Promise<SupportTicketThread> =>
+    request<SupportTicketThread>(`/support/${encodeURIComponent(id)}`),
+
+  create: (
+    data: { category: SupportCategory; subject: string; message: string; relatedTransactionId?: string },
+    attachment?: SupportAttachment,
+  ): Promise<SupportTicketThread> => {
+    if (attachment) {
+      return requestFormData<SupportTicketThread>('/support', () => {
+        const fd = new FormData();
+        fd.append('category', data.category);
+        fd.append('subject', data.subject);
+        fd.append('message', data.message);
+        if (data.relatedTransactionId) fd.append('relatedTransactionId', data.relatedTransactionId);
+        fd.append('attachment', { uri: attachment.uri, name: attachment.name, type: attachment.type } as any);
+        return fd;
+      });
+    }
+    return request<SupportTicketThread>('/support', { method: 'POST', body: JSON.stringify(data) });
+  },
+
+  reply: (id: string, message: string, attachment?: SupportAttachment): Promise<SupportTicketThread> => {
+    const path = `/support/${encodeURIComponent(id)}/messages`;
+    if (attachment) {
+      return requestFormData<SupportTicketThread>(path, () => {
+        const fd = new FormData();
+        fd.append('message', message);
+        fd.append('attachment', { uri: attachment.uri, name: attachment.name, type: attachment.type } as any);
+        return fd;
+      });
+    }
+    return request<SupportTicketThread>(path, { method: 'POST', body: JSON.stringify({ message }) });
+  },
+};
+
+// ─── Account API ──────────────────────────────────────────────────────────────
+
+export const accountApi = {
+  /** Close (delete) the account — PIN-verified, deactivate + anonymize. */
+  deleteAccount: (pinToken: string): Promise<{ message: string }> =>
+    request<{ message: string }>('/users/me', {
+      method: 'DELETE',
+      headers: { 'x-pin-token': pinToken },
+    }),
+};
+
 // ─── Treasury API ─────────────────────────────────────────────────────────────
 
 /** T-bill product as returned by the backend — matches the mobile TBillOption. */

@@ -263,6 +263,10 @@ function RootLayoutNav() {
         <Stack.Screen name="profile/personal-data" options={section} />
         <Stack.Screen name="profile/security" options={section} />
         <Stack.Screen name="profile/push-notifications" options={section} />
+        <Stack.Screen name="settings/index" options={section} />
+        <Stack.Screen name="help/index" options={section} />
+        <Stack.Screen name="help/report" options={section} />
+        <Stack.Screen name="help/ticket" options={section} />
 
         {/* Treasury Bill flow — native slide-from-right (see `section`) */}
         <Stack.Screen name="treasury/index" options={section} />

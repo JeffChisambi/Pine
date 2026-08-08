@@ -8,10 +8,12 @@ import {
   Platform,
   Alert,
   Linking,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
+import { Feather } from "@expo/vector-icons";
 import { useAuth } from "../../services/auth-context";
 import { useWalletBalance } from "../../services/wallet-queries";
 import { useTheme } from "@/contexts/theme-context";
@@ -175,6 +177,7 @@ export default function ProfileScreen() {
   const [biometricInfo, setBiometricInfo] = useState<BiometricInfo>({ available: false, enrolled: false, label: "Biometrics" });
   const [biometricBusy, setBiometricBusy] = useState(false);
   const [activePanel, setActivePanel] = useState<'notifications' | 'personal-data' | 'push-notifications' | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Load the saved biometric preference and device capability on mount.
   useEffect(() => {
@@ -248,8 +251,17 @@ export default function ProfileScreen() {
   );
 
   const handleLogout = async () => {
-    await logout();
-    router.replace("/login");
+    // Flip into a neutral logging-out state FIRST. Clearing auth sets `user` to
+    // null, and without this guard the screen would re-render with a null user
+    // (name/phone as "—", KYC falling back to "unverified") for a few frames
+    // before navigation — the flicker the user reported. We render a plain
+    // spinner instead until we've navigated away.
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      router.replace("/login");
+    }
   };
 
   const walletBalanceDisplay = walletBalance.toLocaleString("en-MW", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -274,6 +286,8 @@ export default function ProfileScreen() {
       badge: isVerified ? "verified" : undefined,
     },
     { icon: <LockIcon color={iconColor} />, label: "Security", sub: "Password & PIN", onPress: () => router.push("/profile/security" as any) },
+    { icon: <Feather name="help-circle" size={20} color={iconColor} />, label: "Help & Support", sub: "Get help, contact us", onPress: () => router.push("/help" as any) },
+    { icon: <Feather name="settings" size={20} color={iconColor} />, label: "Settings", sub: "Preferences & account", onPress: () => router.push("/settings" as any) },
   ];
 
   const SETTINGS_GROUP_2 = [
@@ -403,6 +417,14 @@ export default function ProfileScreen() {
       color: RED,
     },
   });
+
+  if (isLoggingOut) {
+    return (
+      <View style={[styles.root, { paddingTop: topPad, alignItems: "center", justifyContent: "center" }]}>
+        <ActivityIndicator color={c.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.root, { paddingTop: topPad }]}>
