@@ -1,3 +1,4 @@
+import { guardedPush } from "@/utils/navigation";
 import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
@@ -107,7 +108,7 @@ export default function HelpScreen() {
           </Text>
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => router.push("/help/report" as any)}
+            onPress={() => guardedPush(() => router.push("/help/report" as any))}
             style={{ flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 8, backgroundColor: GREEN, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 16, marginTop: 16 }}
           >
             <Feather name="message-square" size={16} color={WHITE} />
@@ -124,7 +125,7 @@ export default function HelpScreen() {
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: GREEN }} />
               <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: GREEN }}>Online</Text>
             </View>}
-            onPress={() => router.push("/help/report" as any)}
+            onPress={() => guardedPush(() => router.push("/help/report" as any))}
           />
           <Divider c={c} />
           <ContactRow c={c} icon="phone" title="Call us" sub={`${CONTACT.phone} · ${CONTACT.phoneHours}`} onPress={() => Linking.openURL(`tel:${CONTACT.phone.replace(/\s/g, "")}`)} chevron />
@@ -136,7 +137,7 @@ export default function HelpScreen() {
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 24, marginBottom: 10 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, letterSpacing: 0.5, color: MUTED }}>MY REPORTS</Text>
           {(tickets?.length ?? 0) > 3 && (
-            <TouchableOpacity onPress={() => router.push("/help/report" as any)}>
+            <TouchableOpacity onPress={() => guardedPush(() => router.push("/help/report" as any))}>
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: GREEN }}>View All</Text>
             </TouchableOpacity>
           )}
@@ -158,7 +159,7 @@ export default function HelpScreen() {
                   {i > 0 && <Divider c={c} />}
                   <TouchableOpacity
                     activeOpacity={0.7}
-                    onPress={() => router.push({ pathname: "/help/ticket" as any, params: { id: t.ticketId } })}
+                    onPress={() => guardedPush(() => router.push({ pathname: "/help/ticket" as any, params: { id: t.ticketId } }))}
                     style={{ paddingHorizontal: 16, paddingVertical: 14 }}
                   >
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>

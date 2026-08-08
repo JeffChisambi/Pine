@@ -1,3 +1,4 @@
+import { guardedPush } from "@/utils/navigation";
 import React, { useState } from "react";
 import {
   View,
@@ -77,20 +78,23 @@ export default function SettingsScreen() {
         <Label c={c}>PREFERENCES</Label>
         <Group c={c}>
           <Row c={c} icon="bell" title="Notifications" sub="Manage notification preferences"
-            onPress={() => router.push("/profile/push-notifications" as any)} chevron />
+            onPress={() => guardedPush(() => router.push("/profile/push-notifications" as any))} chevron />
         </Group>
 
         {/* Account */}
         <Label c={c}>ACCOUNT</Label>
         <Group c={c}>
           <Row c={c} icon="user" title="Personal Data" sub="Name, email, address"
-            onPress={() => router.push("/profile/personal-data" as any)} chevron />
+            onPress={() => guardedPush(() => router.push("/profile/personal-data" as any))} chevron />
           <Divider c={c} />
           <Row c={c} icon="lock" title="Security" sub="Password & PIN"
-            onPress={() => router.push("/profile/security" as any)} chevron />
+            onPress={() => guardedPush(() => router.push("/profile/security" as any))} chevron />
+          <Divider c={c} />
+          <Row c={c} icon="credit-card" title="Payment Methods" sub="Saved cards & bank details"
+            onPress={() => guardedPush(() => router.push("/settings/cards" as any))} chevron />
           <Divider c={c} />
           <Row c={c} icon="help-circle" title="Help & Support" sub="Get help, contact us"
-            onPress={() => router.push("/help" as any)} chevron />
+            onPress={() => guardedPush(() => router.push("/help" as any))} chevron />
         </Group>
 
         {/* About */}

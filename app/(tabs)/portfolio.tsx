@@ -264,7 +264,7 @@ export default function PortfolioScreen() {
       <View style={[styles.header, { paddingTop: topPad }]}>
         {/* Receipt icon top-right */}
         <View style={styles.topRow}>
-          <TouchableOpacity style={styles.receiptBtn} onPress={() => router.push("/trade/history" as any)}>
+          <TouchableOpacity style={styles.receiptBtn} onPress={() => guardedPush(() => router.push("/trade/history" as any))}>
             <ReceiptIcon color={c.mutedForeground} />
           </TouchableOpacity>
         </View>

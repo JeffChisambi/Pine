@@ -10,7 +10,6 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Image,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,8 +18,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import PinVerifyModal from "@/components/PinVerifyModal";
 import { walletApi } from "../services/api";
 import { invalidateWalletBalance, useWalletBalance } from "../services/wallet-queries";
-
-const BANK_TRANSFER_ART = require("../assets/images/bank-transfer.png");
 
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -380,7 +377,12 @@ export default function WithdrawScreen() {
           <Text style={styles.sectionLabel}>Withdrawal Method</Text>
           <View style={[styles.methodCard, styles.methodCardActive]}>
             <View style={styles.methodLogoWrap}>
-              <Image source={BANK_TRANSFER_ART} style={{ width: 42, height: 42, borderRadius: 8 }} resizeMode="contain" />
+              <View style={{ width: 42, height: 42, borderRadius: 10, backgroundColor: c.primary + "18", alignItems: "center", justifyContent: "center" }}>
+                <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                  <Path d="M3 8V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2M3 8v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8M3 8h18" stroke={c.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+                  <Path d="M7 15h4" stroke={c.primary} strokeWidth={1.8} strokeLinecap="round" />
+                </Svg>
+              </View>
             </View>
             <View style={styles.methodInfo}>
               <Text style={styles.methodName}>Bank Transfer</Text>

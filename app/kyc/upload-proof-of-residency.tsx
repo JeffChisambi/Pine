@@ -167,12 +167,10 @@ export default function UploadProofOfResidencyScreen() {
 
     setProcessing(true);
     try {
-      // Trigger AI pipeline — but we always show "Under Review" to the user.
-      // The final APPROVED/REJECTED decision is made by a human broker in
-      // Kusata, not by the automated pipeline. This prevents users from
-      // seeing a confusing automatic rejection immediately after submitting.
-      await kycApi.process(applicationId);
-      router.replace("/kyc/under-review" as any);
+      router.push({
+        pathname: "/kyc/bank-details" as any,
+        params: { applicationId },
+      });
     } catch (err: any) {
       const status = err?.statusCode ?? err?.status;
       let msg = "Submission failed. Please try again.";

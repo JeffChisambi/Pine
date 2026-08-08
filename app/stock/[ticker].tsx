@@ -1,4 +1,4 @@
-import { guardedBack } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
@@ -435,7 +435,7 @@ export default function StockDetailScreen() {
               : { borderColor: MUTED, backgroundColor: c.background, opacity: 0.45 },
           ]}
           activeOpacity={canSell ? 0.85 : 1}
-          onPress={() => canSell && router.push(`/trade/sell?ticker=${ticker}` as any)}
+          onPress={() => canSell && guardedPush(() => router.push(`/trade/sell?ticker=${ticker}` as any))}
           disabled={!canSell}
         >
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: canSell ? c.primary : MUTED }}>Sell</Text>
@@ -443,7 +443,7 @@ export default function StockDetailScreen() {
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 9, color: MUTED, marginTop: 1 }}>No shares owned</Text>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={{ flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: c.primary, shadowColor: c.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 5 }} activeOpacity={0.85} onPress={() => router.push(`/trade/buy?ticker=${ticker}` as any)}>
+        <TouchableOpacity style={{ flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: c.primary, shadowColor: c.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 5 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push(`/trade/buy?ticker=${ticker}` as any))}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: WHITE }}>Buy</Text>
         </TouchableOpacity>
       </View>

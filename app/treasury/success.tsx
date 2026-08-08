@@ -228,7 +228,7 @@ export default function TreasurySuccess() {
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => router.replace("/(tabs)" as any)}
+          onPress={() => guardedPush(() => router.replace("/(tabs)" as any))}
           style={{
             height: 56,
             backgroundColor: c.card,

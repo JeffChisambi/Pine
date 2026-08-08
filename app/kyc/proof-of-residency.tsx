@@ -1,4 +1,4 @@
-import { guardedBack } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
 import React, { useState } from "react";
 import {
   View,
@@ -158,7 +158,7 @@ export default function ProofOfResidencyScreen() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           style={styles.continueBtn}
-          onPress={() => router.push({ pathname: "/kyc/upload-id", params: { docType: selected } } as any)}
+          onPress={() => guardedPush(() => router.push({ pathname: "/kyc/upload-id", params: { docType: selected } } as any))}
           activeOpacity={0.88}
         >
           <Text style={styles.continueBtnText}>Continue</Text>

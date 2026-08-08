@@ -1,3 +1,4 @@
+import { guardedPush } from "@/utils/navigation";
 import React, { useCallback } from "react";
 import {
   View,
@@ -165,7 +166,7 @@ export default function VerifySuccessScreen() {
           style={[styles.doneBtn, isRejected && { backgroundColor: "#DC2626" }]}
           onPress={async () => {
             await refreshProfile();
-            router.replace("/(tabs)/profile" as any);
+            guardedPush(() => router.replace("/(tabs)/profile" as any));
           }}
           activeOpacity={0.88}
         >

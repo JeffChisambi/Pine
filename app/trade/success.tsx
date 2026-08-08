@@ -1,3 +1,4 @@
+import { guardedPush } from "@/utils/navigation";
 import React from "react";
 import {
   View,
@@ -152,13 +153,13 @@ export default function SuccessScreen() {
       <View style={{ width: SCREEN_W - 40, gap: 12, marginTop: "auto", paddingBottom: bottomPad + 16 }}>
         <TouchableOpacity
           style={{ borderWidth: 1.5, borderColor: c.primary, borderRadius: 14, paddingVertical: 15, alignItems: "center" }}
-          onPress={() => router.push("/trade/history" as any)}
+          onPress={() => guardedPush(() => router.push("/trade/history" as any))}
         >
           <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.primary }}>View Orders</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center" }}
-          onPress={() => router.push("/(tabs)/" as any)}
+          onPress={() => guardedPush(() => router.push("/(tabs)/" as any))}
         >
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE }}>Back to Home</Text>
         </TouchableOpacity>

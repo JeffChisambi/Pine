@@ -1,4 +1,4 @@
-import { guardedBack } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -340,7 +340,7 @@ export default function ForgotPasswordScreen() {
                 />
               </Svg>
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/signup")}>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => guardedPush(() => router.push("/signup"))}>
               <Text style={[styles.signUpLink, { color: c.primary }]}>Sign Up</Text>
             </TouchableOpacity>
           </View>

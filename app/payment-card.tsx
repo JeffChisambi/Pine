@@ -232,7 +232,11 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
 
 export default function PaymentCardScreen() {
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ amount: string; currency: string; purpose: string }>();
+  const params = useLocalSearchParams<{
+    amount: string; currency: string; purpose: string;
+    savedCardId?: string; last4?: string; cardBrand?: string;
+    cardholderName?: string; expiryMonth?: string; expiryYear?: string;
+  }>();
   const c      = useColors();
   const qc     = useQueryClient();
 
@@ -240,18 +244,26 @@ export default function PaymentCardScreen() {
   const currency = (params.currency ?? "MWK") as "MWK" | "USD";
   const purpose  = params.purpose ?? "wallet_deposit";
 
+  const isSavedCard = !!params.savedCardId;
+  const savedExpiry = params.expiryMonth && params.expiryYear
+    ? `${params.expiryMonth}/${params.expiryYear.slice(-2)}`
+    : "";
+
   // Form state
-  const [cardNumber, setCardNumber]   = useState("");
-  const [cardHolder, setCardHolder]   = useState("");
-  const [expiry, setExpiry]           = useState("");
+  const [cardNumber, setCardNumber]   = useState(isSavedCard ? `•••• •••• •••• ${params.last4}` : "");
+  const [cardHolder, setCardHolder]   = useState(isSavedCard ? (params.cardholderName ?? "") : "");
+  const [expiry, setExpiry]           = useState(isSavedCard ? savedExpiry : "");
   const [cvv, setCvv]                 = useState("");
   const [isCvvFocused, setIsCvvFocused] = useState(false);
   const [loading, setLoading]         = useState(false);
   const [errors, setErrors]           = useState<Record<string, string>>({});
+  const [saveCard, setSaveCard]       = useState(false);
 
   // Card flip animation
   const flipAnim  = useRef(new Animated.Value(0)).current;
-  const cardType  = detectCardType(cardNumber);
+  const cardType  = isSavedCard
+    ? (params.cardBrand?.toLowerCase() === "visa" ? "visa" : params.cardBrand?.toLowerCase() === "mastercard" ? "mastercard" : "unknown") as CardType
+    : detectCardType(cardNumber);
 
   const flipToBack = () => {
     Animated.spring(flipAnim, { toValue: 1, useNativeDriver: true, tension: 40, friction: 8 }).start();
@@ -281,15 +293,17 @@ export default function PaymentCardScreen() {
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
-    const rawNum = cardNumber.replace(/\s/g, "");
-    if (rawNum.length < 13) errs.cardNumber = "Enter a valid card number";
-    if (!cardHolder.trim()) errs.cardHolder = "Enter the cardholder name";
-    const [mm, yy] = expiry.split("/");
-    const month = parseInt(mm, 10);
-    const year  = parseInt("20" + yy, 10);
-    const now   = new Date();
-    if (!mm || !yy || month < 1 || month > 12 || year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) {
-      errs.expiry = "Enter a valid expiry date";
+    if (!isSavedCard) {
+      const rawNum = cardNumber.replace(/\s/g, "");
+      if (rawNum.length < 13) errs.cardNumber = "Enter a valid card number";
+      if (!cardHolder.trim()) errs.cardHolder = "Enter the cardholder name";
+      const [mm, yy] = expiry.split("/");
+      const month = parseInt(mm, 10);
+      const year  = parseInt("20" + yy, 10);
+      const now   = new Date();
+      if (!mm || !yy || month < 1 || month > 12 || year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) {
+        errs.expiry = "Enter a valid expiry date";
+      }
     }
     if (cvv.length < 3) errs.cvv = "Enter a valid CVV";
     setErrors(errs);
@@ -307,7 +321,7 @@ export default function PaymentCardScreen() {
    */
   const runPayment = async (card: {
     cardholderName: string; cardNumber: string; expiryMonth: string; expiryYear: string; cvv: string;
-  }, testScenario?: string) => {
+  }, testScenario?: string, savedCardId?: string, shouldSaveCard?: boolean) => {
     if (loading) return;
     setLoading(true);
 
@@ -319,6 +333,8 @@ export default function PaymentCardScreen() {
         purpose,
         idempotencyKey: attemptKeyRef.current,
         ...(testScenario ? { testScenario } : {}),
+        ...(savedCardId ? { savedCardId } : {}),
+        ...(shouldSaveCard ? { saveCard: true } : {}),
       });
 
       // Terminal outcome — the next attempt is a new payment.
@@ -354,14 +370,24 @@ export default function PaymentCardScreen() {
 
   const handlePay = async () => {
     if (!validate() || loading) return;
-    const [mm, yy] = expiry.split("/");
-    await runPayment({
-      cardholderName: cardHolder.trim(),
-      cardNumber: cardNumber.replace(/\s/g, ""),
-      expiryMonth: mm,
-      expiryYear: yy,
-      cvv,
-    });
+    if (isSavedCard) {
+      await runPayment({
+        cardholderName: params.cardholderName ?? "",
+        cardNumber: "",
+        expiryMonth: params.expiryMonth ?? "",
+        expiryYear: params.expiryYear ?? "",
+        cvv,
+      }, undefined, params.savedCardId);
+    } else {
+      const [mm, yy] = expiry.split("/");
+      await runPayment({
+        cardholderName: cardHolder.trim(),
+        cardNumber: cardNumber.replace(/\s/g, ""),
+        expiryMonth: mm,
+        expiryYear: yy,
+        cvv,
+      }, undefined, undefined, saveCard);
+    }
   };
 
   // ── Test Transaction mode ──
@@ -380,7 +406,9 @@ export default function PaymentCardScreen() {
 
   const topPad    = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16);
-  const canPay    = cardNumber.replace(/\s/g, "").length >= 13 && cardHolder.trim().length > 0 && expiry.length === 5 && cvv.length >= 3;
+  const canPay    = isSavedCard
+    ? cvv.length >= 3
+    : cardNumber.replace(/\s/g, "").length >= 13 && cardHolder.trim().length > 0 && expiry.length === 5 && cvv.length >= 3;
 
   return (
     <KeyboardAvoidingView
@@ -426,53 +454,114 @@ export default function PaymentCardScreen() {
 
         {/* Form */}
         <View style={styles.formWrap}>
-          <Field
-            label="Card Number"
-            value={cardNumber}
-            onChangeText={handleCardNumber}
-            placeholder="0000 0000 0000 0000"
-            keyboardType="numeric"
-            maxLength={19}
-            error={errors.cardNumber}
-          />
-
-          <Field
-            label="Cardholder Name"
-            value={cardHolder}
-            onChangeText={(v) => { setCardHolder(v); setErrors((e) => ({ ...e, cardHolder: "" })); }}
-            placeholder="Name as on card"
-            autoCapitalize="words"
-            error={errors.cardHolder}
-          />
-
-          <View style={styles.row}>
-            <View style={{ flex: 1 }}>
+          {isSavedCard ? (
+            <>
+              {/* Saved card — read-only preview */}
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>Card Number</Text>
+                <View style={[styles.fieldBox, { backgroundColor: "#F3F4F6" }]}>
+                  <Text style={[styles.fieldInput, { color: MUTED, paddingTop: 16 }]}>•••• •••• •••• {params.last4}</Text>
+                </View>
+              </View>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>Cardholder Name</Text>
+                <View style={[styles.fieldBox, { backgroundColor: "#F3F4F6" }]}>
+                  <Text style={[styles.fieldInput, { color: MUTED, paddingTop: 16 }]}>{params.cardholderName}</Text>
+                </View>
+              </View>
+              <View style={styles.row}>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.fieldWrap}>
+                    <Text style={styles.fieldLabel}>Expiry Date</Text>
+                    <View style={[styles.fieldBox, { backgroundColor: "#F3F4F6" }]}>
+                      <Text style={[styles.fieldInput, { color: MUTED, paddingTop: 16 }]}>{savedExpiry}</Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={{ width: 16 }} />
+                <View style={{ flex: 1 }}>
+                  <Field
+                    label="CVV"
+                    value={cvv}
+                    onChangeText={(v) => { setCvv(v.replace(/\D/g, "").slice(0, 4)); setErrors((e) => ({ ...e, cvv: "" })); }}
+                    placeholder="•••"
+                    keyboardType="numeric"
+                    maxLength={4}
+                    secureTextEntry
+                    onFocus={() => { setIsCvvFocused(true); flipToBack(); }}
+                    onBlur={() => { setIsCvvFocused(false); flipToFront(); }}
+                    error={errors.cvv}
+                  />
+                </View>
+              </View>
+            </>
+          ) : (
+            <>
               <Field
-                label="Expiry Date"
-                value={expiry}
-                onChangeText={handleExpiry}
-                placeholder="MM/YY"
+                label="Card Number"
+                value={cardNumber}
+                onChangeText={handleCardNumber}
+                placeholder="0000 0000 0000 0000"
                 keyboardType="numeric"
-                maxLength={5}
-                error={errors.expiry}
+                maxLength={19}
+                error={errors.cardNumber}
               />
-            </View>
-            <View style={{ width: 16 }} />
-            <View style={{ flex: 1 }}>
+
               <Field
-                label="CVV"
-                value={cvv}
-                onChangeText={(v) => { setCvv(v.replace(/\D/g, "").slice(0, 4)); setErrors((e) => ({ ...e, cvv: "" })); }}
-                placeholder="•••"
-                keyboardType="numeric"
-                maxLength={4}
-                secureTextEntry
-                onFocus={() => { setIsCvvFocused(true); flipToBack(); }}
-                onBlur={() => { setIsCvvFocused(false); flipToFront(); }}
-                error={errors.cvv}
+                label="Cardholder Name"
+                value={cardHolder}
+                onChangeText={(v) => { setCardHolder(v); setErrors((e) => ({ ...e, cardHolder: "" })); }}
+                placeholder="Name as on card"
+                autoCapitalize="words"
+                error={errors.cardHolder}
               />
-            </View>
-          </View>
+
+              <View style={styles.row}>
+                <View style={{ flex: 1 }}>
+                  <Field
+                    label="Expiry Date"
+                    value={expiry}
+                    onChangeText={handleExpiry}
+                    placeholder="MM/YY"
+                    keyboardType="numeric"
+                    maxLength={5}
+                    error={errors.expiry}
+                  />
+                </View>
+                <View style={{ width: 16 }} />
+                <View style={{ flex: 1 }}>
+                  <Field
+                    label="CVV"
+                    value={cvv}
+                    onChangeText={(v) => { setCvv(v.replace(/\D/g, "").slice(0, 4)); setErrors((e) => ({ ...e, cvv: "" })); }}
+                    placeholder="•••"
+                    keyboardType="numeric"
+                    maxLength={4}
+                    secureTextEntry
+                    onFocus={() => { setIsCvvFocused(true); flipToBack(); }}
+                    onBlur={() => { setIsCvvFocused(false); flipToFront(); }}
+                    error={errors.cvv}
+                  />
+                </View>
+              </View>
+
+              {/* Save this card toggle */}
+              <TouchableOpacity
+                style={styles.saveCardRow}
+                activeOpacity={0.7}
+                onPress={() => setSaveCard((v) => !v)}
+              >
+                <View style={[styles.saveCardCheck, saveCard && { backgroundColor: c.primary, borderColor: c.primary }]}>
+                  {saveCard && (
+                    <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+                      <Path d="M5 13l4 4L19 7" stroke={WHITE} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+                    </Svg>
+                  )}
+                </View>
+                <Text style={styles.saveCardText}>Save this card for future deposits</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           {/* Secure badge */}
           <View style={styles.secureBadge}>
@@ -765,6 +854,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#166534",
     lineHeight: 18,
+  },
+
+  // ── Save card ──────────────────────────────────────────────────────────────────
+  saveCardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  saveCardCheck: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: DIVIDER,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  saveCardText: {
+    fontFamily: "PlusJakartaSans_400Regular",
+    fontSize: 14,
+    color: DARK,
   },
 
   // ── Accepted cards ────────────────────────────────────────────────────────────

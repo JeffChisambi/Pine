@@ -1,4 +1,4 @@
-import { guardedBack } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
 import React from "react";
 import {
   View,
@@ -118,7 +118,7 @@ export default function UploadIdSelfieScreen() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + 24 }]}>
         <TouchableOpacity
           style={styles.cta}
-          onPress={() => router.push({ pathname: "/kyc/selfie-camera", params: { applicationId } } as any)}
+          onPress={() => guardedPush(() => router.push({ pathname: "/kyc/selfie-camera", params: { applicationId } } as any))}
           activeOpacity={0.88}
         >
           <Text style={styles.ctaText}>Take Selfie</Text>

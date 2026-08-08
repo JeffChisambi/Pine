@@ -1,4 +1,4 @@
-import { guardedBack } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -214,10 +214,10 @@ export default function BuyScreen() {
         <TouchableOpacity
           style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: rawAmount && selectedStock && (isBuy || availableShares > 0) ? 1 : 0.5 }}
           disabled={!rawAmount || !selectedStock || (!isBuy && availableShares <= 0)}
-          onPress={() => router.push({
+          onPress={() => guardedPush(() => router.push({
             pathname: "/trade/confirm" as any,
             params: { stockId: selectedStock?.id ?? "", symbol: selectedStock?.symbol ?? "", name: selectedStock?.name ?? "", side: mode.toUpperCase(), amount: rawAmount, price: String(selectedStock?.priceRaw ?? 0) },
-          })}
+          }))}
         >
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE }}>Review Order</Text>
         </TouchableOpacity>

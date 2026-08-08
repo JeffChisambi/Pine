@@ -1,11 +1,10 @@
-import { guardedBack } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useColors } from "@/hooks/useColors";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Keyboard,
   Platform,
   ScrollView,
@@ -18,8 +17,17 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle } from "react-native-svg";
+import { savedCardsApi } from "../services/api";
 
-const BANK_CARD_LOGO = require("../assets/images/bank-transfer.png");
+type SavedCard = {
+  id: string;
+  last4: string;
+  cardBrand: string;
+  cardholderName: string;
+  expiryMonth: string;
+  expiryYear: string;
+  isDefault: boolean;
+};
 
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -54,9 +62,14 @@ function InfoIcon() {
   );
 }
 
-function BankCardIcon() {
+function BankCardIcon({ color = "#6366F1" }: { color?: string }) {
   return (
-    <Image source={BANK_CARD_LOGO} style={{ width: 42, height: 42, borderRadius: 8 }} resizeMode="contain" />
+    <View style={{ width: 42, height: 42, borderRadius: 10, backgroundColor: color + "18", alignItems: "center", justifyContent: "center" }}>
+      <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+        <Path d="M3 8V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2M3 8v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8M3 8h18" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+        <Path d="M7 15h4" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      </Svg>
+    </View>
   );
 }
 
@@ -70,6 +83,16 @@ export default function DepositScreen() {
   const [selectedMethod, setSelectedMethod] = useState("bankcard");
   const [loading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  useEffect(() => {
+    savedCardsApi.list().then((cards) => {
+      setSavedCards(cards);
+      const def = cards.find((c) => c.isDefault);
+      if (def) setSelectedCardId(def.id);
+    }).catch(() => {});
+  }, []);
 
   const numericValue = parseFloat(rawAmount.replace(/,/g, "")) || 0;
   const canDeposit   = numericValue >= 10000 && !loading;
@@ -81,10 +104,23 @@ export default function DepositScreen() {
 
   const handleDeposit = () => {
     if (!canDeposit) return;
-    router.push({
+    const card = savedCards.find((c) => c.id === selectedCardId);
+    guardedPush(() => router.push({
       pathname: "/payment-card" as any,
-      params: { amount: String(numericValue), currency: "MWK", purpose: "wallet_deposit" },
-    });
+      params: {
+        amount: String(numericValue),
+        currency: "MWK",
+        purpose: "wallet_deposit",
+        ...(card ? {
+          savedCardId: card.id,
+          last4: card.last4,
+          cardBrand: card.cardBrand,
+          cardholderName: card.cardholderName,
+          expiryMonth: card.expiryMonth,
+          expiryYear: card.expiryYear,
+        } : {}),
+      },
+    }));
   };
 
   const styles = StyleSheet.create({
@@ -392,17 +428,43 @@ export default function DepositScreen() {
           {/* Section label */}
           <Text style={styles.sectionLabel}>Payment Method</Text>
 
-          {/* Bank Card */}
+          {/* Saved cards */}
+          {savedCards.map((card) => {
+            const isActive = selectedCardId === card.id;
+            return (
+              <TouchableOpacity
+                key={card.id}
+                style={[styles.methodCard, isActive && styles.methodCardActive]}
+                activeOpacity={0.7}
+                onPress={() => { setSelectedCardId(card.id); setSelectedMethod("saved"); }}
+              >
+                <View style={styles.methodLogoWrap}>
+                  <BankCardIcon color={c.primary} />
+                </View>
+                <View style={styles.methodInfo}>
+                  <Text style={styles.methodName}>
+                    {card.cardBrand} ••••{card.last4}
+                  </Text>
+                  <Text style={styles.methodSub}>
+                    {card.cardholderName} · {card.expiryMonth}/{card.expiryYear}
+                  </Text>
+                </View>
+                {isActive && selectedMethod === "saved" ? <CheckIcon /> : <View style={styles.uncheckCircle} />}
+              </TouchableOpacity>
+            );
+          })}
+
+          {/* Use different card */}
           <TouchableOpacity
             style={[styles.methodCard, selectedMethod === "bankcard" && styles.methodCardActive]}
             activeOpacity={0.7}
-            onPress={() => setSelectedMethod("bankcard")}
+            onPress={() => { setSelectedCardId(null); setSelectedMethod("bankcard"); }}
           >
             <View style={styles.methodLogoWrap}>
-              <BankCardIcon />
+              <BankCardIcon color={c.primary} />
             </View>
             <View style={styles.methodInfo}>
-              <Text style={styles.methodName}>Bank Card</Text>
+              <Text style={styles.methodName}>{savedCards.length > 0 ? "Use Different Card" : "Bank Card"}</Text>
               <Text style={styles.methodSub}>Visa &amp; Mastercard</Text>
             </View>
             {selectedMethod === "bankcard" ? <CheckIcon /> : <View style={styles.uncheckCircle} />}
@@ -412,7 +474,9 @@ export default function DepositScreen() {
           <View style={styles.noteRow}>
             <InfoIcon />
             <Text style={styles.noteText}>
-              You'll be able to securely enter your card details to process the deposit.
+              {selectedMethod === "saved"
+                ? "You'll only need to enter your CVV to complete the deposit."
+                : "You'll be able to securely enter your card details to process the deposit."}
             </Text>
           </View>
 

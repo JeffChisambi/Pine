@@ -627,6 +627,12 @@ export const kycApi = {
       return fd;
     }),
 
+  submitBankAccount: (applicationId: string, bankName: string, accountNumber: string, accountName: string) =>
+    request<{ success: boolean }>('/kyc/bank-account', {
+      method: 'POST',
+      body: JSON.stringify({ applicationId, bankName, accountNumber, accountName }),
+    }),
+
   process: (applicationId: string): Promise<{ decision: string; confidenceScore: number }> =>
     request('/kyc/process', {
       method: 'POST',
@@ -1011,6 +1017,8 @@ export const cardPaymentsApi = {
     quantity?: number;
     idempotencyKey?: string;
     testScenario?: string;
+    savedCardId?: string;
+    saveCard?: boolean;
   }): Promise<CardPaymentSession> =>
     request<CardPaymentSession>('/payments/card/initiate', {
       method: 'POST',
@@ -1020,6 +1028,30 @@ export const cardPaymentsApi = {
   /** Poll for the current status of a bank card payment */
   verifyCardPayment: (txRef: string): Promise<CardPaymentVerification> =>
     request<CardPaymentVerification>(`/payments/card/verify/${txRef}`),
+};
+
+// ─── Saved Cards API ─────────────────────────────────────────────────────────
+
+export const savedCardsApi = {
+  list: () => request<Array<{
+    id: string;
+    last4: string;
+    cardBrand: string;
+    cardholderName: string;
+    expiryMonth: string;
+    expiryYear: string;
+    isDefault: boolean;
+    createdAt: string;
+  }>>('/cards'),
+
+  save: (data: { cardNumber: string; cardholderName: string; expiryMonth: string; expiryYear: string }) =>
+    request<{ id: string; last4: string; cardBrand: string; cardholderName: string; expiryMonth: string; expiryYear: string; isDefault: boolean }>('/cards', { method: 'POST', body: JSON.stringify(data) }),
+
+  remove: (id: string) =>
+    request<{ success: boolean }>(`/cards/${id}`, { method: 'DELETE' }),
+
+  setDefault: (id: string) =>
+    request<{ success: boolean }>(`/cards/${id}/default`, { method: 'PATCH' }),
 };
 
 

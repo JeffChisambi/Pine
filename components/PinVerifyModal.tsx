@@ -1,3 +1,4 @@
+import { guardedPush } from "@/utils/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import {
   View,
@@ -169,7 +170,7 @@ export default function PinVerifyModal({
 
           {needsSetup && (
             <TouchableOpacity
-              onPress={() => { onCancel(); router.push("/create-pin" as any); }}
+              onPress={() => { onCancel(); guardedPush(() => router.push("/create-pin" as any)); }}
               activeOpacity={0.85}
               style={{ backgroundColor: c.primary, borderRadius: 12, paddingVertical: 13, alignItems: "center", marginBottom: 6 }}
             >

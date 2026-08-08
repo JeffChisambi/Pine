@@ -1,4 +1,4 @@
-import { guardedBack } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -366,10 +366,10 @@ export default function UploadIdScreen() {
           style={[styles.continueBtn, { backgroundColor: c.primary }, !canContinue && styles.continueBtnDisabled]}
           onPress={() =>
             canContinue &&
-            router.push({
+            guardedPush(() => router.push({
               pathname: "/kyc/upload-id-selfie",
               params: { applicationId },
-            } as any)
+            } as any))
           }
           activeOpacity={canContinue ? 0.88 : 1}
         >

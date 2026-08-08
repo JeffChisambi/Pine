@@ -1,4 +1,4 @@
-import { guardedBack } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
 import React, { useState } from "react";
 import {
   View,
@@ -157,7 +157,7 @@ export default function ExchangeScreen() {
       </ScrollView>
 
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
-        <TouchableOpacity style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center" }} onPress={() => router.push("/trade/confirm" as any)}>
+        <TouchableOpacity style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center" }} onPress={() => guardedPush(() => router.push("/trade/confirm" as any))}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: WHITE }}>Exchange</Text>
         </TouchableOpacity>
       </View>

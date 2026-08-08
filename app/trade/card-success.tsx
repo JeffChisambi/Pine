@@ -9,6 +9,7 @@
  *   cardBrand — card brand string (e.g. 'MASTERCARD', 'VISA')
  *   txRef     — Pine transaction reference
  */
+import { guardedPush } from "@/utils/navigation";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
@@ -204,10 +205,10 @@ export default function CardSuccessScreen() {
         <TouchableOpacity
           style={[styles.ctaOutline, { borderColor: c.primary }]}
           activeOpacity={0.75}
-          onPress={() => {
+          onPress={() => guardedPush(() => {
             invalidateWalletBalance(qc).catch(() => {});
             router.push("/(tabs)/" as any);
-          }}
+          })}
         >
           <Text style={[styles.ctaOutlineText, { color: c.primary }]}>View Wallet</Text>
         </TouchableOpacity>
@@ -215,10 +216,10 @@ export default function CardSuccessScreen() {
         <TouchableOpacity
           style={[styles.ctaSolid, { backgroundColor: c.primary }]}
           activeOpacity={0.85}
-          onPress={() => {
+          onPress={() => guardedPush(() => {
             invalidateWalletBalance(qc).catch(() => {});
             router.replace("/(tabs)/" as any);
-          }}
+          })}
         >
           <Text style={styles.ctaSolidText}>Back to Home</Text>
         </TouchableOpacity>

@@ -1,3 +1,4 @@
+import { guardedPush } from "@/utils/navigation";
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   View,
@@ -239,10 +240,10 @@ export default function ProfileScreen() {
       icon: <SealCheckIcon color={isVerified ? "#45B369" : iconColor} />,
       label: "Identity Verification",
       sub: isVerified ? "Your identity is verified" : "KYC — verify your identity",
-      onPress: isVerified ? null : () => router.push("/kyc/upload-id" as any),
+      onPress: isVerified ? null : () => guardedPush(() => router.push("/kyc/upload-id" as any)),
       badge: isVerified ? "verified" : undefined,
     },
-    { icon: <Feather name="settings" size={20} color={iconColor} />, label: "Settings", sub: "Preferences & account", onPress: () => router.push("/settings" as any) },
+    { icon: <Feather name="settings" size={20} color={iconColor} />, label: "Settings", sub: "Preferences & account", onPress: () => guardedPush(() => router.push("/settings" as any)) },
   ];
 
   const SETTINGS_GROUP_2: Array<{
@@ -410,7 +411,7 @@ export default function ProfileScreen() {
               {kycStatus === "NOT_SUBMITTED" && (
                 <TouchableOpacity
                   style={styles.unverifiedChip}
-                  onPress={() => router.push("/kyc/upload-id" as any)}
+                  onPress={() => guardedPush(() => router.push("/kyc/upload-id" as any))}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.unverifiedText}>⚠ Verify Now</Text>
@@ -429,7 +430,7 @@ export default function ProfileScreen() {
               {kycStatus === "REJECTED" && (
                 <TouchableOpacity
                   style={[styles.unverifiedChip, { backgroundColor: "#FEF2F2", borderColor: "#FCA5A5" }]}
-                  onPress={() => router.push("/kyc/upload-id" as any)}
+                  onPress={() => guardedPush(() => router.push("/kyc/upload-id" as any))}
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.unverifiedText, { color: "#991B1B" }]}>✗ Rejected — Try Again</Text>
