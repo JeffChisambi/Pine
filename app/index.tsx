@@ -1,5 +1,6 @@
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@/services/auth-context";
 import { useColors } from "@/hooks/useColors";
 import React, { useRef, useState } from "react";
 import {
@@ -58,6 +59,7 @@ const SLIDES = [
 /* ─── Main screen ──────────────────────────────────────────── */
 export default function OnboardingScreen() {
   const c = useColors();
+  const { isLoggedIn } = useAuth();
   const insets   = useSafeAreaInsets();
   const topPad   = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad= Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
@@ -88,6 +90,13 @@ export default function OnboardingScreen() {
       markOnboardedAndGoToLogin();
     }
   };
+
+  // Defense-in-depth: a signed-in user must never see the onboarding
+  // carousel, regardless of what the AuthGate does. Declarative redirect —
+  // fires the moment the cached session restore flips isLoggedIn.
+  if (isLoggedIn) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   return (
     <View style={[s.container, { paddingTop: topPad, paddingBottom: bottomPad }]}>

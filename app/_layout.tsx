@@ -12,7 +12,7 @@ import {
 } from "@expo-google-fonts/lora";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../services/query-client";
-import { Stack, router, useSegments } from "expo-router";
+import { Stack, router, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
@@ -65,7 +65,7 @@ if (!isExpoGo) {
  */
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { isLoading, isLoggedIn, user } = useAuth();
-  const segments = useSegments();
+  const pathname = usePathname();
   const [hasOnboarded, setHasOnboarded] = React.useState<boolean | null>(null);
 
   // Read the persistent onboarding flag once on mount.
@@ -76,13 +76,13 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Wait until the router has initialised and given us at least one segment.
-    // Do NOT skip when segments[0] === "" — that is the onboarding index route.
-    if ((segments.length as number) === 0) return;
-
-    // Widened to string: at runtime the index route yields "" which the typed
-    // route union doesn't include, making === "" comparisons type errors.
-    const seg: string = segments[0];
+    // CRITICAL: do NOT gate on useSegments() length here. For the root index
+    // route ("/", the onboarding carousel) expo-router returns an EMPTY array
+    // of segments — a length check makes the guard exit on exactly the screen
+    // where signed-in users most need to be redirected away. That bug kept
+    // cold-starting logged-in users stuck on the onboarding carousel.
+    // usePathname() is unambiguous: "/" for the index route, always defined.
+    const seg: string = pathname === "/" ? "" : pathname.slice(1).split("/")[0];
 
     // Screens that belong to the unauthenticated / onboarding funnel.
     // "" is the segment for app/index.tsx (route "/").
@@ -146,7 +146,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
     // Fresh install (!isLoggedIn && seg === "" && !hasOnboarded):
     // → stay on the onboarding carousel; no redirect needed.
-  }, [isLoading, isLoggedIn, user?.hasPinSet, segments, hasOnboarded]);
+  }, [isLoading, isLoggedIn, user?.hasPinSet, pathname, hasOnboarded]);
 
   // Until the session restore and the onboarding flag have both resolved we
   // don't yet know where the user belongs — cover the navigator with a plain
