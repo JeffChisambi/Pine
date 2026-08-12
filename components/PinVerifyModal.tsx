@@ -12,6 +12,14 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { authApi, ApiError, getErrorMessage, logHandledError } from "../services/api";
+import {
+  authenticate,
+  cachePinIfBiometricsEnabled,
+  clearCachedPin,
+  getBiometricInfo,
+  getCachedPin,
+  isBiometricEnabled,
+} from "../services/biometrics";
 import { useColors } from "@/hooks/useColors";
 
 const WHITE = "#FFFFFF";
@@ -49,30 +57,80 @@ export default function PinVerifyModal({
   // User skipped PIN creation during onboarding ("Maybe later") — offer the
   // set-up path instead of a dead end.
   const [needsSetup, setNeedsSetup] = useState(false);
+  // True while the OS biometric sheet may be up — keeps the keyboard away
+  // until the biometric path has resolved one way or the other.
+  const [bioPending, setBioPending] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>(Array(PIN_LENGTH).fill(null));
+  const visibleRef = useRef(visible);
+  visibleRef.current = visible;
 
-  // Reset state each time the modal opens, and focus the first box.
+  const focusManualEntry = () => {
+    setBioPending(false);
+    setTimeout(() => inputRefs.current[0]?.focus(), 250);
+  };
+
+  // Reset state each time the modal opens. If the user has biometrics
+  // enabled (and a cached PIN is seeded), lead with the OS biometric prompt;
+  // manual PIN entry is always the fallback — on failure, cancel, missing
+  // hardware/enrolment, or an unseeded cache.
   useEffect(() => {
-    if (visible) {
-      setDigits(Array(PIN_LENGTH).fill(""));
-      setError(null);
-      setVerifying(false);
-      setNeedsSetup(false);
-      const t = setTimeout(() => inputRefs.current[0]?.focus(), 250);
-      return () => clearTimeout(t);
-    }
+    if (!visible) return;
+    setDigits(Array(PIN_LENGTH).fill(""));
+    setError(null);
+    setVerifying(false);
+    setNeedsSetup(false);
+    setBioPending(true);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const enabled = await isBiometricEnabled();
+        if (!enabled) return focusManualEntry();
+
+        const [cachedPin, info] = await Promise.all([getCachedPin(), getBiometricInfo()]);
+        if (!cachedPin || !info.available || !info.enrolled) return focusManualEntry();
+        if (cancelled || !visibleRef.current) return;
+
+        const ok = await authenticate(title);
+        if (cancelled || !visibleRef.current) return;
+        if (!ok) return focusManualEntry();
+
+        setBioPending(false);
+        await verify(cachedPin, { fromBiometric: true });
+      } catch {
+        if (!cancelled && visibleRef.current) focusManualEntry();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [visible]);
 
-  const verify = async (pin: string) => {
+  const verify = async (pin: string, opts?: { fromBiometric?: boolean }) => {
     setVerifying(true);
     setError(null);
     try {
       const { pinToken } = await authApi.verifyPin(pin);
+      if (!opts?.fromBiometric) {
+        // Keep the biometric PIN cache seeded/current — a no-op when the
+        // user hasn't enabled biometrics.
+        cachePinIfBiometricsEnabled(pin).catch(() => {});
+      }
       onVerified(pinToken);
     } catch (err) {
       logHandledError("PIN verify", err);
       const code = err instanceof ApiError ? (err.body?.error?.code as string) : null;
-      if (code === "AUTH_PIN_INVALID") setError("Incorrect PIN. Please try again.");
+      if (code === "AUTH_PIN_INVALID") {
+        if (opts?.fromBiometric) {
+          // The cached PIN is stale (changed on another device / server
+          // side). Drop it and fall back to manual entry.
+          clearCachedPin().catch(() => {});
+          setError("Your PIN has changed — please enter it manually.");
+        } else {
+          setError("Incorrect PIN. Please try again.");
+        }
+      }
       else if (code === "AUTH_PIN_LOCKED") setError("Too many attempts — PIN is temporarily locked. Try again later.");
       else if (code === "AUTH_PIN_NOT_SET") {
         setError("You haven't set a transaction PIN yet.");

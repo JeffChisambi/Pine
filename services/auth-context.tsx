@@ -33,6 +33,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthStore } from './auth-store';
+import { clearCachedPin } from './biometrics';
 import { authApi, type AuthTokens, type UserProfile, ApiError } from './api';
 import { queryClient } from './query-client';
 import { clearPendingDeposit } from './wallet-queries';
@@ -81,6 +82,9 @@ async function clearAllUserState(setUser: (u: UserProfile | null) => void) {
   queryClient.clear();
   // 3. Remove the pending deposit record (it belongs to the outgoing user).
   await clearPendingDeposit();
+  // 4. Drop the biometric-released transaction PIN — it belongs to the
+  //    outgoing user and must never survive into another user's session.
+  await clearCachedPin();
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

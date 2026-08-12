@@ -31,6 +31,8 @@ interface Holding extends StockData {
   shares: string;
   value: string;
   changePct: string;
+  /** True when the holding's P&L is exactly zero — renders neutral, no arrow. */
+  flat: boolean;
 }
 
 function EyeIcon({ hidden, color = "rgba(0,0,0,0.5)" }: { hidden: boolean; color?: string }) {
@@ -141,7 +143,7 @@ export default function PortfolioScreen() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [totalValue, setTotalValue] = useState<string | null>(null);
   const [totalGain, setTotalGain] = useState<string | null>(null);
-  const [gainPositive, setGainPositive] = useState(true);
+  const [gainDirection, setGainDirection] = useState<"up" | "down" | "flat">("flat");
 
   const loadPortfolio = useCallback(() => {
     portfolioApi.getSummary()
@@ -151,8 +153,8 @@ export default function PortfolioScreen() {
         setTotalValue(`K ${Number(s.portfolioValue ?? 0).toLocaleString()}`);
         const gain = Number(s.totalUnrealizedPnl ?? 0);
         const gainPct = Number(s.totalPnlPercent ?? 0);
-        setTotalGain(`${gain >= 0 ? '+' : ''}K ${Math.abs(gain).toLocaleString()} (${gainPct}%)`);
-        setGainPositive(gain >= 0);
+        setTotalGain(`${gain > 0 ? '+' : gain < 0 ? '-' : ''}K ${Math.abs(gain).toLocaleString()} (${gainPct}%)`);
+        setGainDirection(gain > 0 ? "up" : gain < 0 ? "down" : "flat");
       })
       .catch(() => {
         setTotalValue((prev) => prev ?? "K 0");
@@ -167,8 +169,9 @@ export default function PortfolioScreen() {
           name: item.name,
           logo: getStockLogo(item.symbol),
           price: `K ${Number(item.currentPrice || 0).toLocaleString()}`,
-          change: `${Number(item.pnlPercent || 0) >= 0 ? '+' : ''}${Number(item.pnlPercent || 0)}%`,
+          change: `${Number(item.pnlPercent || 0) > 0 ? '+' : ''}${Number(item.pnlPercent || 0)}%`,
           positive: Number(item.pnlPercent || 0) >= 0,
+          flat: Number(item.pnlPercent || 0) === 0,
           shares: String(item.quantity || 0),
           value: `K ${Number(item.marketValue || 0).toLocaleString()}`,
           changePct: `${Number(item.pnlPercent || 0)}%`,
@@ -205,7 +208,7 @@ export default function PortfolioScreen() {
     balanceAmount: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 38, color: c.text, letterSpacing: -1, marginBottom: 8 },
     balanceHidden: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 38, color: c.mutedForeground, marginBottom: 8 },
     changeChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: c.card, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, alignSelf: "flex-start", borderWidth: 1, borderColor: c.border },
-    changeText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: GREEN },
+    changeText: { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13 },
     actionCard: {
       marginHorizontal: 20,
       marginTop: 20,
@@ -289,8 +292,16 @@ export default function PortfolioScreen() {
             )}
             {totalGain !== null && (
               <View style={styles.changeChip}>
-                {gainPositive ? <ArrowUpIcon color={GREEN} /> : <ArrowDownIcon color={RED} />}
-                <Text style={styles.changeText}>{totalGain}</Text>
+                {gainDirection === "up" && <ArrowUpIcon color={GREEN} />}
+                {gainDirection === "down" && <ArrowDownIcon color={RED} />}
+                <Text
+                  style={[
+                    styles.changeText,
+                    { color: gainDirection === "up" ? GREEN : gainDirection === "down" ? RED : c.mutedForeground },
+                  ]}
+                >
+                  {totalGain}
+                </Text>
               </View>
             )}
           </View>
@@ -345,10 +356,12 @@ export default function PortfolioScreen() {
               <View style={styles.assetRight}>
                 <Text style={styles.assetValue}>{asset.value}</Text>
                 <View style={styles.assetChangePill}>
-                  <View style={{ justifyContent: "center", height: 14 }}>
-                    {asset.positive ? <ArrowUpIcon color={GREEN} /> : <ArrowDownIcon color={RED} />}
-                  </View>
-                  <Text style={[styles.assetChangePct, { color: asset.positive ? GREEN : RED }]}>
+                  {!asset.flat && (
+                    <View style={{ justifyContent: "center", height: 14 }}>
+                      {asset.positive ? <ArrowUpIcon color={GREEN} /> : <ArrowDownIcon color={RED} />}
+                    </View>
+                  )}
+                  <Text style={[styles.assetChangePct, { color: asset.flat ? c.mutedForeground : asset.positive ? GREEN : RED }]}>
                     {asset.changePct ?? asset.change}
                   </Text>
                 </View>

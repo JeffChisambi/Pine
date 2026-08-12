@@ -26,6 +26,7 @@ import {
   setBiometricEnabled,
   type BiometricInfo,
 } from "../../services/biometrics";
+import PinVerifyModal from "@/components/PinVerifyModal";
 
 // ─── Static brand / semantic tokens (unchanged across themes) ─────────────────
 const WHITE = "#FFFFFF";
@@ -138,6 +139,9 @@ export default function ProfileScreen() {
   const [fingerprintEnabled, setFingerprintEnabled] = useState(false);
   const [biometricInfo, setBiometricInfo] = useState<BiometricInfo>({ available: false, enrolled: false, label: "Biometrics" });
   const [biometricBusy, setBiometricBusy] = useState(false);
+  // Enrolment step 2: confirm the transaction PIN so it can be cached for
+  // biometric release. Cancelling reverts the toggle.
+  const [showEnrolPin, setShowEnrolPin] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Load the saved biometric preference and device capability on mount.
@@ -187,7 +191,20 @@ export default function ProfileScreen() {
 
     setFingerprintEnabled(true);
     await setBiometricEnabled(true);
+
+    // Step 2 — confirm the transaction PIN once. PinVerifyModal caches the
+    // PIN on success (the flag is already on), which is what lets future
+    // PIN-protected actions complete with just a fingerprint.
+    setShowEnrolPin(true);
   }, [biometricBusy, fingerprintEnabled, biometricInfo]);
+
+  const cancelEnrolPin = useCallback(async () => {
+    // PIN confirmation abandoned — biometrics can't work without the cached
+    // PIN, so revert the whole enrolment rather than leave a half-on state.
+    setShowEnrolPin(false);
+    setFingerprintEnabled(false);
+    await setBiometricEnabled(false);
+  }, []);
 
   // Derive display values directly from `user` — no local copy.
   // This eliminates the race window where useState holds a previous
@@ -521,6 +538,16 @@ export default function ProfileScreen() {
           <Text style={styles.logoutLabel}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Biometric enrolment step 2 — confirm PIN so it can be cached for
+          fingerprint release. Cancelling reverts the toggle. */}
+      <PinVerifyModal
+        visible={showEnrolPin}
+        title={`Enable ${biometricInfo.label}`}
+        subtitle={`Confirm your transaction PIN once — after this, ${biometricInfo.label.toLowerCase()} can approve PIN-protected actions.`}
+        onVerified={() => setShowEnrolPin(false)}
+        onCancel={cancelEnrolPin}
+      />
     </View>
   );
 }

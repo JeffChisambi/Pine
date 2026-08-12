@@ -29,6 +29,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 import { authApi } from "../../services/api";
+import { cachePinIfBiometricsEnabled } from "../../services/biometrics";
 
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
@@ -306,6 +307,9 @@ export default function SecurityScreen() {
 
     try {
       await authApi.changePin(currentPin, newPin);
+      // Keep the biometric PIN cache current (no-op if biometrics are off) —
+      // a stale cached PIN would make every fingerprint confirmation fail.
+      cachePinIfBiometricsEnabled(newPin).catch(() => {});
       setPinSuccess(true);
       setCurrentPin("");
       setNewPin("");
