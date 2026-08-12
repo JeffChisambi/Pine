@@ -1,6 +1,6 @@
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useColors } from "@/hooks/useColors";
 import {
   ActivityIndicator,
@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle } from "react-native-svg";
 import { savedCardsApi } from "../services/api";
+import { useAuth } from "../services/auth-context";
 
 type SavedCard = {
   id: string;
@@ -78,6 +79,7 @@ export default function DepositScreen() {
   const topPad    = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
   const c = useColors();
+  const { user } = useAuth();
 
   const [rawAmount, setRawAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("bankcard");
@@ -85,6 +87,25 @@ export default function DepositScreen() {
   const [errorMsg, setErrorMsg] = useState("");
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  // Broker-required guard (client-side courtesy — the server enforces this
+  // too and rejects deposits with BROKER_REQUIRED when no broker is selected).
+  // Fires once, as soon as the authenticated profile is available.
+  const brokerPromptShown = useRef(false);
+  useEffect(() => {
+    if (!user || brokerPromptShown.current) return;
+    brokerPromptShown.current = true;
+    if (!user.broker) {
+      Alert.alert(
+        "Select a Broker",
+        "Select a broker first — deposits go directly to your broker's account.",
+        [
+          { text: "Cancel", style: "cancel", onPress: () => guardedBack("/(tabs)") },
+          { text: "Select Broker", onPress: () => guardedPush(() => router.push("/broker-select" as any)) },
+        ],
+      );
+    }
+  }, [user]);
 
   useEffect(() => {
     savedCardsApi.list().then((cards) => {
@@ -491,6 +512,12 @@ export default function DepositScreen() {
                 <Text style={styles.summaryLabel}>Processing fee</Text>
                 <Text style={[styles.summaryValue, { color: GREEN }]}>Free</Text>
               </View>
+              {user?.broker && (
+                <View style={[styles.summaryRow, { marginTop: 8 }]}>
+                  <Text style={styles.summaryLabel}>Broker</Text>
+                  <Text style={styles.summaryValue} numberOfLines={1}>{user.broker.name}</Text>
+                </View>
+              )}
               <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
                 <Text style={[styles.summaryLabel, { color: c.text, fontFamily: "PlusJakartaSans_600SemiBold" }]}>

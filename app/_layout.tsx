@@ -287,6 +287,9 @@ function RootLayoutNav() {
         <Stack.Screen name="deposit" options={section} />
         <Stack.Screen name="withdraw" options={section} />
 
+        {/* Broker selection — required before deposits & trading */}
+        <Stack.Screen name="broker-select" options={section} />
+
         {/* Profile sub-screens — native slide-from-right (see `section`) */}
         <Stack.Screen name="profile/notifications" options={section} />
         <Stack.Screen name="profile/personal-data" options={section} />

@@ -36,7 +36,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Svg, { Circle, Path, Rect, G, Defs, LinearGradient, Stop } from "react-native-svg";
 import { guardedBack } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
-import { cardPaymentsApi } from "../services/api";
+import { cardPaymentsApi, getErrorMessage } from "../services/api";
 import {
   invalidateWalletBalance,
 } from "../services/wallet-queries";
@@ -361,8 +361,20 @@ export default function PaymentCardScreen() {
     } catch (err: any) {
       // Transport / gateway-unavailable errors (payment did not complete)
       attemptKeyRef.current = makeAttemptKey();
-      const { getErrorMessage } = require("../services/api");
-      Alert.alert("Payment Unsuccessful", getErrorMessage(err));
+      const message = getErrorMessage(err);
+      // No broker selected — the server rejects deposits with BROKER_REQUIRED.
+      if (/BROKER_REQUIRED/i.test(message) || /BROKER_REQUIRED/i.test(String(err?.message ?? ""))) {
+        Alert.alert(
+          "Select a Broker",
+          "Select a broker first — deposits go directly to your broker's account.",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => guardedBack("/(tabs)") },
+            { text: "Select Broker", onPress: () => router.push("/broker-select" as any) },
+          ],
+        );
+        return;
+      }
+      Alert.alert("Payment Unsuccessful", message);
     } finally {
       setLoading(false);
     }

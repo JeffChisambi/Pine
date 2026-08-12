@@ -15,6 +15,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { tradingApi, ApiError, getErrorMessage, logHandledError } from "../../services/api";
+import { useAuth } from "../../services/auth-context";
 import { invalidateWalletBalance } from "../../services/wallet-queries";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
@@ -44,6 +45,7 @@ export default function ConfirmScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const params = useLocalSearchParams<{
@@ -69,8 +71,25 @@ export default function ConfirmScreen() {
   // carries it in the x-pin-token header.
   const [showPinModal, setShowPinModal] = useState(false);
 
+  // Broker-required guard (client-side courtesy — the server enforces this
+  // too and rejects orders with BROKER_REQUIRED when no broker is selected).
+  const showBrokerRequiredAlert = () => {
+    Alert.alert(
+      "Select a Broker",
+      "Select a broker first — your orders are executed and held by your broker.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Select Broker", onPress: () => router.push("/broker-select" as any) },
+      ],
+    );
+  };
+
   const handleConfirmOrder = () => {
     if (!params.stockId || symbol === "—") return;
+    if (user && !user.broker) {
+      showBrokerRequiredAlert();
+      return;
+    }
     setShowPinModal(true);
   };
 
@@ -114,13 +133,20 @@ export default function ConfirmScreen() {
     } catch (err) {
       logHandledError("Trade confirm", err);
       const code = err instanceof ApiError ? (err.body?.error?.code as string) : null;
+      const message = getErrorMessage(err);
       if (code === "AUTH_PIN_INVALID" || code === "AUTH_PIN_NOT_SET") {
         // pinToken expired between verification and submission — re-verify.
         Alert.alert("PIN expired", "Please enter your PIN again to confirm the order.", [
           { text: "OK", onPress: () => setShowPinModal(true) },
         ]);
+      } else if (
+        /BROKER_REQUIRED/i.test(message) ||
+        (err instanceof ApiError && /BROKER_REQUIRED/i.test(err.message))
+      ) {
+        // No broker selected — offer to go pick one.
+        showBrokerRequiredAlert();
       } else {
-        Alert.alert("Order Not Placed", getErrorMessage(err));
+        Alert.alert("Order Not Placed", message);
       }
     } finally {
       setLoading(false);
@@ -162,6 +188,12 @@ export default function ConfirmScreen() {
         <View style={{ backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 4, marginBottom: 20 }}>
           <Row label="Order Type" value={isBuy ? "Buy" : "Sell"} valueColor={isBuy ? "#16A34A" : "#DC2626"} />
           <Divider />
+          {user?.broker && (
+            <>
+              <Row label="Broker" value={user.broker.name} />
+              <Divider />
+            </>
+          )}
           <Row label="Quantity" value={`${quantity} share${quantity !== 1 ? "s" : ""}`} />
           <Divider />
           <Row label="Price per Share" value={fmt(priceRaw)} />

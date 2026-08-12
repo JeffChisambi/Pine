@@ -59,6 +59,15 @@ function FingerprintIcon({ color }: { color: string }) {
   );
 }
 
+function BriefcaseIcon({ color }: { color: string }) {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Path d="M4 8h16a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1Z" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
+      <Path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 12.5h18" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 function SealCheckIcon({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
@@ -248,11 +257,53 @@ export default function ProfileScreen() {
   const textColor = c.text;
 
   const isVerified = kycStatus === "APPROVED";
+  const broker = user?.broker ?? null;
 
   const SETTINGS_GROUP_1: Array<{
     icon: React.ReactNode; label: string; sub: string;
     onPress: (() => void) | null; badge?: "verified";
+    right?: React.ReactNode;
   }> = [
+    {
+      icon: <BriefcaseIcon color={broker ? "#45B369" : iconColor} />,
+      label: "Broker",
+      sub: broker
+        ? "Your account is held with this broker"
+        : "Required before deposits & trading",
+      onPress: () => guardedPush(() => router.push("/broker-select" as any)),
+      right: broker ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View style={{ alignItems: "flex-end" }}>
+            <Text
+              style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: textColor, maxWidth: 140 }}
+              numberOfLines={1}
+            >
+              {broker.name}
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#45B369" }} />
+              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: "#45B369" }}>
+                Connected
+              </Text>
+            </View>
+          </View>
+          <ChevronRight color={c.mutedForeground} />
+        </View>
+      ) : (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <View style={{
+            backgroundColor: "#FEF3C7", borderRadius: 10,
+            paddingHorizontal: 8, paddingVertical: 3,
+            borderWidth: 1, borderColor: "#FCD34D",
+          }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: "#92400E" }}>
+              ⚠ Select a broker
+            </Text>
+          </View>
+          <ChevronRight color={c.mutedForeground} />
+        </View>
+      ),
+    },
     {
       icon: <SealCheckIcon color={isVerified ? "#45B369" : iconColor} />,
       label: "Identity Verification",
@@ -473,7 +524,9 @@ export default function ProfileScreen() {
                   <Text style={styles.rowLabel}>{item.label}</Text>
                   <Text style={styles.rowSub}>{item.sub}</Text>
                 </View>
-                {item.badge === "verified" ? (
+                {item.right ? (
+                  item.right
+                ) : item.badge === "verified" ? (
                   <View style={{
                     flexDirection: "row", alignItems: "center", gap: 4,
                     backgroundColor: "#F0FDF4", borderWidth: 1, borderColor: "#86EFAC",

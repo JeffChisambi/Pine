@@ -235,6 +235,19 @@ export interface UserProfile {
   avatarUrl: string | null;
   isActive: boolean;
   createdAt: string;
+  /**
+   * The broker (core account relationship) this investor trades through.
+   * null until the user selects one; optional because login/register
+   * responses don't carry it (refreshProfile fills it in).
+   */
+  broker?: {
+    id: string;
+    name: string;
+    code: string;
+    logoUrl: string | null;
+    isActive: boolean;
+  } | null;
+  brokerSelectedAt?: string | null;
 }
 
 export const authApi = {
@@ -835,6 +848,45 @@ export const accountApi = {
     request<{ message: string }>('/users/me', {
       method: 'DELETE',
       headers: { 'x-pin-token': pinToken },
+    }),
+};
+
+// ─── Brokers API ──────────────────────────────────────────────────────────────
+
+/** An active broker available for selection (GET /brokers). */
+export interface Broker {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  logoUrl: string | null;
+}
+
+/** The user's current broker relationship (GET/PUT /brokers/me). */
+export interface MyBroker {
+  broker: (Broker & { isActive: boolean }) | null;
+  selectedAt: string | null;
+}
+
+export const brokersApi = {
+  /** Active brokers the investor can choose from. */
+  list: (): Promise<Broker[]> =>
+    request<Broker[]>('/brokers'),
+
+  /** The current user's selected broker (broker: null if none yet). */
+  me: (): Promise<MyBroker> =>
+    request<MyBroker>('/brokers/me'),
+
+  /**
+   * Select (or change) the user's broker.
+   * Changing an existing broker requires `confirmChange: true`; the server
+   * responds 409 with an explanatory message when a change is blocked
+   * (funds, open orders, holdings, pending transactions).
+   */
+  select: (brokerId: string, confirmChange?: boolean): Promise<MyBroker> =>
+    request<MyBroker>('/brokers/me', {
+      method: 'PUT',
+      body: JSON.stringify({ brokerId, ...(confirmChange ? { confirmChange: true } : {}) }),
     }),
 };
 
