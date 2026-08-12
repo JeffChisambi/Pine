@@ -8,9 +8,6 @@
     "scheme": "pine",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.pine.app",
@@ -21,11 +18,6 @@
     "android": {
       "package": "com.pine.app",
       "softwareKeyboardLayoutMode": "pan",
-      "splash": {
-        "image": "./assets/pine_assets/logos/splash-logo.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#ffffff"
-      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/pine_assets/icons/rounded/icon (1).png",
         "backgroundColor": "#ffffff"
@@ -70,9 +62,8 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/pine_assets/logos/splash-logo.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
+          "image": "./assets/pine_assets/logos/splash-transparent.png",
+          "imageWidth": 1,
           "backgroundColor": "#ffffff"
         }
       ]

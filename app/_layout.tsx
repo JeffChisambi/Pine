@@ -17,7 +17,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -148,7 +148,29 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     // → stay on the onboarding carousel; no redirect needed.
   }, [isLoading, isLoggedIn, user?.hasPinSet, segments, hasOnboarded]);
 
-  return <>{children}</>;
+  // Until the session restore and the onboarding flag have both resolved we
+  // don't yet know where the user belongs — cover the navigator with a plain
+  // white surface so signed-in users never see the onboarding carousel flash
+  // before the redirect lands. The animated splash sits above this anyway, so
+  // in practice the cover is invisible; it only matters on slow cold starts
+  // where the restore outlives the splash animation.
+  const resolved = !isLoading && hasOnboarded !== null;
+
+  return (
+    <>
+      {children}
+      {!resolved && (
+        <View
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: "#ffffff",
+            zIndex: 9998,
+            elevation: 9998,
+          }}
+        />
+      )}
+    </>
+  );
 }
 
 function RootLayoutNav() {
