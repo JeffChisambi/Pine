@@ -141,7 +141,31 @@ async function attemptRefresh(): Promise<boolean> {
   }
 }
 
-async function request<T>(path: string, options?: RequestInit & { skipAuth?: boolean }): Promise<T> {
+/** Default per-request deadline. A mobile client must never hang on a dead
+ *  connection — a slow answer beats no answer, and 20s is beyond any healthy
+ *  round trip to the API. Callers with genuinely long work (uploads) pass
+ *  their own `timeoutMs`. */
+const REQUEST_TIMEOUT_MS = 20_000;
+
+/** fetch() with a hard deadline via AbortController. */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function request<T>(
+  path: string,
+  options?: RequestInit & { skipAuth?: boolean; timeoutMs?: number },
+): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -156,9 +180,10 @@ async function request<T>(path: string, options?: RequestInit & { skipAuth?: boo
     }
   }
 
-  const { skipAuth, ...fetchOptions } = options ?? {} as any;
+  const { skipAuth, timeoutMs, ...fetchOptions } = options ?? {} as any;
+  const deadline = timeoutMs ?? REQUEST_TIMEOUT_MS;
 
-  let res = await fetch(url, { ...fetchOptions, headers });
+  let res = await fetchWithTimeout(url, { ...fetchOptions, headers }, deadline);
 
   // Auto-refresh on 401
   if (res.status === 401 && !options?.skipAuth) {
@@ -174,7 +199,7 @@ async function request<T>(path: string, options?: RequestInit & { skipAuth?: boo
       if (newToken) {
         headers['Authorization'] = `Bearer ${newToken}`;
       }
-      res = await fetch(url, { ...fetchOptions, headers });
+      res = await fetchWithTimeout(url, { ...fetchOptions, headers }, deadline);
     }
   }
 
@@ -524,11 +549,15 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
  * `buildFormData` is a factory called each time so we can safely rebuild
  * the body on a 401 retry (a consumed FormData cannot be re-sent).
  */
+// Uploads move real bytes on mobile networks — allow far longer than JSON
+// calls, but still bounded so a dead connection can't hang a KYC screen.
+const UPLOAD_TIMEOUT_MS = 120_000;
+
 async function requestFormData<T>(path: string, buildFormData: () => FormData): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   let headers = await getAuthHeaders();
 
-  let res = await fetch(url, { method: 'POST', headers, body: buildFormData() });
+  let res = await fetchWithTimeout(url, { method: 'POST', headers, body: buildFormData() }, UPLOAD_TIMEOUT_MS);
 
   // Auto-refresh on 401 — rebuild FormData so the body is fresh
   if (res.status === 401) {
@@ -539,7 +568,7 @@ async function requestFormData<T>(path: string, buildFormData: () => FormData): 
     const refreshed = await refreshPromise;
     if (refreshed) {
       headers = await getAuthHeaders();
-      res = await fetch(url, { method: 'POST', headers, body: buildFormData() });
+      res = await fetchWithTimeout(url, { method: 'POST', headers, body: buildFormData() }, UPLOAD_TIMEOUT_MS);
     }
   }
 

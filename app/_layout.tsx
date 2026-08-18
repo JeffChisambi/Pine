@@ -151,15 +151,23 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   // Until the session restore and the onboarding flag have both resolved we
   // don't yet know where the user belongs — cover the navigator with a plain
   // white surface so signed-in users never see the onboarding carousel flash
-  // before the redirect lands. The animated splash sits above this anyway, so
-  // in practice the cover is invisible; it only matters on slow cold starts
-  // where the restore outlives the splash animation.
+  // before the redirect lands. The restore is LOCAL-ONLY (see auth-context),
+  // so this normally resolves in tens of milliseconds, well under the splash
+  // animation. The failsafe timer is the last line of defense: no regression
+  // (a hung storage read, a future gating mistake) may ever leave the user
+  // staring at a blank white screen — after 4s the cover lifts no matter what.
   const resolved = !isLoading && hasOnboarded !== null;
+  const [failsafeLift, setFailsafeLift] = React.useState(false);
+  useEffect(() => {
+    if (resolved) return;
+    const t = setTimeout(() => setFailsafeLift(true), 4000);
+    return () => clearTimeout(t);
+  }, [resolved]);
 
   return (
     <>
       {children}
-      {!resolved && (
+      {!resolved && !failsafeLift && (
         <View
           style={{
             ...StyleSheet.absoluteFillObject,

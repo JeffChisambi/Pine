@@ -93,9 +93,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user,       setUser]       = useState<UserProfile | null>(null);
 
   // ── App restore ────────────────────────────────────────────────────────────
-  // On mount, check whether a valid, identity-verified session exists.
+  // Telegram-style: the restore that gates first paint is LOCAL-ONLY
+  // (SecureStore reads, milliseconds). The server profile refresh runs in the
+  // background and must never block rendering — gating startup on a network
+  // round trip means a slow or dead connection turns into a blank screen.
   useEffect(() => {
     (async () => {
+      let cachedHit = false;
       try {
         const hasToken = await AuthStore.isLoggedIn();
         if (!hasToken) return; // No token → stay logged out
@@ -104,29 +108,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // getSafeProfile() wipes stale data and returns null on mismatch.
         const cached = await AuthStore.getSafeProfile();
         if (cached) {
+          cachedHit = true;
           setUser(cached as unknown as UserProfile);
           setIsLoggedIn(true);
-        }
-
-        // Always fetch a fresh profile from the server to confirm token validity.
-        try {
-          const profile = await authApi.getProfile();
-          setUser(profile);
-          setIsLoggedIn(true);
-          await AuthStore.saveProfile(profile as unknown as Record<string, unknown>);
-        } catch (err) {
-          // Token expired / invalid → force logout
-          if (err instanceof ApiError && err.status === 401) {
-            await AuthStore.clear();
-            setUser(null);
-            setIsLoggedIn(false);
-          }
-          // Network error: keep the safely-loaded cached state above.
         }
       } catch {
         // Storage failure → treat as logged out
       } finally {
+        // Local phase complete — the app can paint NOW. (The token-but-no-
+        // cache edge case below flips state when the network answers.)
         setIsLoading(false);
+      }
+
+      // Background: confirm token validity / refresh the profile. Bounded by
+      // the API layer's request timeout, so this settles even on bad networks.
+      try {
+        const profile = await authApi.getProfile();
+        setUser(profile);
+        setIsLoggedIn(true);
+        await AuthStore.saveProfile(profile as unknown as Record<string, unknown>);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          // Token expired / invalid → force logout
+          await AuthStore.clear();
+          setUser(null);
+          setIsLoggedIn(false);
+        } else if (!cachedHit) {
+          // Network error with no cached identity to fall back on — nothing
+          // to render as logged-in; leave the user on the login screen.
+        }
+        // Network error with cache: keep the safely-loaded cached state.
       }
     })();
   }, []);
