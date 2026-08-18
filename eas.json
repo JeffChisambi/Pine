@@ -15,7 +15,7 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.kapwanje.com/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1"
       }
     },
     "production": {
@@ -24,7 +24,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.kapwanje.com/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1"
       }
     }
   },
