@@ -2,9 +2,12 @@ import { Image } from "expo-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet } from "react-native";
 
-// Duration of the rendered logo animation (2.6 s) plus a short hold before
-// the overlay fades out and hands off to the app.
-const ANIMATION_MS = 2650;
+// The webp animation is nominally 2510 ms (134 frames, plays once and
+// freezes on its final frame — loop count 1). Real devices play it slower
+// than nominal when frames drop, so the hold is padded well past the
+// nominal length; fast devices simply rest on the finished logo briefly.
+// The overlay must NEVER lift before the animation has visually finished.
+const ANIMATION_MS = 3400;
 const FADE_MS = 350;
 
 /**
