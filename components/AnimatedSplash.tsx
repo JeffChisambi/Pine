@@ -45,10 +45,17 @@ export function AnimatedSplash({
     return () => clearTimeout(t);
   }, [loaded, finish]);
 
+  // Bail-out for the decode-never-completes case ONLY. It must stand down the
+  // moment the animation loads — as a fixed from-mount deadline it was killing
+  // the splash mid-play (or before it started) whenever decode was slow, e.g.
+  // streaming the asset from Metro in dev builds, so no animation was ever
+  // seen. Once `loaded` is true the effect re-runs, clears the pending timer,
+  // and the loaded-countdown above owns the finish.
   useEffect(() => {
-    const fallback = setTimeout(finish, ANIMATION_MS + 2000);
+    if (loaded) return;
+    const fallback = setTimeout(finish, ANIMATION_MS + 4000);
     return () => clearTimeout(fallback);
-  }, [finish]);
+  }, [loaded, finish]);
 
   const width = Dimensions.get("window").width;
 
