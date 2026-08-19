@@ -184,7 +184,12 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   const redPath   = peakIdx < data.length - 1 ? buildSeg(peakIdx, data.length - 1) : null;
   const greenFill = greenPath + ` L${xFor(peakIdx).toFixed(1)},${(PAD_TOP + plotH).toFixed(1)}` + ` L${xFor(0).toFixed(1)},${(PAD_TOP + plotH).toFixed(1)} Z`;
   const yTicks     = [0, 1, 2, 3, 4].map((i) => minP + (range * (4 - i)) / 4);
-  const xLabelIdxs = [0, 1, 2, 3, 4].map((i) => Math.round((i / 4) * (data.length - 1)));
+  // Dedupe: with fewer points than label slots (e.g. 2 days of data) the
+  // rounding maps several slots to the same index, stacking identical date
+  // labels on top of each other into unreadable overdraw.
+  const xLabelIdxs = Array.from(
+    new Set([0, 1, 2, 3, 4].map((i) => Math.round((i / 4) * (data.length - 1)))),
+  );
 
   const activeIdx   = selectedIdx !== null ? selectedIdx : data.length - 1;
   const activePt    = data[activeIdx];
@@ -216,7 +221,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
         <Path d={greenPath} stroke={SVG_GREEN} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
         {redPath && <Path d={redPath} stroke={SVG_RED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />}
         {xLabelIdxs.map((idx, i) => (
-          <SvgText key={i} x={xFor(idx)} y={PAD_TOP + plotH + 18} textAnchor={i === 0 ? "start" : i === 4 ? "end" : "middle"} fill={SVG_LABEL} fontSize={10} fontFamily="PlusJakartaSans_400Regular">
+          <SvgText key={i} x={xFor(idx)} y={PAD_TOP + plotH + 18} textAnchor={idx === 0 ? "start" : idx === data.length - 1 ? "end" : "middle"} fill={SVG_LABEL} fontSize={10} fontFamily="PlusJakartaSans_400Regular">
             {fmtXLabel(data[idx].date, period)}
           </SvgText>
         ))}
