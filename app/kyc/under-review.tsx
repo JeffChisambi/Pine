@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   Platform,
   BackHandler,
+  ScrollView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
@@ -117,10 +118,13 @@ export default function UnderReviewScreen() {
       justifyContent: "center",
     },
     content: {
-      flex: 1,
+      // flexGrow (not flex) so short screens still center the content while
+      // tall content overflows and scrolls instead of being clipped.
+      flexGrow: 1,
       paddingHorizontal: 28,
       justifyContent: "center",
       gap: 24,
+      paddingBottom: Math.max(insets.bottom, 16) + 16,
     },
     badge: {
       alignSelf: "center",
@@ -185,7 +189,11 @@ export default function UnderReviewScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <ClockIllustration teal={c.primary} />
 
         <View style={styles.badge}>
@@ -208,7 +216,7 @@ export default function UnderReviewScreen() {
           <ChecklistItem text="Your address document is reviewed." />
           <ChecklistItem text="You'll receive a notification with the outcome — usually within 24 hours." />
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
