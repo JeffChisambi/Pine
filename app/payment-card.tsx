@@ -46,11 +46,13 @@ function makeAttemptKey(): string {
 }
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
+// WHITE/DARK below are used ONLY on the card artwork overlay (white text on
+// the teal card face, dark CVV in its white window) — theme-independent by
+// design. Every page surface/text color comes from useColors() so the screen
+// follows light/dark mode like the rest of the app.
 const WHITE   = "#FFFFFF";
 const DARK    = "#111827";
 const MUTED   = "#9CA3AF";
-const BG      = "#F9FAFB";
-const DIVIDER = "#EBECEF";
 const ERROR   = "#EF4444";
 const GREEN   = "#45B369";
 
@@ -207,10 +209,10 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
   const [focused, setFocused] = useState(false);
   return (
     <View style={styles.fieldWrap}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={[styles.fieldBox, focused && [styles.fieldBoxFocused, { borderColor: c.primary }], !!error && styles.fieldBoxError]}>
+      <Text style={[styles.fieldLabel, { color: c.text }]}>{label}</Text>
+      <View style={[styles.fieldBox, { backgroundColor: c.card, borderColor: c.border }, focused && [styles.fieldBoxFocused, { borderColor: c.primary }], !!error && styles.fieldBoxError]}>
         <TextInput
-          style={styles.fieldInput}
+          style={[styles.fieldInput, { color: c.text }]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -429,11 +431,11 @@ export default function PaymentCardScreen() {
       keyboardVerticalOffset={0}
     >
       {/* Header — clean white, dark text */}
-      <View style={[styles.header, { paddingTop: topPad }]}>
+      <View style={[styles.header, { paddingTop: topPad, backgroundColor: c.background }]}>
         <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/deposit")}>
-          <BackIcon color={DARK} />
+          <BackIcon color={c.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Card Payment</Text>
+        <Text style={[styles.headerTitle, { color: c.text }]}>Card Payment</Text>
         <View style={styles.backBtn} />
       </View>
 
@@ -444,7 +446,7 @@ export default function PaymentCardScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Card preview */}
-        <View style={styles.cardContainer}>
+        <View style={[styles.cardContainer, { backgroundColor: c.background }]}>
           <CardPreview
             cardNumber={cardNumber}
             cardHolder={cardHolder}
@@ -457,7 +459,7 @@ export default function PaymentCardScreen() {
         </View>
 
         {/* Amount banner */}
-        <View style={styles.amountBanner}>
+        <View style={[styles.amountBanner, { backgroundColor: c.background, borderBottomColor: c.border }]}>
           <Text style={styles.amountBannerLabel}>Depositing</Text>
           <Text style={[styles.amountBannerValue, { color: c.primary }]}>
             {currency === "MWK" ? "MK" : "$"} {amount.toLocaleString()}
@@ -465,28 +467,28 @@ export default function PaymentCardScreen() {
         </View>
 
         {/* Form */}
-        <View style={styles.formWrap}>
+        <View style={[styles.formWrap, { backgroundColor: c.background }]}>
           {isSavedCard ? (
             <>
               {/* Saved card — read-only preview */}
               <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>Card Number</Text>
-                <View style={[styles.fieldBox, { backgroundColor: "#F3F4F6" }]}>
-                  <Text style={[styles.fieldInput, { color: MUTED, paddingTop: 16 }]}>•••• •••• •••• {params.last4}</Text>
+                <Text style={[styles.fieldLabel, { color: c.text }]}>Card Number</Text>
+                <View style={[styles.fieldBox, { backgroundColor: c.muted, borderColor: c.border }]}>
+                  <Text style={[styles.fieldInput, { color: c.mutedForeground, paddingTop: 16 }]}>•••• •••• •••• {params.last4}</Text>
                 </View>
               </View>
               <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>Cardholder Name</Text>
-                <View style={[styles.fieldBox, { backgroundColor: "#F3F4F6" }]}>
-                  <Text style={[styles.fieldInput, { color: MUTED, paddingTop: 16 }]}>{params.cardholderName}</Text>
+                <Text style={[styles.fieldLabel, { color: c.text }]}>Cardholder Name</Text>
+                <View style={[styles.fieldBox, { backgroundColor: c.muted, borderColor: c.border }]}>
+                  <Text style={[styles.fieldInput, { color: c.mutedForeground, paddingTop: 16 }]}>{params.cardholderName}</Text>
                 </View>
               </View>
               <View style={styles.row}>
                 <View style={{ flex: 1 }}>
                   <View style={styles.fieldWrap}>
-                    <Text style={styles.fieldLabel}>Expiry Date</Text>
-                    <View style={[styles.fieldBox, { backgroundColor: "#F3F4F6" }]}>
-                      <Text style={[styles.fieldInput, { color: MUTED, paddingTop: 16 }]}>{savedExpiry}</Text>
+                    <Text style={[styles.fieldLabel, { color: c.text }]}>Expiry Date</Text>
+                    <View style={[styles.fieldBox, { backgroundColor: c.muted, borderColor: c.border }]}>
+                      <Text style={[styles.fieldInput, { color: c.mutedForeground, paddingTop: 16 }]}>{savedExpiry}</Text>
                     </View>
                   </View>
                 </View>
@@ -563,14 +565,14 @@ export default function PaymentCardScreen() {
                 activeOpacity={0.7}
                 onPress={() => setSaveCard((v) => !v)}
               >
-                <View style={[styles.saveCardCheck, saveCard && { backgroundColor: c.primary, borderColor: c.primary }]}>
+                <View style={[styles.saveCardCheck, { borderColor: c.border }, saveCard && { backgroundColor: c.primary, borderColor: c.primary }]}>
                   {saveCard && (
                     <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
                       <Path d="M5 13l4 4L19 7" stroke={WHITE} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
                   )}
                 </View>
-                <Text style={styles.saveCardText}>Save this card for future deposits</Text>
+                <Text style={[styles.saveCardText, { color: c.text }]}>Save this card for future deposits</Text>
               </TouchableOpacity>
             </>
           )}
@@ -593,7 +595,7 @@ export default function PaymentCardScreen() {
       </ScrollView>
 
       {/* CTA */}
-      <View style={[styles.ctaWrap, { paddingBottom: bottomPad > 0 ? bottomPad : 24 }]}>
+      <View style={[styles.ctaWrap, { paddingBottom: bottomPad > 0 ? bottomPad : 24, backgroundColor: c.background, borderTopColor: c.border }]}>
         <TouchableOpacity
           style={[styles.ctaBtn, { backgroundColor: c.primary }, (!canPay || loading) && styles.ctaBtnDisabled]}
           activeOpacity={0.85}
@@ -616,7 +618,7 @@ export default function PaymentCardScreen() {
             gateway can never be reached by end users. */}
         {__DEV__ && (
           <TouchableOpacity
-            style={styles.testBtn}
+            style={[styles.testBtn, { backgroundColor: c.card, borderColor: c.border }]}
             activeOpacity={0.7}
             disabled={loading}
             onPress={() => setShowTestSheet(true)}
@@ -629,9 +631,9 @@ export default function PaymentCardScreen() {
       {/* Scenario picker (development builds only) */}
       <Modal transparent visible={__DEV__ && showTestSheet} animationType="fade" onRequestClose={() => setShowTestSheet(false)}>
         <TouchableOpacity style={styles.sheetOverlay} activeOpacity={1} onPress={() => setShowTestSheet(false)}>
-          <View style={styles.sheet} onStartShouldSetResponder={() => true}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Test Transaction</Text>
+          <View style={[styles.sheet, { backgroundColor: c.card }]} onStartShouldSetResponder={() => true}>
+            <View style={[styles.sheetHandle, { backgroundColor: c.border }]} />
+            <Text style={[styles.sheetTitle, { color: c.text }]}>Test Transaction</Text>
             <Text style={styles.sheetSubtitle}>
               Simulates the complete payment workflow — no real charge is made.
             </Text>
@@ -646,11 +648,11 @@ export default function PaymentCardScreen() {
             ] as const).map(([key, label]) => (
               <TouchableOpacity
                 key={key}
-                style={styles.sheetItem}
+                style={[styles.sheetItem, { borderBottomColor: c.border }]}
                 activeOpacity={0.7}
                 onPress={() => runTestTransaction(key)}
               >
-                <Text style={styles.sheetItemText}>{label}</Text>
+                <Text style={[styles.sheetItemText, { color: c.text }]}>{label}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -665,7 +667,6 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: WHITE },
 
   header: {
-    backgroundColor: WHITE,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
@@ -677,12 +678,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
-    color: DARK,
   },
 
   // ── Card preview — floats on the white page ────────────────────────────────
   cardContainer: {
-    backgroundColor: WHITE,
     paddingTop: 8,
     paddingBottom: 24,
     paddingHorizontal: 24,
@@ -789,9 +788,7 @@ const styles = StyleSheet.create({
 
   // ── Amount banner ────────────────────────────────────────────────────────────
   amountBanner: {
-    backgroundColor: WHITE,
     borderBottomWidth: 1,
-    borderBottomColor: DIVIDER,
     paddingHorizontal: 24,
     paddingVertical: 16,
     flexDirection: "row",
@@ -810,7 +807,6 @@ const styles = StyleSheet.create({
 
   // ── Form ─────────────────────────────────────────────────────────────────────
   formWrap: {
-    backgroundColor: WHITE,
     paddingHorizontal: 24,
     paddingTop: 24,
     gap: 4,
@@ -819,14 +815,11 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontFamily: "PlusJakartaSans_600SemiBold",
     fontSize: 13,
-    color: DARK,
     marginBottom: 8,
   },
   fieldBox: {
     borderWidth: 1.5,
-    borderColor: DIVIDER,
     borderRadius: 12,
-    backgroundColor: BG,
     paddingHorizontal: 14,
     height: 52,
     justifyContent: "center",
@@ -836,7 +829,6 @@ const styles = StyleSheet.create({
   fieldInput: {
     fontFamily: "PlusJakartaSans_500Medium" as any,
     fontSize: 16,
-    color: DARK,
     padding: 0,
   },
   fieldError: {
@@ -881,14 +873,12 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: DIVIDER,
     alignItems: "center",
     justifyContent: "center",
   },
   saveCardText: {
     fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 14,
-    color: DARK,
   },
 
   // ── Accepted cards ────────────────────────────────────────────────────────────
@@ -912,9 +902,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 24,
     paddingTop: 12,
-    backgroundColor: WHITE,
     borderTopWidth: 1,
-    borderTopColor: DIVIDER,
   },
   ctaBtn: {
     height: 56,
@@ -935,10 +923,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: DIVIDER,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: WHITE,
   },
   testBtnText: {
     fontFamily: "PlusJakartaSans_600SemiBold",
@@ -950,7 +936,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: WHITE,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
@@ -961,14 +946,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: DIVIDER,
     alignSelf: "center",
     marginBottom: 16,
   },
   sheetTitle: {
     fontFamily: "PlusJakartaSans_700Bold",
     fontSize: 18,
-    color: DARK,
     marginBottom: 4,
   },
   sheetSubtitle: {
@@ -980,11 +963,9 @@ const styles = StyleSheet.create({
   sheetItem: {
     paddingVertical: 13,
     borderBottomWidth: 1,
-    borderBottomColor: DIVIDER,
   },
   sheetItemText: {
     fontFamily: "PlusJakartaSans_500Medium",
     fontSize: 15,
-    color: DARK,
   },
 });
