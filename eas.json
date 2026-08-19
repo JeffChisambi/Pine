@@ -15,7 +15,8 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1",
+        "EXPO_PUBLIC_ENABLE_TEST_TX": "1"
       }
     },
     "production": {
@@ -24,7 +25,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1",
+        "EXPO_PUBLIC_ENABLE_TEST_TX": "1"
       }
     }
   },

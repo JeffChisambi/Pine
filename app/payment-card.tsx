@@ -45,6 +45,11 @@ function makeAttemptKey(): string {
   return `app-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
 }
 
+// Test Transactions: always in dev builds; in release builds only while the
+// pre-launch flag is baked in at build time. The backend independently blocks
+// test charges unless ALLOW_TEST_TRANSACTIONS=true is set server-side.
+const TEST_TX_ENABLED = __DEV__ || process.env.EXPO_PUBLIC_ENABLE_TEST_TX === "1";
+
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 // WHITE/DARK below are used ONLY on the card artwork overlay (white text on
 // the teal card face, dark CVV in its white window) — theme-independent by
@@ -407,9 +412,12 @@ export default function PaymentCardScreen() {
   // ── Test Transaction mode ──
   const [showTestSheet, setShowTestSheet] = useState(false);
   const runTestTransaction = async (scenario: string) => {
-    // Development-only. The mock gateway credits the wallet with no real
-    // charge, so this must never run in a production build.
-    if (!__DEV__) return;
+    // The mock gateway credits the wallet with no real charge, so this must
+    // never run in a real release. Available in dev builds, and in release
+    // builds ONLY while the pre-launch EXPO_PUBLIC_ENABLE_TEST_TX flag is
+    // baked in (remove it from eas.json/.env at launch — the backend also
+    // enforces its own ALLOW_TEST_TRANSACTIONS guard server-side).
+    if (!TEST_TX_ENABLED) return;
     setShowTestSheet(false);
     // Standard test card — real card details are never required in test mode.
     await runPayment(
@@ -616,7 +624,7 @@ export default function PaymentCardScreen() {
         {/* Test Transaction — full workflow through the mock gateway.
             Development builds only: stripped from production so the mock
             gateway can never be reached by end users. */}
-        {__DEV__ && (
+        {TEST_TX_ENABLED && (
           <TouchableOpacity
             style={[styles.testBtn, { backgroundColor: c.card, borderColor: c.border }]}
             activeOpacity={0.7}
@@ -629,7 +637,7 @@ export default function PaymentCardScreen() {
       </View>
 
       {/* Scenario picker (development builds only) */}
-      <Modal transparent visible={__DEV__ && showTestSheet} animationType="fade" onRequestClose={() => setShowTestSheet(false)}>
+      <Modal transparent visible={TEST_TX_ENABLED && showTestSheet} animationType="fade" onRequestClose={() => setShowTestSheet(false)}>
         <TouchableOpacity style={styles.sheetOverlay} activeOpacity={1} onPress={() => setShowTestSheet(false)}>
           <View style={[styles.sheet, { backgroundColor: c.card }]} onStartShouldSetResponder={() => true}>
             <View style={[styles.sheetHandle, { backgroundColor: c.border }]} />
