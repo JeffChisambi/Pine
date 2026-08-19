@@ -8,6 +8,7 @@ import { ImageSourcePropType } from "react-native";
 const STOCK_LOGO_MAP: Record<string, ImageSourcePropType> = {
   AIRTEL:   require("../assets/images/AIRTEL.png"),
   BHL:      require("../assets/images/BH.png"),
+  CHL:      require("../assets/images/CHL.png"),
   FDHB:     require("../assets/images/FDH.png"),
   FMBCH:    require("../assets/images/FMBC.png"),
   ICON:     require("../assets/images/ICON.png"),
