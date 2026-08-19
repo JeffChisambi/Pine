@@ -11,6 +11,9 @@ import {
   Animated,
   Dimensions,
   Modal,
+  PanResponder,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 
 const SCREEN_H = Dimensions.get("window").height;
@@ -20,6 +23,7 @@ import Svg, { Path, Circle, Ellipse, Line, Defs, ClipPath, Rect } from "react-na
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 import { useTheme } from "@/contexts/theme-context";
+import { useHideTabBarOnScroll } from "@/contexts/tab-bar-visibility";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
 const LOGO_COLORS = ["#164951", "#1A3A6B", "#166534", "#7C3AED", "#B45309", "#BE185D"];
@@ -322,6 +326,26 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
     }
   }, [visible]);
 
+  // Drag-to-dismiss on the grabber: the sheet follows the finger downward
+  // (never above its resting point) and dismisses past a distance/velocity
+  // threshold, otherwise springs back.
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_evt, g) => Math.abs(g.dy) > 2,
+      onPanResponderMove: (_evt, g) => {
+        slideY.setValue(Math.max(0, g.dy));
+      },
+      onPanResponderRelease: (_evt, g) => {
+        if (g.dy > 110 || g.vy > 0.8) {
+          onClose();
+        } else {
+          Animated.spring(slideY, { toValue: 0, damping: 24, stiffness: 300, mass: 0.7, useNativeDriver: true }).start();
+        }
+      },
+    }),
+  ).current;
+
   if (!mounted) return null;
 
   const SECTOR_ICON_BG = c.card;
@@ -339,15 +363,12 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
         </Animated.View>
         <Animated.View style={[{ backgroundColor: c.background, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 24, paddingTop: 14, shadowColor: "#000", shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.10, shadowRadius: 16, elevation: 24 }, { transform: [{ translateY: slideY }] }]}>
-          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: c.border, alignSelf: "center", marginBottom: 20 }} />
+          {/* Grabber — generous touch target; drag down to dismiss */}
+          <View {...panResponder.panHandlers} style={{ alignSelf: "stretch", alignItems: "center", paddingVertical: 10, marginTop: -14, marginBottom: 6 }}>
+            <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: c.border }} />
+          </View>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Stock Sectors</Text>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: c.card, alignItems: "center", justifyContent: "center" }}>
-              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-                <Line x1="18" y1="6" x2="6" y2="18" stroke={c.text} strokeWidth={2.2} strokeLinecap="round"/>
-                <Line x1="6" y1="6" x2="18" y2="18" stroke={c.text} strokeWidth={2.2} strokeLinecap="round"/>
-              </Svg>
-            </TouchableOpacity>
           </View>
           <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
             {SECTORS.map((sector) => {
@@ -406,6 +427,9 @@ export default function MarketScreen() {
   const [showSectors, setShowSectors] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
+  // Hide the bottom tab bar while scrolling down; reveal on scroll-up.
+  const onScrollHideTabBar = useHideTabBarOnScroll();
+
   const { data: stocks = [], isLoading, error, refetch, isRefetching } = useStocks();
 
   const topGainers = useMemo(() => {
@@ -441,7 +465,12 @@ export default function MarketScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
     {showSearch && <StockSearchOverlay onClose={() => setShowSearch(false)} />}
-    <ScrollView style={{ flex: 1, paddingTop: topPad }} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={{ flex: 1, paddingTop: topPad }}
+      showsVerticalScrollIndicator={false}
+      onScroll={onScrollHideTabBar}
+      scrollEventThrottle={16}
+    >
       {/* Header */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 4, paddingBottom: 12 }}>
         <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 24, color: c.text }}>Market</Text>

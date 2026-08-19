@@ -9,8 +9,10 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
+  interpolate,
 } from "react-native-reanimated";
 import { useColors } from "@/hooks/useColors";
+import { tabBarHidden } from "@/contexts/tab-bar-visibility";
 
 const MUTED = "#9CA3AF";
 
@@ -229,17 +231,27 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const tabBarHeight = TAB_CONTENT_HEIGHT + insets.bottom;
   const tabWidth = width / VISIBLE_TABS;
 
+  // Scroll-aware hide/reveal: collapse the bar's height while sliding its
+  // content down, so screens smoothly reclaim the space (see
+  // contexts/tab-bar-visibility.ts for the scroll-direction logic).
+  const hideStyle = useAnimatedStyle(() => ({
+    height: interpolate(tabBarHidden.value, [0, 1], [tabBarHeight, 0]),
+    transform: [{ translateY: interpolate(tabBarHidden.value, [0, 1], [0, tabBarHeight]) }],
+    opacity: interpolate(tabBarHidden.value, [0, 0.85], [1, 0]),
+  }));
+
   return (
-    <View
+    <Animated.View
       style={[
         styles.tabBar,
         {
-          height: tabBarHeight,
           paddingBottom: insets.bottom > 0 ? insets.bottom : Platform.OS === "ios" ? 0 : 8,
           backgroundColor: c.background,
           borderTopWidth: 1,
           borderTopColor: c.border,
+          overflow: "hidden",
         },
+        hideStyle,
       ]}
     >
       {TAB_ITEMS.map((item) => {
@@ -275,7 +287,7 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           />
         );
       })}
-    </View>
+    </Animated.View>
   );
 }
 

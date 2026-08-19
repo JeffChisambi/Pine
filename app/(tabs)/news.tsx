@@ -18,7 +18,10 @@ import ReAnimated, {
   withSpring,
   runOnJS,
   Easing,
+  interpolateColor,
+  interpolate,
 } from "react-native-reanimated";
+import { TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle } from "react-native-svg";
 import { ActivityIndicator } from "react-native";
@@ -305,6 +308,51 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
   );
 }
 
+// ─── Category pill ──────────────────────────────────────────────────────────────
+// Animated: the fill/border/text colors cross-fade and the pill gives a tiny
+// spring "pop" when it becomes active, so switching categories feels alive.
+function CategoryPill({
+  label,
+  active,
+  onPress,
+  c,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  c: ReturnType<typeof useColors>;
+}) {
+  const prog = useSharedValue(active ? 1 : 0);
+  const pop = useSharedValue(1);
+
+  useEffect(() => {
+    prog.value = withTiming(active ? 1 : 0, { duration: 220, easing: Easing.out(Easing.cubic) });
+    if (active) {
+      pop.value = 0.92;
+      pop.value = withSpring(1, { damping: 12, stiffness: 320 });
+    }
+  }, [active]);
+
+  const pillStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(prog.value, [0, 1], [c.card, c.primary]),
+    borderColor: interpolateColor(prog.value, [0, 1], [c.border, c.primary]),
+    transform: [{ scale: pop.value }],
+  }));
+  const textStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(prog.value, [0, 1], [c.text, WHITE]),
+  }));
+
+  return (
+    <TouchableOpacity activeOpacity={0.75} onPress={onPress}>
+      <ReAnimated.View style={[{ paddingHorizontal: 18, paddingVertical: 9, borderRadius: 20, borderWidth: 1 }, pillStyle]}>
+        <ReAnimated.Text style={[{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, lineHeight: 18 }, textStyle]}>
+          {label}
+        </ReAnimated.Text>
+      </ReAnimated.View>
+    </TouchableOpacity>
+  );
+}
+
 // ─── Screen ─────────────────────────────────────────────────────────────────────
 export default function NewsScreen() {
   const insets = useSafeAreaInsets();
@@ -313,13 +361,55 @@ export default function NewsScreen() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [selected, setSelected] = useState<NewsItem | null>(null);
 
+  // ── Expanding search ──
+  const { width: screenW } = useWindowDimensions();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const searchProg = useSharedValue(0);
+  const searchInputRef = React.useRef<TextInput>(null);
+
+  const openSearch = () => {
+    setSearchOpen(true);
+    searchProg.value = withSpring(1, { damping: 18, stiffness: 180 });
+    setTimeout(() => searchInputRef.current?.focus(), 180);
+  };
+  const closeSearch = () => {
+    setQuery("");
+    searchInputRef.current?.blur();
+    searchProg.value = withTiming(0, { duration: 220, easing: Easing.out(Easing.cubic) }, (done) => {
+      if (done) runOnJS(setSearchOpen)(false);
+    });
+  };
+
+  // The pill grows from its 40px circle into a full-width search bar while
+  // the screen title fades and slides away beneath it.
+  const searchBarStyle = useAnimatedStyle(() => ({
+    width: interpolate(searchProg.value, [0, 1], [40, screenW - 40]),
+    borderRadius: 20,
+  }));
+  const titleStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(searchProg.value, [0, 0.5], [1, 0]),
+    transform: [{ translateX: interpolate(searchProg.value, [0, 1], [0, -16]) }],
+  }));
+  const searchContentStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(searchProg.value, [0.4, 1], [0, 1]),
+  }));
+
   // DB-driven: news comes from the backend (filtered server-side by category).
   const { data, isLoading, isError, refetch, isFetching } = useNews(activeCategory);
 
-  const filtered: NewsItem[] = useMemo(
-    () => (data ?? []).map((n) => ({ ...n, summary: n.summary ?? "" })),
-    [data],
-  );
+  const filtered: NewsItem[] = useMemo(() => {
+    const items = (data ?? []).map((n) => ({ ...n, summary: n.summary ?? "" }));
+    const q = query.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (n) =>
+        n.title.toLowerCase().includes(q) ||
+        n.summary.toLowerCase().includes(q) ||
+        n.source.toLowerCase().includes(q) ||
+        n.category.toLowerCase().includes(q),
+    );
+  }, [data, query]);
 
   const featured = filtered[0];
   const rest = filtered.slice(1);
@@ -334,20 +424,56 @@ export default function NewsScreen() {
         paddingHorizontal: 20,
         paddingBottom: 10,
       }}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 24, color: c.text }}>
-            Market News
-          </Text>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={{
-              width: 40, height: 40, borderRadius: 20,
-              backgroundColor: c.card,
-              alignItems: "center", justifyContent: "center",
-            }}
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 40 }}>
+          <ReAnimated.Text
+            style={[{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 24, color: c.text }, titleStyle]}
+            numberOfLines={1}
           >
-            <SearchIcon color={c.text} />
-          </TouchableOpacity>
+            Market News
+          </ReAnimated.Text>
+          {/* Search — a 40px circle that springs open into a full-width bar */}
+          <ReAnimated.View
+            style={[
+              {
+                position: "absolute",
+                right: 0,
+                height: 40,
+                backgroundColor: c.card,
+                overflow: "hidden",
+                flexDirection: "row",
+                alignItems: "center",
+              },
+              searchBarStyle,
+            ]}
+          >
+            {searchOpen ? (
+              <ReAnimated.View style={[{ flex: 1, flexDirection: "row", alignItems: "center", paddingLeft: 14, paddingRight: 4 }, searchContentStyle]}>
+                <SearchIcon color={MUTED} />
+                <TextInput
+                  ref={searchInputRef}
+                  style={{ flex: 1, marginLeft: 10, fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.text, padding: 0 }}
+                  placeholder="Search headlines, sources, topics…"
+                  placeholderTextColor={MUTED}
+                  value={query}
+                  onChangeText={setQuery}
+                  returnKeyType="search"
+                />
+                <TouchableOpacity onPress={closeSearch} hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }} style={{ width: 36, height: 40, alignItems: "center", justifyContent: "center" }}>
+                  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                    <Path d="M18 6L6 18M6 6l12 12" stroke={c.text} strokeWidth={2} strokeLinecap="round" />
+                  </Svg>
+                </TouchableOpacity>
+              </ReAnimated.View>
+            ) : (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={openSearch}
+                style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}
+              >
+                <SearchIcon color={c.text} />
+              </TouchableOpacity>
+            )}
+          </ReAnimated.View>
         </View>
       </View>
 
@@ -358,29 +484,15 @@ export default function NewsScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, gap: 8, paddingVertical: 2 }}
         style={{ flexGrow: 0, flexShrink: 0, marginBottom: 16 }}
       >
-        {CATEGORIES.map((cat) => {
-          const active = cat === activeCategory;
-          return (
-            <TouchableOpacity
-              key={cat}
-              activeOpacity={0.75}
-              onPress={() => setActiveCategory(cat)}
-              style={[
-                { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 20, borderWidth: 1 },
-                active
-                  ? { backgroundColor: c.primary, borderColor: c.primary }
-                  : { backgroundColor: c.card, borderColor: c.border },
-              ]}
-            >
-              <Text style={[
-                { fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, lineHeight: 18 },
-                active ? { color: WHITE } : { color: c.text },
-              ]}>
-                {cat}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+        {CATEGORIES.map((cat) => (
+          <CategoryPill
+            key={cat}
+            label={cat}
+            active={cat === activeCategory}
+            onPress={() => setActiveCategory(cat)}
+            c={c}
+          />
+        ))}
       </ScrollView>
 
       {/* News feed */}
