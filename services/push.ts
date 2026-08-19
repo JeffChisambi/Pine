@@ -76,6 +76,19 @@ export async function configurePushNotifications(): Promise<void> {
     });
 
     if (Platform.OS === 'android') {
+      // MAX importance = heads-up pop-up banner with sound, not a silent tray
+      // entry. Android freezes a channel's importance after first creation,
+      // so devices that already created 'default' at DEFAULT importance can't
+      // be upgraded — hence a NEW 'alerts' channel; the backend targets it
+      // via channelId in the push payload.
+      await Notifications.setNotificationChannelAsync('alerts', {
+        name: 'Alerts',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        sound: 'default',
+      });
+      // Keep the legacy channel functional for any in-flight pushes.
       await Notifications.setNotificationChannelAsync('default', {
         name: 'Default',
         importance: Notifications.AndroidImportance.DEFAULT,
