@@ -23,15 +23,6 @@ import { Worklets } from "react-native-worklets-core";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import Svg, { Path, Ellipse } from "react-native-svg";
-import Animated, {
-  useSharedValue,
-  useAnimatedProps,
-  withRepeat,
-  withTiming,
-  cancelAnimation,
-  Easing,
-  type SharedValue,
-} from "react-native-reanimated";
 import { kycApi, getErrorMessage, logHandledError } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
 
@@ -40,13 +31,10 @@ const WHITE = "#FFFFFF";
 const DIM   = "rgba(9,14,18,0.74)";
 
 // ─── Tuning knobs (verify on device) ──────────────────────────────────────────
-const CENTER_YAW_MAX = 12;   // |yawAngle| below this = looking straight
-const TURN_YAW_MIN   = 20;   // |yawAngle| above this = a deliberate head turn
+const CENTER_YAW_MAX = 14;   // |yawAngle| below this = looking straight
 const EYE_OPEN_MIN   = 0.4;  // require at least one eye open (basic anti-photo)
 const DETECT_FPS     = 4;    // run face detection this many times / second
-
-type Phase = "center" | "left" | "right" | "capturing";
-const STEP_ORDER: Phase[] = ["center", "left", "right"];
+const STEADY_FRAMES  = 3;    // consecutive good detections before auto-capture
 
 function BackArrow({ color }: { color: string }) {
   return (
@@ -54,49 +42,6 @@ function BackArrow({ color }: { color: string }) {
       <Path d="M15 19l-7-7 7-7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
-}
-
-// ─── Directional frequency-wave indicator ─────────────────────────────────────
-// A vertical column of small horizontal sine-squiggles that hug the oval's edge
-// and shimmer (travelling phase), on the side the user must turn toward.
-const AnimatedPath = Animated.createAnimatedComponent(Path);
-const WAVE_COUNT = 11;   // number of squiggles down the edge
-const WAVE_SPAN  = 0.6;  // fraction of the oval's vertical radius they cover
-const WAVE_W     = 22;   // squiggle width
-const WAVE_GAP   = 7;    // gap from the oval edge
-
-function Squiggle({ ax, ay, offset, clock }: { ax: number; ay: number; offset: number; clock: SharedValue<number> }) {
-  const animatedProps = useAnimatedProps(() => {
-    const w = WAVE_W, amp = 4, cycles = 2, STEPS = 10;
-    const phase = clock.value * Math.PI * 2 + offset;
-    let d = "";
-    for (let s = 0; s <= STEPS; s++) {
-      const t = s / STEPS;
-      const x = ax + t * w;
-      const y = ay + amp * Math.sin(t * cycles * Math.PI * 2 + phase);
-      d += (s === 0 ? "M" : "L") + x.toFixed(1) + " " + y.toFixed(1) + " ";
-    }
-    return { d };
-  });
-  return <AnimatedPath animatedProps={animatedProps} stroke={GREEN} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />;
-}
-
-function FrequencyWaves({ side, cx, cy, rx, ry }: { side: "left" | "right"; cx: number; cy: number; rx: number; ry: number }) {
-  const clock = useSharedValue(0);
-  useEffect(() => {
-    clock.value = withRepeat(withTiming(1, { duration: 950, easing: Easing.linear }), -1, false);
-    return () => cancelAnimation(clock);
-  }, []);
-  const squiggles = [];
-  for (let i = 0; i < WAVE_COUNT; i++) {
-    const f = (i + 0.5) / WAVE_COUNT;                         // 0..1 down the span
-    const ay = cy + (f * 2 - 1) * ry * WAVE_SPAN;             // y along the oval
-    const dx = rx * Math.sqrt(Math.max(0, 1 - Math.pow((ay - cy) / ry, 2))); // oval x-offset at ay
-    const edgeX = side === "left" ? cx - dx : cx + dx;
-    const ax = side === "left" ? edgeX - WAVE_GAP - WAVE_W : edgeX + WAVE_GAP;
-    squiggles.push(<Squiggle key={i} ax={ax} ay={ay} offset={i * 0.5} clock={clock} />);
-  }
-  return <Svg style={StyleSheet.absoluteFill} pointerEvents="none">{squiggles}</Svg>;
 }
 
 export default function SelfieCameraScreen() {
@@ -116,16 +61,15 @@ export default function SelfieCameraScreen() {
   const camera = useRef<Camera>(null);
 
   const [active, setActive] = useState(true);
-  const [phase, setPhase] = useState<Phase>("center");
+  const [capturing, setCapturing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [faceReady, setFaceReady] = useState(false);
   const [hint, setHint] = useState("");
   const [showManual, setShowManual] = useState(false);
 
-  const phaseRef = useRef<Phase>("center");
-  phaseRef.current = phase;
   const busyRef = useRef(false);
-  busyRef.current = uploading || phase === "capturing";
-  const firstTurnSignRef = useRef<0 | 1 | -1>(0);
+  busyRef.current = uploading || capturing;
+  const steadyRef = useRef(0);
 
   // Only run the camera while focused and not mid-upload.
   useFocusEffect(useCallback(() => {
@@ -145,7 +89,7 @@ export default function SelfieCameraScreen() {
   // Reveal a manual capture if detection can't complete (bad light, etc.).
   useEffect(() => {
     if (uploading) return;
-    const t = setTimeout(() => setShowManual(true), 18000);
+    const t = setTimeout(() => setShowManual(true), 10000);
     return () => clearTimeout(t);
   }, [uploading]);
 
@@ -153,9 +97,8 @@ export default function SelfieCameraScreen() {
   const cx = W / 2, cy = H * 0.42;
   const ovalRx = Math.min(W * 0.34, 150);
   const ovalRy = ovalRx * 1.34;
-  const stepIndex = STEP_ORDER.indexOf(phase);
 
-  // ── Upload + final capture ───────────────────────────────────────────────────
+  // ── Upload + capture ─────────────────────────────────────────────────────────
   const uploadSelfie = useCallback(async (uri: string) => {
     setUploading(true);
     try {
@@ -164,53 +107,68 @@ export default function SelfieCameraScreen() {
     } catch (err) {
       logHandledError("KYC Selfie", err);
       setUploading(false);
-      setPhase("center");
-      firstTurnSignRef.current = 0;
+      setCapturing(false);
+      steadyRef.current = 0;
       Alert.alert("Couldn't submit your selfie", getErrorMessage(err));
     }
   }, [applicationId]);
 
   const captureFinal = useCallback(async () => {
-    if (!camera.current) return;
+    if (!camera.current || busyRef.current) return;
+    setCapturing(true);
     try {
       const photo = await camera.current.takePhoto({ flash: "off" });
       await uploadSelfie(`file://${photo.path}`);
     } catch (err) {
       logHandledError("KYC Selfie capture", err);
       setUploading(false);
-      setPhase("center");
+      setCapturing(false);
       Alert.alert("Camera Unavailable", getErrorMessage(err));
     }
   }, [uploadSelfie]);
 
-  useEffect(() => { if (phase === "capturing") captureFinal(); }, [phase, captureFinal]);
-
-  // ── Face evaluation (JS thread, reads refs so it never goes stale) ────────────
+  // ── Face evaluation — a single straight-on selfie, no head turns ─────────────
+  // Auto-captures once a lone, centered face with open eyes has been steady for
+  // a few consecutive detections.
   const handleFaces = useCallback((faces: Face[]) => {
     if (busyRef.current) return;
-    if (faces.length === 0) { setHint("Position your face in the frame"); return; }
-    if (faces.length > 1) { setHint("Only your face should be visible"); return; }
+    if (faces.length === 0) {
+      steadyRef.current = 0;
+      setFaceReady(false);
+      setHint("Position your face in the frame");
+      return;
+    }
+    if (faces.length > 1) {
+      steadyRef.current = 0;
+      setFaceReady(false);
+      setHint("Only your face should be visible");
+      return;
+    }
     const f = faces[0];
     const yaw = f.yawAngle ?? 0;
     const eyesOpen = (f.leftEyeOpenProbability ?? 1) > EYE_OPEN_MIN || (f.rightEyeOpenProbability ?? 1) > EYE_OPEN_MIN;
-    const cur = phaseRef.current;
 
-    if (cur === "center") {
-      if (Math.abs(yaw) <= CENTER_YAW_MAX && eyesOpen) { setHint(""); setPhase("left"); }
-      else setHint("Look straight at the camera");
+    if (Math.abs(yaw) > CENTER_YAW_MAX) {
+      steadyRef.current = 0;
+      setFaceReady(false);
+      setHint("Look straight at the camera");
       return;
     }
-    if (cur === "left" || cur === "right") {
-      if (Math.abs(yaw) < TURN_YAW_MIN) {
-        setHint(cur === "left" ? "Slowly turn your head left" : "Now turn your head right");
-        return;
-      }
-      const sign = yaw > 0 ? 1 : -1;
-      if (cur === "left") { firstTurnSignRef.current = sign; setHint(""); setPhase("right"); }
-      else if (sign !== firstTurnSignRef.current) { setHint(""); setPhase("capturing"); }
-      else setHint("Turn your head the other way");
+    if (!eyesOpen) {
+      steadyRef.current = 0;
+      setFaceReady(false);
+      setHint("Keep your eyes open");
+      return;
     }
-  }, []);
+
+    setFaceReady(true);
+    setHint("");
+    steadyRef.current += 1;
+    if (steadyRef.current >= STEADY_FRAMES) {
+      steadyRef.current = 0;
+      captureFinal();
+    }
+  }, [captureFinal]);
 
   const { detectFaces } = useFaceDetector({ performanceMode: "fast", classificationMode: "all", landmarkMode: "none" });
   const runOnJsFaces = useMemo(() => Worklets.createRunOnJS(handleFaces), [handleFaces]);
@@ -252,16 +210,12 @@ export default function SelfieCameraScreen() {
 
   const title =
     uploading ? "Verifying…"
-    : phase === "center" ? "Center your face"
-    : phase === "left" ? "Turn your head left"
-    : phase === "right" ? "Turn your head right"
-    : "Hold still…";
+    : capturing ? "Hold still…"
+    : "Center your face";
   const sub = hint || (
-    phase === "center" ? "Fit your face inside the oval and look straight"
-    : phase === "left" ? "Slowly rotate your head to the left"
-    : phase === "right" ? "Now slowly rotate to the right"
-    : "Capturing your selfie");
-  const ovalColor = uploading ? GREEN : phase === "center" ? WHITE : GREEN;
+    uploading || capturing ? "Capturing your selfie"
+    : "Fit your face inside the oval and look straight");
+  const ovalColor = faceReady || uploading || capturing ? GREEN : WHITE;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
@@ -289,10 +243,6 @@ export default function SelfieCameraScreen() {
         <Ellipse cx={cx} cy={cy} rx={ovalRx} ry={ovalRy} stroke={ovalColor} strokeWidth={3} fill="none" opacity={0.9} />
       </Svg>
 
-      {/* Directional frequency waves — shimmer on the side to turn toward */}
-      {!uploading && phase === "left" && <FrequencyWaves side="left" cx={cx} cy={cy} rx={ovalRx} ry={ovalRy} />}
-      {!uploading && phase === "right" && <FrequencyWaves side="right" cx={cx} cy={cy} rx={ovalRx} ry={ovalRy} />}
-
       {/* Header */}
       <View style={{ position: "absolute", top: topPad, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: 16 }}>
         <TouchableOpacity onPress={() => guardedBack("/(tabs)/profile")} activeOpacity={0.7} disabled={uploading} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 20, backgroundColor: "rgba(0,0,0,0.35)" }}>
@@ -302,17 +252,10 @@ export default function SelfieCameraScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Coaching + step dots */}
+      {/* Coaching */}
       <View style={{ position: "absolute", top: cy + ovalRy + 34, left: 0, right: 0, alignItems: "center", paddingHorizontal: 32 }}>
         <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 20, color: WHITE, textAlign: "center" }}>{title}</Text>
         <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: "rgba(255,255,255,0.75)", textAlign: "center", marginTop: 8, lineHeight: 20 }}>{sub}</Text>
-        <View style={{ flexDirection: "row", gap: 8, marginTop: 18 }}>
-          {STEP_ORDER.map((s, i) => {
-            const done = phase === "capturing" || i < Math.max(0, stepIndex);
-            const current = s === phase;
-            return <View key={s} style={{ width: current ? 22 : 8, height: 8, borderRadius: 4, backgroundColor: done ? GREEN : current ? WHITE : "rgba(255,255,255,0.35)" }} />;
-          })}
-        </View>
       </View>
 
       {uploading && (
@@ -322,7 +265,7 @@ export default function SelfieCameraScreen() {
         </View>
       )}
 
-      {showManual && !uploading && (
+      {showManual && !uploading && !capturing && (
         <View style={{ position: "absolute", left: 0, right: 0, bottom: insets.bottom + 28, alignItems: "center" }}>
           <TouchableOpacity onPress={captureFinal} activeOpacity={0.85} style={{ width: 74, height: 74, borderRadius: 37, borderWidth: 4, borderColor: WHITE, alignItems: "center", justifyContent: "center" }}>
             <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: WHITE }} />
