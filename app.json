@@ -42,7 +42,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/pine_assets/icons/rounded/icon (1).png",
+          "icon": "./assets/pine_assets/icons/invert/notification-icon.png",
           "color": "#164951"
         }
       ],

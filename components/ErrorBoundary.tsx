@@ -1,6 +1,7 @@
 import React, { Component, ComponentType, PropsWithChildren } from "react";
 
 import { ErrorFallback, ErrorFallbackProps } from "@/components/ErrorFallback";
+import { reportSystemError } from "@/services/api";
 
 export type ErrorBoundaryProps = PropsWithChildren<{
   FallbackComponent?: ComponentType<ErrorFallbackProps>;
@@ -33,6 +34,9 @@ export class ErrorBoundary extends Component<
     if (typeof this.props.onError === "function") {
       this.props.onError(error, info.componentStack);
     }
+    // A render crash reached the top-level boundary — the user saw a broken
+    // screen. Surface it in the admin System Errors console as CRITICAL.
+    reportSystemError("render-crash", error, "CRITICAL");
   }
 
   resetError = (): void => {

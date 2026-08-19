@@ -105,6 +105,47 @@ export function logHandledError(context: string, err: unknown): void {
     // console.log (not warn/error) → no LogBox notification.
     console.log(`[${context}]`, detail);
   }
+  // Surface in the admin System Errors console. Expected client-side API
+  // errors (4xx — wrong PIN, validation, etc.) are normal flows, not system
+  // errors; report server failures and unexpected exceptions only.
+  const isClientApiError = err instanceof ApiError && err.status < 500;
+  if (!isClientApiError) {
+    reportSystemError(context, err, 'MEDIUM');
+  }
+}
+
+// ─── System error reporting (admin console) ───────────────────────────────────
+// Fire-and-forget, deduped per session, hard-capped — reporting must never
+// affect the user experience or loop on itself.
+const reportedErrors = new Set<string>();
+let reportedCount = 0;
+
+export function reportSystemError(
+  location: string,
+  err: unknown,
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' = 'HIGH',
+): void {
+  try {
+    if (reportedCount >= 20) return;
+    const message = err instanceof Error ? err.message : String(err ?? 'Unknown error');
+    const key = `${location}|${message}`.slice(0, 250);
+    if (reportedErrors.has(key)) return;
+    reportedErrors.add(key);
+    reportedCount += 1;
+
+    void request('/errors/report', {
+      method: 'POST',
+      body: JSON.stringify({
+        source: 'MOBILE_APP',
+        severity,
+        message: message.slice(0, 2000),
+        stack: err instanceof Error ? err.stack?.slice(0, 8000) : undefined,
+        location,
+      }),
+    }).catch(() => {});
+  } catch {
+    // Never let error reporting throw.
+  }
 }
 
 // ─── Core fetch wrapper with auth ─────────────────────────────────────────────
