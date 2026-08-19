@@ -95,21 +95,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
   const xsShared = useSharedValue<number[]>([]);
   const ysShared = useSharedValue<number[]>([]);
 
-  // Selection pulse: every tap emits an expanding, fading ring from the dot
-  // and gives the dot itself a small pop — 1 = settled, 0 = just selected.
-  const pulse = useSharedValue(1);
-
-  const dotAnimProps    = useAnimatedProps(() => ({
-    cx: animX.value,
-    cy: animY.value,
-    r: 4 + (1 - pulse.value) * 2.5,
-  }));
-  const pulseAnimProps  = useAnimatedProps(() => ({
-    cx: animX.value,
-    cy: animY.value,
-    r: 4 + pulse.value * 18,
-    opacity: 0.4 * (1 - pulse.value),
-  }));
+  const dotAnimProps    = useAnimatedProps(() => ({ cx: animX.value, cy: animY.value }));
   const vLineAnimProps  = useAnimatedProps(() => ({ x1: animX.value, x2: animX.value }));
   const hLineAnimProps  = useAnimatedProps(() => ({ y1: animY.value, y2: animY.value }));
 
@@ -160,9 +146,6 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
     if (animate) {
       animX.value = withSpring(xs[idx], { damping: 20, stiffness: 300, mass: 0.6 });
       animY.value = withSpring(ys[idx], { damping: 20, stiffness: 300, mass: 0.6 });
-      // Fire the selection pulse — expanding ring + dot pop.
-      pulse.value = 0;
-      pulse.value = withTiming(1, { duration: 550, easing: Easing.out(Easing.cubic) });
     } else {
       animX.value = xs[idx];
       animY.value = ys[idx];
@@ -246,9 +229,7 @@ function PriceChart({ data, positive, period }: PriceChartProps) {
         ))}
         <AnimatedLine animatedProps={vLineAnimProps} y1={PAD_TOP} y2={PAD_TOP + plotH} stroke={c.primary} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2" />
         <AnimatedLine animatedProps={hLineAnimProps} x1={Y_PAD} x2={SCREEN_W - PAD_R} stroke={c.primary} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2" />
-        {/* Selection pulse ring — expands and fades on every tap */}
-        <AnimatedCircle animatedProps={pulseAnimProps} fill="none" stroke={SVG_GREEN} strokeWidth={1.5} />
-        <AnimatedCircle animatedProps={dotAnimProps} fill={WHITE} stroke={SVG_GREEN} strokeWidth={2} />
+        <AnimatedCircle animatedProps={dotAnimProps} r={4} fill={WHITE} stroke={SVG_GREEN} strokeWidth={2} />
       </Svg>
       <Animated.View style={[{ position: "absolute", width: TT_SIZE, backgroundColor: c.primary, borderRadius: TT_RX, alignItems: "center", justifyContent: "center", paddingHorizontal: 6, paddingVertical: 8 }, tooltipAnimStyle]}>
         <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: WHITE, fontSize: 12, fontFamily: "PlusJakartaSans_700Bold", textAlign: "center" }}>{priceTxt}</Text>

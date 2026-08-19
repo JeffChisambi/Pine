@@ -323,20 +323,14 @@ function CategoryPill({
   c: ReturnType<typeof useColors>;
 }) {
   const prog = useSharedValue(active ? 1 : 0);
-  const pop = useSharedValue(1);
 
   useEffect(() => {
-    prog.value = withTiming(active ? 1 : 0, { duration: 220, easing: Easing.out(Easing.cubic) });
-    if (active) {
-      pop.value = 0.92;
-      pop.value = withSpring(1, { damping: 12, stiffness: 320 });
-    }
+    prog.value = withTiming(active ? 1 : 0, { duration: 180, easing: Easing.out(Easing.cubic) });
   }, [active]);
 
   const pillStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(prog.value, [0, 1], [c.card, c.primary]),
     borderColor: interpolateColor(prog.value, [0, 1], [c.border, c.primary]),
-    transform: [{ scale: pop.value }],
   }));
   const textStyle = useAnimatedStyle(() => ({
     color: interpolateColor(prog.value, [0, 1], [c.text, WHITE]),
@@ -370,8 +364,8 @@ export default function NewsScreen() {
 
   const openSearch = () => {
     setSearchOpen(true);
-    searchProg.value = withSpring(1, { damping: 18, stiffness: 180 });
-    setTimeout(() => searchInputRef.current?.focus(), 180);
+    searchProg.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) });
+    setTimeout(() => searchInputRef.current?.focus(), 160);
   };
   const closeSearch = () => {
     setQuery("");

@@ -315,8 +315,8 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
     if (visible) {
       setMounted(true);
       Animated.parallel([
-        Animated.spring(slideY, { toValue: 0, damping: 28, stiffness: 280, mass: 0.8, useNativeDriver: true }),
-        Animated.timing(fadeOvl, { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.spring(slideY, { toValue: 0, damping: 30, stiffness: 520, mass: 0.6, useNativeDriver: true }),
+        Animated.timing(fadeOvl, { toValue: 1, duration: 150, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
