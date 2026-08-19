@@ -21,12 +21,14 @@ const colors = {
   },
   dark: {
     text: "#F9FAFB",
-    tint: "#164951",
+    // Dark mode uses the LIGHT brand green as primary/tint: the dark teal
+    // (#164951) is near-invisible against the dark surfaces.
+    tint: "#45B369",
     background: "#1F2937",
     foreground: "#F9FAFB",
     card: "#374151",
     cardForeground: "#F9FAFB",
-    primary: "#164951",
+    primary: "#45B369",
     primaryForeground: "#FFFFFF",
     secondary: "#374151",
     secondaryForeground: "#F9FAFB",

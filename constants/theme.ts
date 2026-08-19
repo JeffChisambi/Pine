@@ -48,10 +48,20 @@ export function buildPalette(mode: "light" | "dark", o?: BrandOverrides | null):
   const base: Palette = { ...colors[mode], radius: colors.radius };
   if (!o) return base;
 
-  // Brand + semantic colors — applied to both light and dark modes.
-  if (o.primary) {
-    base.primary = o.primary;
-    base.tint = o.primary;
+  // Brand + semantic colors.
+  // Light mode: `primary` is the broker's main brand color as-is.
+  // Dark mode: brand primaries are typically DARK colors that vanish against
+  // dark surfaces — so dark mode derives primary/tint from the broker's
+  // ACCENT (their light brand color) instead, falling back to the default
+  // light green. The broker's dark primary is never used as dark-mode text.
+  if (mode === "light") {
+    if (o.primary) {
+      base.primary = o.primary;
+      base.tint = o.primary;
+    }
+  } else if (o.accent) {
+    base.primary = o.accent;
+    base.tint = o.accent;
   }
   if (o.accent) base.accent = o.accent;
   if (o.destructive) base.destructive = o.destructive;
