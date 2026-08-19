@@ -472,7 +472,12 @@ export default function PaymentCardScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: bottomPad + 90 }}
+        // Bottom padding must clear the ENTIRE absolutely-positioned CTA
+        // block: Pay button (56) + Test Transaction (44 + 10 gap) + the
+        // wrap's own paddings — otherwise the last content rows (save-card
+        // toggle, secure badge, accepted brands) hide behind the buttons
+        // with no way to scroll them into view.
+        contentContainerStyle={{ paddingBottom: bottomPad + (TEST_TX_ENABLED ? 210 : 150) }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
