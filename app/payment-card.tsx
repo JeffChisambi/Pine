@@ -419,11 +419,34 @@ export default function PaymentCardScreen() {
     // enforces its own ALLOW_TEST_TRANSACTIONS guard server-side).
     if (!TEST_TX_ENABLED) return;
     setShowTestSheet(false);
-    // Standard test card — real card details are never required in test mode.
-    await runPayment(
-      { cardholderName: "TEST USER", cardNumber: "4111111111111111", expiryMonth: "12", expiryYear: "30", cvv: "123" },
-      scenario,
-    );
+
+    // Saved-card mode: exercise the full saved-card charge path (decrypt on
+    // the server, CVV supplied by the user) through the mock gateway.
+    if (isSavedCard) {
+      await runPayment(
+        {
+          cardholderName: params.cardholderName ?? "",
+          cardNumber: "",
+          expiryMonth: params.expiryMonth ?? "",
+          expiryYear: params.expiryYear ?? "",
+          cvv: cvv.length >= 3 ? cvv : "123",
+        },
+        scenario,
+        params.savedCardId,
+      );
+      return;
+    }
+
+    // New-card mode: if the form holds a complete card, use IT — so "Save
+    // this card" works exactly like a real payment. Fall back to the
+    // standard test card when the form is empty/incomplete.
+    const formComplete =
+      cardNumber.replace(/\s/g, "").length >= 13 && cardHolder.trim().length > 0 && expiry.length === 5 && cvv.length >= 3;
+    const [mm, yy] = expiry.split("/");
+    const card = formComplete
+      ? { cardholderName: cardHolder.trim(), cardNumber: cardNumber.replace(/\s/g, ""), expiryMonth: mm, expiryYear: yy, cvv }
+      : { cardholderName: "TEST USER", cardNumber: "4111111111111111", expiryMonth: "12", expiryYear: "30", cvv: "123" };
+    await runPayment(card, scenario, undefined, saveCard);
   };
 
   const topPad    = Platform.OS === "web" ? 44 : insets.top;
