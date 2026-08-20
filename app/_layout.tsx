@@ -26,6 +26,7 @@ import Constants from "expo-constants";
 
 import { LogBox } from "react-native";
 import { AnimatedSplash } from "@/components/AnimatedSplash";
+import { AppDialogHost, installAppAlert } from "@/components/AppDialog";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "../services/auth-context";
 import { BalanceVisibilityProvider } from "@/contexts/balance-visibility";
@@ -35,6 +36,10 @@ import {
   configurePushNotifications,
   setupNotificationListeners,
 } from "../services/push";
+
+// Re-skin every Alert.alert() in the app as the branded dialog card.
+// Installed at module load so even alerts fired during startup use it.
+installAppAlert();
 
 // Suppress non-actionable native warnings that appear in Expo Go on iOS.
 LogBox.ignoreLogs([
@@ -387,6 +392,10 @@ export default function RootLayout() {
                       }}
                     />
                   )}
+                  {/* Themed popup dialogs — replaces the system Alert app-wide
+                      (installAppAlert() below), so every Alert.alert call site
+                      renders the branded card instead of the OS dialog. */}
+                  <AppDialogHost />
                 </GestureHandlerRootView>
                 </BalanceVisibilityProvider>
               </AuthProvider>
