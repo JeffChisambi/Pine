@@ -142,14 +142,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  // ── Push token sync ──────────────────────────────────────────────────────
-  // Once authenticated, silently (re)register this device's push token if the
-  // user has already granted OS permission. `promptIfNeeded = false` means we
-  // never nag here — users opt in from the Notification Settings screen. The
-  // call is fully guarded and a no-op when the native push module is absent.
+  // ── Push permission + token sync ─────────────────────────────────────────
+  // The FIRST time a signed-in user reaches the app, ask for notification
+  // permission (Android 13+ is deny-by-default, so without an explicit
+  // runtime prompt no push token can ever be issued — which meant nobody
+  // received pushes at all). The prompt fires exactly ONCE per install; a
+  // decline is respected forever, and the Notification Settings screen
+  // remains the way to opt in later. Every subsequent login just silently
+  // re-syncs the token if permission is already granted.
   useEffect(() => {
     if (!isLoggedIn) return;
-    registerForPushNotificationsAsync(false).catch(() => {});
+    const timer = setTimeout(async () => {
+      try {
+        const PROMPTED_KEY = '@pine_push_prompted';
+        const alreadyPrompted = await AsyncStorage.getItem(PROMPTED_KEY);
+        if (!alreadyPrompted) {
+          await AsyncStorage.setItem(PROMPTED_KEY, 'true');
+          await registerForPushNotificationsAsync(true);
+        } else {
+          await registerForPushNotificationsAsync(false);
+        }
+      } catch {
+        // Push registration is always best-effort.
+      }
+    }, 1500); // let the first screen settle before the OS dialog appears
+    return () => clearTimeout(timer);
   }, [isLoggedIn]);
 
   // ── handleAuthResponse ─────────────────────────────────────────────────────
