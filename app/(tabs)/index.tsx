@@ -562,7 +562,7 @@ export default function HomeScreen() {
                 paddingVertical: 16,
               }}>
                 <View style={{ flex: 1, gap: 4, paddingRight: 12, marginTop: -6 }}>
-                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text, lineHeight: 21 }}>Treasury Bills</Text>
+                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text, lineHeight: 21 }}>Debt Securities</Text>
                   <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: c.mutedForeground, lineHeight: 15 }}>
                     Low-risk government-backed{"\n"}short-term investments
                   </Text>

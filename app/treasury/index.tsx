@@ -108,7 +108,7 @@ export default function TreasuryLanding() {
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: "center", paddingRight: 40 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>
-            Treasury Bills
+            Debt Securities
           </Text>
         </View>
       </View>
@@ -240,7 +240,7 @@ export default function TreasuryLanding() {
               paddingTop: 24,
             }}
           >
-            No treasury bills available right now.
+            No debt securities available right now.
           </Text>
         ) : (
           products.map((bill) => {

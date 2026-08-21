@@ -151,7 +151,7 @@ function TBillsSection({ c, filter }: { c: ReturnType<typeof useColors>; filter:
   return (
     <View style={{ marginTop: 8 }}>
       <View style={{ paddingVertical: 8, marginBottom: 4 }}>
-        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase" }}>Treasury Bills</Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase" }}>Debt Securities</Text>
       </View>
       {investments.map((inv, i) => (
         <TouchableOpacity
@@ -173,7 +173,7 @@ function TBillsSection({ c, filter }: { c: ReturnType<typeof useColors>; filter:
 
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text, marginBottom: 3 }}>
-              {inv.duration}-Day T-Bill
+              {inv.duration}-Day Bill
             </Text>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>
               {inv.referenceNumber} · {inv.investmentDate}

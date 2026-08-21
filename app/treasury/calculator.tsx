@@ -164,7 +164,7 @@ export default function TreasuryCalculator() {
               </Text>
 
               {[
-                { label: "T-Bill Duration", value: `${bill.duration} Days` },
+                { label: "Duration", value: `${bill.duration} Days` },
                 { label: "Annual Yield", value: `${bill.yieldPct}%`, color: GREEN },
                 { label: "Investment Amount", value: isValid ? `MWK ${numericAmount.toLocaleString()}` : "—" },
               ].map((row, i, arr) => (

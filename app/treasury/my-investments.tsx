@@ -264,7 +264,7 @@ function EmptyState({ tab, c }: { tab: TabType; c: ReturnType<typeof useColors> 
           lineHeight: 21,
         }}
       >
-        You don't have any {tab.toLowerCase()} Treasury Bill investments yet.
+        You don't have any {tab.toLowerCase()} debt security investments yet.
       </Text>
     </View>
   );

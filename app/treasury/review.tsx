@@ -176,7 +176,7 @@ export default function TreasuryReview() {
               marginBottom: 16,
             }}
           >
-            <InfoRow label="Treasury Bill" value={`${bill.duration}-day bill`} />
+            <InfoRow label="Debt Security" value={`${bill.duration}-day bill`} />
             <View style={{ height: 1, backgroundColor: c.border }} />
             <InfoRow label="Annual Yield" value={`${bill.yieldPct}%`} valueColor={GREEN} />
             <View style={{ height: 1, backgroundColor: c.border }} />

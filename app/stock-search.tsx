@@ -21,19 +21,6 @@ const RED = "#EF4770";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
-function ArrowCircle({ positive }: { positive: boolean }) {
-  const color = positive ? GREEN : RED;
-  return (
-    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Circle cx={9} cy={9} r={9} fill={color} />
-      {positive ? (
-        <Path d="M5.5 10.5L9 7L12.5 10.5" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      ) : (
-        <Path d="M5.5 7.5L9 11L12.5 7.5" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      )}
-    </Svg>
-  );
-}
 
 export default function StockSearchScreen() {
   const insets = useSafeAreaInsets();
@@ -132,10 +119,7 @@ export default function StockSearchScreen() {
             </View>
             <View style={{ alignItems: "flex-end", gap: 4 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text }}>{s.price}</Text>
-              <View style={{ width: 70, flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: 4 }}>
-                <ArrowCircle positive={s.positive} />
-                <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: s.positive ? GREEN : RED }}>{s.change}</Text>
-              </View>
+              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: s.positive ? GREEN : RED }}>{s.change}</Text>
             </View>
           </TouchableOpacity>
         ))}

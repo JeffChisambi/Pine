@@ -31,7 +31,7 @@ const CONTACT = {
 
 const FAQ: { q: string; a: string }[] = [
   { q: "How long do deposits take to reflect?", a: "Card and mobile-money deposits usually reflect within a few minutes. If it has been longer than an hour, open a report and we'll investigate." },
-  { q: "When are treasury bill returns paid?", a: "T-bill principal and interest are paid at maturity, based on the tenor you selected when you invested." },
+  { q: "When are debt security returns paid?", a: "Debt security principal and interest are paid at maturity, based on the tenor you selected when you invested." },
   { q: "Why is my account not verified yet?", a: "KYC review can take up to 24 hours. You'll get a notification once your identity is approved." },
   { q: "How do I withdraw to my bank?", a: "Go to Wallet → Withdraw, choose a linked bank, and confirm with your PIN. Withdrawals are processed on business days." },
 ];
