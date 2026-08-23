@@ -20,7 +20,6 @@ const files = [
   'app/trade/buy.tsx',
   'app/trade/sell.tsx',
   'app/trade/exchange.tsx',
-  'app/trade/payment.tsx',
   'app/trade/confirm.tsx',
   'app/trade/success.tsx',
   'app/trade/history.tsx',

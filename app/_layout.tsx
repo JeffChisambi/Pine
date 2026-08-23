@@ -281,7 +281,6 @@ function RootLayoutNav() {
         <Stack.Screen name="trade/buy" options={section} />
         <Stack.Screen name="trade/sell" options={section} />
         <Stack.Screen name="trade/exchange" options={section} />
-        <Stack.Screen name="trade/payment" options={section} />
         <Stack.Screen name="trade/confirm" options={section} />
         <Stack.Screen
           name="trade/success"
