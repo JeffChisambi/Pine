@@ -1,5 +1,5 @@
 import { guardedBack } from "@/utils/navigation";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
-import { tradingApi, ApiError, getErrorMessage, logHandledError } from "../../services/api";
+import { tradingApi, ApiError, getErrorMessage, logHandledError, type OrderQuote } from "../../services/api";
 import { useAuth } from "../../services/auth-context";
 import { invalidateWalletBalance } from "../../services/wallet-queries";
 import { getStockLogo } from "../../utils/stock-logos";
@@ -58,10 +58,34 @@ export default function ConfirmScreen() {
   const isBuy     = (params.side ?? "BUY") === "BUY";
   const priceRaw  = Number(params.price ?? 0);
   const quantity  = Math.max(1, Number(params.amount ?? 0));
-  const subtotal  = quantity * priceRaw;
-  // Fee is 1% of the total charge (applied on top of subtotal)
-  const fee       = Math.round(subtotal * 0.01 * 100) / 100;
-  const total     = subtotal + fee;
+
+  // Server-computed quote — the SAME fee authority the execution engine uses
+  // (broker's tiered commission + statutory levies). Nothing is estimated
+  // client-side; the review shows exactly what execution will charge.
+  const [quote, setQuote] = useState<OrderQuote | null>(null);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  useEffect(() => {
+    if (symbol === "—" || quantity <= 0) return;
+    let cancelled = false;
+    setQuote(null);
+    setQuoteError(null);
+    tradingApi
+      .quote({ symbol, quantity, side: isBuy ? "BUY" : "SELL" })
+      .then((q) => { if (!cancelled) setQuote(q); })
+      .catch((err) => {
+        logHandledError("Order quote", err);
+        if (!cancelled) setQuoteError(getErrorMessage(err));
+      });
+    return () => { cancelled = true; };
+  }, [symbol, quantity, isBuy]);
+
+  const price      = quote?.pricePerShare ?? priceRaw;
+  const gross      = quote?.grossValue ?? quantity * priceRaw;
+  const commission = quote?.commission ?? 0;
+  const levies     = quote ? quote.secLevy + quote.mseLevy + quote.withholdingTax : 0;
+  const total      = isBuy
+    ? (quote?.totalCost ?? gross)
+    : (quote?.netProceeds ?? gross);
 
   const fmt = (n: number) =>
     `MWK ${n.toLocaleString("en-MW", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -84,8 +108,12 @@ export default function ConfirmScreen() {
     );
   };
 
+  const blocked =
+    !!quote && ((isBuy && quote.sufficientFunds === false) || (!isBuy && quote.sufficientShares === false));
+
   const handleConfirmOrder = () => {
     if (!params.stockId || symbol === "—") return;
+    if (blocked) return;
     if (user && !user.broker) {
       showBrokerRequiredAlert();
       return;
@@ -184,7 +212,7 @@ export default function ConfirmScreen() {
           </View>
         </View>
 
-        {/* Order summary card */}
+        {/* Order summary card — full transparent breakdown from the server */}
         <View style={{ backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 4, marginBottom: 20 }}>
           <Row label="Order Type" value={isBuy ? "Buy" : "Sell"} valueColor={isBuy ? "#16A34A" : "#DC2626"} />
           <Divider />
@@ -196,12 +224,66 @@ export default function ConfirmScreen() {
           )}
           <Row label="Quantity" value={`${quantity} share${quantity !== 1 ? "s" : ""}`} />
           <Divider />
-          <Row label="Price per Share" value={fmt(priceRaw)} />
+          <Row label="Price per Share" value={fmt(price)} />
           <Divider />
-          <Row label="Processing Fee (1%)" value={fmt(fee)} />
+          <Row label="Order Value" value={fmt(gross)} />
           <Divider />
-          <Row label="Total" value={fmt(total)} bold />
+          {quote ? (
+            <>
+              <Row label="Broker Commission" value={fmt(commission)} />
+              <Divider />
+              <Row label="Statutory Levies" value={fmt(levies)} />
+              <Divider />
+              <Row
+                label={isBuy ? "Total Cost" : "Net Proceeds"}
+                value={fmt(total)}
+                bold
+                valueColor={isBuy ? undefined : "#16A34A"}
+              />
+              {isBuy && quote.remainingAfter != null && (
+                <>
+                  <Divider />
+                  <Row
+                    label="Balance After"
+                    value={fmt(Math.max(quote.remainingAfter, 0))}
+                    valueColor={quote.sufficientFunds ? undefined : "#DC2626"}
+                  />
+                </>
+              )}
+            </>
+          ) : quoteError ? (
+            <View style={{ paddingVertical: 13 }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "#DC2626" }}>
+                {quoteError}
+              </Text>
+            </View>
+          ) : (
+            <View style={{ paddingVertical: 16, alignItems: "center" }}>
+              <ActivityIndicator color={c.primary} size="small" />
+              <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, marginTop: 8 }}>
+                Calculating fees…
+              </Text>
+            </View>
+          )}
         </View>
+
+        {/* Insufficient funds / shares warning */}
+        {quote && isBuy && quote.sufficientFunds === false && (
+          <View style={{ backgroundColor: "#DC262615", borderRadius: 14, borderWidth: 1, borderColor: "#DC262640", paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20 }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: "#DC2626" }}>
+              Insufficient available funds — you have {fmt(quote.cashAvailable)} available.
+            </Text>
+          </View>
+        )}
+        {quote && !isBuy && quote.sufficientShares === false && (
+          <View style={{ backgroundColor: "#DC262615", borderRadius: 14, borderWidth: 1, borderColor: "#DC262640", paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20 }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: "#DC2626" }}>
+              Insufficient shares — {quote.sharesAvailable ?? 0} available to sell
+              {quote.sharesHeld != null && quote.sharesHeld !== quote.sharesAvailable
+                ? ` (${quote.sharesHeld} held, rest committed to open orders)` : ""}.
+            </Text>
+          </View>
+        )}
 
         {/* Wallet deduction notice for buy orders */}
         {isBuy && (
@@ -228,9 +310,9 @@ export default function ConfirmScreen() {
 
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
         <TouchableOpacity
-          style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: loading ? 0.6 : 1 }}
+          style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: loading || blocked ? 0.6 : 1 }}
           onPress={handleConfirmOrder}
-          disabled={loading}
+          disabled={loading || blocked}
         >
           {loading
             ? <ActivityIndicator color={WHITE} />

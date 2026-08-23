@@ -94,7 +94,8 @@ export default function WithdrawScreen() {
       await invalidateWalletBalance(qc).catch(() => {});
       Alert.alert(
         "Withdrawal requested",
-        `MK ${numericValue.toLocaleString()} will be sent to your registered bank account within 1–2 business days.`,
+        `MK ${numericValue.toLocaleString()} has been requested and is held from your available balance. ` +
+        `Your broker will review it, and the funds reach your registered bank account within 1–2 business days of approval.`,
         [{ text: "OK", onPress: () => guardedBack("/(tabs)") }],
       );
     } catch (e: any) {

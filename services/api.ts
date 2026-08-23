@@ -455,7 +455,18 @@ export const walletApi = {
       body: JSON.stringify({ amount: data.amount, idempotencyKey: data.idempotencyKey }),
       headers: { 'x-pin-token': data.pinToken },
     }),
+
+  /** Fee breakdown for a deposit BEFORE paying — gross, processing fee, net credit. */
+  previewDeposit: (amount: number): Promise<DepositPreview> =>
+    request<DepositPreview>(`/wallet/deposit/preview?amount=${amount}`),
 };
+
+export interface DepositPreview {
+  grossAmount: number;
+  processingFee: number;
+  netAmount: number;
+  feeDescription: string | null;
+}
 
 // ─── Portfolio API ────────────────────────────────────────────────────────────
 
@@ -526,7 +537,42 @@ export interface TradeOrder {
   executedAt: string | null;
 }
 
+/**
+ * Server-computed order quote — the transparent breakdown the Review Order
+ * screen renders. Same fee authority the execution engine uses, so the
+ * preview always matches what execution will charge.
+ */
+export interface OrderQuote {
+  symbol: string;
+  stockName: string;
+  side: 'BUY' | 'SELL';
+  quantity: number;
+  pricePerShare: number;
+  grossValue: number;
+  /** Broker commission (tiered, configured by your broker) */
+  commission: number;
+  secLevy: number;
+  mseLevy: number;
+  withholdingTax: number;
+  totalFees: number;
+  cashAvailable: number;
+  // BUY only
+  totalCost?: number;
+  remainingAfter?: number;
+  sufficientFunds?: boolean;
+  // SELL only
+  netProceeds?: number;
+  sharesHeld?: number;
+  sharesAvailable?: number;
+  sufficientShares?: boolean;
+}
+
 export const tradingApi = {
+  quote: (params: { symbol: string; quantity: number; side: 'BUY' | 'SELL' }): Promise<OrderQuote> =>
+    request<OrderQuote>(
+      `/trading/quote?symbol=${encodeURIComponent(params.symbol)}&quantity=${params.quantity}&side=${params.side}`,
+    ),
+
   buy: ({ pinToken, ...data }: {
     stockSymbol: string;
     quantity: number;

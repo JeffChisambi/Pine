@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle } from "react-native-svg";
-import { savedCardsApi } from "../services/api";
+import { savedCardsApi, walletApi, type DepositPreview } from "../services/api";
 import { useAuth } from "../services/auth-context";
 
 type SavedCard = {
@@ -117,6 +117,24 @@ export default function DepositScreen() {
 
   const numericValue = parseFloat(rawAmount.replace(/,/g, "")) || 0;
   const canDeposit   = numericValue >= 10000 && !loading;
+
+  // Live fee breakdown from the broker's configured deposit fee schedule —
+  // debounced so typing doesn't spam the API. Falls back gracefully (no
+  // breakdown shown) if the preview fails; the server still applies the
+  // real fee at payment time.
+  const [preview, setPreview] = useState<DepositPreview | null>(null);
+  useEffect(() => {
+    if (!canDeposit) { setPreview(null); return; }
+    let cancelled = false;
+    const t = setTimeout(() => {
+      walletApi.previewDeposit(numericValue)
+        .then((p) => { if (!cancelled) setPreview(p); })
+        .catch(() => { if (!cancelled) setPreview(null); });
+    }, 350);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [numericValue, canDeposit]);
+
+  const fmtMK = (n: number) => `MK ${n.toLocaleString("en-MW", { maximumFractionDigits: 2 })}`;
 
   const handleQuick = (label: string) => {
     setRawAmount(label);
@@ -509,8 +527,12 @@ export default function DepositScreen() {
                 <Text style={styles.summaryValue} numberOfLines={1}>MK {rawAmount}</Text>
               </View>
               <View style={[styles.summaryRow, { marginTop: 8 }]}>
-                <Text style={styles.summaryLabel}>Processing fee</Text>
-                <Text style={[styles.summaryValue, { color: GREEN }]}>Free</Text>
+                <Text style={styles.summaryLabel}>
+                  Processing fee{preview?.feeDescription ? ` — ${preview.feeDescription}` : ""}
+                </Text>
+                <Text style={[styles.summaryValue, (preview?.processingFee ?? 0) === 0 ? { color: GREEN } : null]}>
+                  {preview == null ? "…" : preview.processingFee === 0 ? "Free" : fmtMK(preview.processingFee)}
+                </Text>
               </View>
               {user?.broker && (
                 <View style={[styles.summaryRow, { marginTop: 8 }]}>
@@ -524,7 +546,7 @@ export default function DepositScreen() {
                   You receive
                 </Text>
                 <Text style={[styles.summaryValue, { color: c.primary, fontFamily: "PlusJakartaSans_700Bold" }]} numberOfLines={1}>
-                  MK {rawAmount}
+                  {preview == null ? `MK ${rawAmount}` : fmtMK(preview.netAmount)}
                 </Text>
               </View>
             </View>
