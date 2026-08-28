@@ -211,51 +211,60 @@ function handleNotificationResponse(data: Record<string, any> | undefined) {
 }
 
 /**
+ * Handle a notification response EXACTLY ONCE, ever.
+ *
+ * Why this exists: a tap response is not delivered only at tap time.
+ *   - Cold start: getLastNotificationResponseAsync() returns the last tap
+ *     EVER recorded — including taps from previous sessions.
+ *   - Android warm resume: the tap's intent stays baked into the activity's
+ *     launch intent, so returning to the app from recents RECREATES the
+ *     activity from that sticky intent and expo-notifications RE-EMITS the
+ *     old response to addNotificationResponseReceivedListener.
+ * Either replay used to shove the user onto the notifications screen on a
+ * perfectly ordinary app open. Every response therefore flows through this
+ * gate: its identity (request id + timestamp) is persisted, and a response
+ * seen before is ignored — whichever path delivered it.
+ */
+async function handleResponseOnce(response: {
+  notification: { request: { identifier: string; content: { data?: unknown } }; date?: number | null };
+}): Promise<void> {
+  try {
+    const fingerprint = `${response.notification.request.identifier}:${response.notification.date ?? ''}`;
+    const handled = await AsyncStorage.getItem(HANDLED_TAP_KEY);
+    if (handled === fingerprint) return; // replayed tap — already acted on
+
+    await AsyncStorage.setItem(HANDLED_TAP_KEY, fingerprint);
+    (Notifications as any)?.clearLastNotificationResponseAsync?.().catch?.(() => {});
+
+    const data = response.notification.request.content.data as
+      | Record<string, any>
+      | undefined;
+    handleNotificationResponse(data);
+  } catch {
+    // Tap routing is best-effort — never break the app over it.
+  }
+}
+
+/**
  * Set up listeners for notification taps (foreground, background, and cold
  * start). Returns a cleanup function. Call once from the root layout.
  */
 export function setupNotificationListeners(): () => void {
   if (!Notifications) return () => {};
 
-  // Handle taps on notifications that arrived while the app was backgrounded
-  // or foregrounded.
+  // Taps while the app is running or backgrounded — AND Android's sticky
+  // launch-intent replays on activity recreation, hence the dedupe gate.
   const responseSub = Notifications.addNotificationResponseReceivedListener(
-    (response) => {
-      const data = response.notification.request.content.data as
-        | Record<string, any>
-        | undefined;
-      handleNotificationResponse(data);
-    },
+    (response) => { void handleResponseOnce(response as any); },
   );
 
-  // Handle a cold-start tap: the user tapped a notification that launched the
-  // app from a killed state.
-  //
-  // CRITICAL: getLastNotificationResponseAsync() returns the last tap EVER
-  // recorded — including taps from previous sessions — not just a tap that
-  // caused THIS launch. Without consuming it exactly once, any user who ever
-  // tapped a notification gets replayed into the notifications screen on
-  // every subsequent normal app open. Two defenses, either alone suffices:
-  //   1. clearLastNotificationResponseAsync() wipes the stored response after
-  //      it has been handled (where the SDK supports it);
-  //   2. the handled response's identity+timestamp is persisted, and any
-  //      response matching it is ignored on later launches.
+  // Cold-start tap: the user tapped a notification that launched the app
+  // from a killed state. Same gate — a stale response from a previous
+  // session is ignored.
   void (async () => {
     try {
       const response = await Notifications!.getLastNotificationResponseAsync();
-      if (!response) return;
-
-      const fingerprint = `${response.notification.request.identifier}:${response.notification.date ?? ''}`;
-      const handled = await AsyncStorage.getItem(HANDLED_TAP_KEY);
-      if (handled === fingerprint) return; // stale response from a previous session
-
-      await AsyncStorage.setItem(HANDLED_TAP_KEY, fingerprint);
-      (Notifications as any)?.clearLastNotificationResponseAsync?.().catch?.(() => {});
-
-      const data = response.notification.request.content.data as
-        | Record<string, any>
-        | undefined;
-      handleNotificationResponse(data);
+      if (response) await handleResponseOnce(response as any);
     } catch {
       // Cold-start routing is best-effort — never break app startup.
     }
@@ -266,5 +275,5 @@ export function setupNotificationListeners(): () => void {
   };
 }
 
-/** AsyncStorage key holding the fingerprint of the last handled cold-start tap. */
+/** AsyncStorage key holding the fingerprint of the last handled tap. */
 const HANDLED_TAP_KEY = '@pine_handled_notification_tap';
