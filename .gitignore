@@ -39,3 +39,6 @@ yarn-error.*
 .vercel
 
 .env
+
+# FCM server credential — never commit
+fcm-service-account.json

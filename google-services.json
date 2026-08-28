@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "832423351608",
+    "project_id": "pine-da995",
+    "storage_bucket": "pine-da995.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:832423351608:android:127da0e59f6bc1a467ddcd",
+        "android_client_info": {
+          "package_name": "com.pine.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFa2_QEcX_862tKAJf84zkmY-9b72xfZI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
