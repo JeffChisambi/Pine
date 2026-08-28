@@ -108,8 +108,13 @@ export default function ConfirmScreen() {
     );
   };
 
+  // Broker risk constraints (server-computed; server-enforced at submission).
+  const concentration = quote?.constraints?.concentration;
+  const concentrationBlocked = isBuy && concentration?.status === "BLOCKED";
+
   const blocked =
-    !!quote && ((isBuy && quote.sufficientFunds === false) || (!isBuy && quote.sufficientShares === false));
+    (!!quote && ((isBuy && quote.sufficientFunds === false) || (!isBuy && quote.sufficientShares === false))) ||
+    concentrationBlocked;
 
   const handleConfirmOrder = () => {
     if (!params.stockId || symbol === "—") return;
@@ -281,6 +286,29 @@ export default function ConfirmScreen() {
               Insufficient shares — {quote.sharesAvailable ?? 0} available to sell
               {quote.sharesHeld != null && quote.sharesHeld !== quote.sharesAvailable
                 ? ` (${quote.sharesHeld} held, rest committed to open orders)` : ""}.
+            </Text>
+          </View>
+        )}
+
+        {/* Broker concentration limit — hard block (red) or soft warning (amber).
+            The server enforces the same rule at submission; this is transparency. */}
+        {isBuy && concentration?.status === "BLOCKED" && (
+          <View style={{ backgroundColor: "#DC262615", borderRadius: 14, borderWidth: 1, borderColor: "#DC262640", paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20 }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 13, color: "#DC2626", marginBottom: 4 }}>
+              Broker limit: max {concentration.maxPct}% per stock
+            </Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "#DC2626", lineHeight: 18 }}>
+              {concentration.reason ?? "This order would exceed your broker's portfolio concentration limit."}
+            </Text>
+          </View>
+        )}
+        {isBuy && concentration?.status === "WARNING" && (
+          <View style={{ backgroundColor: "#D9770615", borderRadius: 14, borderWidth: 1, borderColor: "#D9770640", paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20 }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: "#D97706", marginBottom: 2 }}>
+              Concentration notice
+            </Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "#D97706", lineHeight: 18 }}>
+              {concentration.reason}
             </Text>
           </View>
         )}

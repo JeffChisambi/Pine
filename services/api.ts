@@ -466,6 +466,19 @@ export interface DepositPreview {
   processingFee: number;
   netAmount: number;
   feeDescription: string | null;
+  /** Broker-configured deposit limits — the same engine that enforces them. */
+  limits?: {
+    allowed: boolean;
+    reason: string | null;
+    maxAllowedNow: number | null;
+    perTransactionMax: number | null;
+    dailyLimit: number | null;
+    dailyUsed: number;
+    dailyRemaining: number | null;
+    monthlyLimit: number | null;
+    monthlyUsed: number;
+    monthlyRemaining: number | null;
+  };
 }
 
 // ─── Portfolio API ────────────────────────────────────────────────────────────
@@ -565,6 +578,19 @@ export interface OrderQuote {
   sharesHeld?: number;
   sharesAvailable?: number;
   sufficientShares?: boolean;
+  /** Broker risk constraints (BUY only) — server-enforced; shown for transparency. */
+  constraints?: {
+    concentration: {
+      enabled: boolean;
+      maxPct: number;
+      warnPct: number | null;
+      currentPct: number;
+      postOrderPct: number;
+      maxAdditionalValue: number | null;
+      status: 'OK' | 'WARNING' | 'BLOCKED';
+      reason: string | null;
+    };
+  };
 }
 
 export const tradingApi = {

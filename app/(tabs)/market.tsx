@@ -747,10 +747,8 @@ function StockSearchOverlay({ onClose }: { onClose: () => void }) {
               </View>
               <View style={{ alignItems: "flex-end", gap: 4 }}>
                 <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text }}>{s.price}</Text>
-                <View style={{ width: 70, flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: 4 }}>
-                  <ArrowCircle positive={s.positive} />
-                  <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: s.positive ? GREEN : RED }}>{s.change}</Text>
-                </View>
+                {/* Search results: change % only — no arrow badge (color carries direction) */}
+                <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: s.positive ? GREEN : RED }}>{s.change}</Text>
               </View>
             </TouchableOpacity>
           ))}

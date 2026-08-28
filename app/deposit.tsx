@@ -116,7 +116,7 @@ export default function DepositScreen() {
   }, []);
 
   const numericValue = parseFloat(rawAmount.replace(/,/g, "")) || 0;
-  const canDeposit   = numericValue >= 10000 && !loading;
+  const meetsMinimum = numericValue >= 10000 && !loading;
 
   // Live fee breakdown from the broker's configured deposit fee schedule —
   // debounced so typing doesn't spam the API. Falls back gracefully (no
@@ -124,7 +124,7 @@ export default function DepositScreen() {
   // real fee at payment time.
   const [preview, setPreview] = useState<DepositPreview | null>(null);
   useEffect(() => {
-    if (!canDeposit) { setPreview(null); return; }
+    if (!meetsMinimum) { setPreview(null); return; }
     let cancelled = false;
     const t = setTimeout(() => {
       walletApi.previewDeposit(numericValue)
@@ -132,9 +132,15 @@ export default function DepositScreen() {
         .catch(() => { if (!cancelled) setPreview(null); });
     }, 350);
     return () => { cancelled = true; clearTimeout(t); };
-  }, [numericValue, canDeposit]);
+  }, [numericValue, meetsMinimum]);
 
   const fmtMK = (n: number) => `MK ${n.toLocaleString("en-MW", { maximumFractionDigits: 2 })}`;
+
+  // Broker-configured deposit limits from the preview (server-enforced at
+  // submission; shown here so the client knows the max BEFORE paying).
+  const limits = preview?.limits;
+  const limitBlocked = meetsMinimum && limits != null && !limits.allowed;
+  const canDeposit = meetsMinimum && !limitBlocked;
 
   const handleQuick = (label: string) => {
     setRawAmount(label);
@@ -520,7 +526,7 @@ export default function DepositScreen() {
           </View>
 
           {/* Summary */}
-          {canDeposit && (
+          {meetsMinimum && (
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Deposit amount</Text>
@@ -540,6 +546,16 @@ export default function DepositScreen() {
                   <Text style={styles.summaryValue} numberOfLines={1}>{user.broker.name}</Text>
                 </View>
               )}
+              {limits && (limits.dailyLimit != null || limits.perTransactionMax != null || limits.monthlyLimit != null) && (
+                <View style={[styles.summaryRow, { marginTop: 8 }]}>
+                  <Text style={styles.summaryLabel}>Deposit limit</Text>
+                  <Text style={styles.summaryValue} numberOfLines={1}>
+                    {limits.maxAllowedNow != null
+                      ? `${fmtMK(Math.max(limits.maxAllowedNow, 0))} available now`
+                      : "No cap"}
+                  </Text>
+                </View>
+              )}
               <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
                 <Text style={[styles.summaryLabel, { color: c.text, fontFamily: "PlusJakartaSans_600SemiBold" }]}>
@@ -549,6 +565,14 @@ export default function DepositScreen() {
                   {preview == null ? `MK ${rawAmount}` : fmtMK(preview.netAmount)}
                 </Text>
               </View>
+            </View>
+          )}
+
+          {limitBlocked && limits?.reason && (
+            <View style={{ marginTop: 12, backgroundColor: "#DC262612", borderRadius: 12, borderWidth: 1, borderColor: "#DC262640", paddingHorizontal: 14, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12.5, color: "#DC2626", lineHeight: 18 }}>
+                {limits.reason}
+              </Text>
             </View>
           )}
 
