@@ -109,8 +109,13 @@ export default function DepositScreen() {
 
   useEffect(() => {
     savedCardsApi.list().then((cards) => {
-      setSavedCards(cards);
-      const def = cards.find((c) => c.isDefault);
+      // Only offer cards that can actually be charged: a saved card is a
+      // gateway token issued by the investor's own broker's merchant, so a
+      // pre-tokenisation card (or one saved under a previous broker) has to
+      // be entered once more rather than failing at the payment step.
+      const usable = cards.filter((c) => c.chargeable !== false);
+      setSavedCards(usable);
+      const def = usable.find((c) => c.isDefault);
       if (def) setSelectedCardId(def.id);
     }).catch(() => {});
   }, []);

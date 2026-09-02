@@ -1256,6 +1256,147 @@ export const cardPaymentsApi = {
     request<CardPaymentVerification>(`/payments/card/verify/${txRef}`),
 };
 
+// ── Hosted Session card payments ─────────────────────────────────────────────
+//
+// Card details go from THIS DEVICE straight to the Mastercard Gateway. They
+// never touch Pine's servers, which keeps Pine out of PCI cardholder-data
+// scope. Pine only ever sees a session id, and later an opaque token.
+//
+//   1. createCardSession()      → Pine creates the deposit + a gateway session
+//   2. updateGatewaySession()   → card goes device → gateway (no Pine, no auth)
+//   3. completeCardSession()    → Pine charges the session and credits the wallet
+
+export interface CardSessionHandle {
+  txRef: string;
+  transactionId: string;
+  sessionId: string;
+  /** Must be used verbatim when updating the session. */
+  apiVersion: number;
+  merchantId: string;
+  gatewayBaseUrl: string;
+  amount: number;
+  currency: 'MWK' | 'USD';
+}
+
+export const hostedCardApi = {
+  /** Step 1 — create the pending deposit and a gateway payment session. */
+  createCardSession: (data: {
+    amount: number;
+    currency: 'MWK' | 'USD';
+    purpose?: string;
+    stockSymbol?: string;
+    quantity?: number;
+    idempotencyKey?: string;
+  }): Promise<CardSessionHandle> =>
+    request<CardSessionHandle>('/payments/card/session', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Step 3 — charge the populated session; the server owns the amount. */
+  completeCardSession: (data: {
+    txRef: string;
+    saveCard?: boolean;
+    cardholderName?: string;
+  }): Promise<CardPaymentSession> =>
+    request<CardPaymentSession>('/payments/card/session/complete', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Deposit with a previously saved card, charged by its gateway token. */
+  payWithSavedCard: (data: {
+    savedCardId: string;
+    amount: number;
+    currency: 'MWK' | 'USD';
+    cvv?: string;
+    purpose?: string;
+    stockSymbol?: string;
+    quantity?: number;
+    idempotencyKey?: string;
+  }): Promise<CardPaymentSession> =>
+    request<CardPaymentSession>('/payments/card/saved', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
+/**
+ * Step 2 — send the card DIRECTLY to the Mastercard Gateway.
+ *
+ * Deliberately does NOT use `request()`: this call goes to the gateway host,
+ * not to Pine, and must carry no Pine session token. It is unauthenticated by
+ * design — the session id is the only credential, which is precisely why it
+ * is safe to make from a device.
+ *
+ * Nothing here is logged. On failure a generic message is surfaced so card
+ * data can never reach a log or an error reporter.
+ */
+export async function updateGatewaySession(
+  handle: Pick<CardSessionHandle, 'gatewayBaseUrl' | 'apiVersion' | 'merchantId' | 'sessionId'>,
+  card: {
+    cardholderName: string;
+    cardNumber: string;
+    expiryMonth: string;
+    expiryYear: string;
+    cvv: string;
+  },
+): Promise<void> {
+  const url =
+    `${handle.gatewayBaseUrl}/api/rest/version/${handle.apiVersion}` +
+    `/merchant/${encodeURIComponent(handle.merchantId)}` +
+    `/session/${encodeURIComponent(handle.sessionId)}`;
+
+  const body = {
+    sourceOfFunds: {
+      provided: {
+        card: {
+          nameOnCard: card.cardholderName,
+          number: card.cardNumber.replace(/\s/g, ''),
+          securityCode: card.cvv,
+          expiry: {
+            month: card.expiryMonth.padStart(2, '0'),
+            year: card.expiryYear.length === 4 ? card.expiryYear.slice(-2) : card.expiryYear,
+          },
+        },
+      },
+    },
+  };
+
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(
+      url,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(body),
+      },
+      REQUEST_TIMEOUT_MS,
+    );
+  } catch {
+    throw new Error("Couldn't reach the payment network. Check your connection and try again.");
+  }
+
+  let parsed: any = null;
+  try {
+    parsed = await res.json();
+  } catch {
+    /* fall through to the generic error below */
+  }
+
+  const updateStatus = parsed?.session?.updateStatus;
+  if (!res.ok || (updateStatus && updateStatus !== 'SUCCESS')) {
+    // Never echo the gateway's raw payload — it can contain card fields.
+    const explanation =
+      typeof parsed?.error?.explanation === 'string' && parsed.error.explanation.length < 200
+        ? parsed.error.explanation
+        : 'Your card details could not be verified. Please check them and try again.';
+    throw new Error(explanation);
+  }
+}
+
+
 // ─── Saved Cards API ─────────────────────────────────────────────────────────
 
 export const savedCardsApi = {
@@ -1268,6 +1409,11 @@ export const savedCardsApi = {
     expiryYear: string;
     isDefault: boolean;
     createdAt: string;
+    /**
+     * False for cards saved before tokenisation, or tokenised under a
+     * different broker — those cannot be charged and must be re-added.
+     */
+    chargeable?: boolean;
   }>>('/cards'),
 
   save: (data: { cardNumber: string; cardholderName: string; expiryMonth: string; expiryYear: string }) =>

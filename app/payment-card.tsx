@@ -36,7 +36,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import Svg, { Circle, Path, Rect, G, Defs, LinearGradient, Stop } from "react-native-svg";
 import { guardedBack } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
-import { cardPaymentsApi, getErrorMessage } from "../services/api";
+import {
+  cardPaymentsApi,
+  hostedCardApi,
+  updateGatewaySession,
+  getErrorMessage,
+} from "../services/api";
 import {
   invalidateWalletBalance,
 } from "../services/wallet-queries";
@@ -333,16 +338,51 @@ export default function PaymentCardScreen() {
     setLoading(true);
 
     try {
-      const result = await cardPaymentsApi.initiateCardPayment({
-        amount,
-        currency,
-        ...card,
-        purpose,
-        idempotencyKey: attemptKeyRef.current,
-        ...(testScenario ? { testScenario } : {}),
-        ...(savedCardId ? { savedCardId } : {}),
-        ...(shouldSaveCard ? { saveCard: true } : {}),
-      });
+      let result;
+
+      if (testScenario) {
+        // SANDBOX ONLY — the mock gateway, reached through the original
+        // direct path. Untouched so test transactions keep working.
+        result = await cardPaymentsApi.initiateCardPayment({
+          amount,
+          currency,
+          ...card,
+          purpose,
+          idempotencyKey: attemptKeyRef.current,
+          testScenario,
+          ...(savedCardId ? { savedCardId } : {}),
+          ...(shouldSaveCard ? { saveCard: true } : {}),
+        });
+      } else if (savedCardId) {
+        // Saved card — charged against its card-on-file token at the
+        // gateway. No card number exists anywhere in this request.
+        result = await hostedCardApi.payWithSavedCard({
+          savedCardId,
+          amount,
+          currency,
+          cvv: card.cvv,
+          purpose,
+          idempotencyKey: attemptKeyRef.current,
+        });
+      } else {
+        // New card — Hosted Session. Pine creates the deposit and a gateway
+        // session, the CARD GOES STRAIGHT FROM THIS DEVICE TO THE GATEWAY,
+        // then Pine charges that session. Pine never sees the card.
+        const handle = await hostedCardApi.createCardSession({
+          amount,
+          currency,
+          purpose,
+          idempotencyKey: attemptKeyRef.current,
+        });
+
+        await updateGatewaySession(handle, card);
+
+        result = await hostedCardApi.completeCardSession({
+          txRef: handle.txRef,
+          saveCard: shouldSaveCard,
+          cardholderName: card.cardholderName,
+        });
+      }
 
       // Terminal outcome — the next attempt is a new payment.
       attemptKeyRef.current = makeAttemptKey();
