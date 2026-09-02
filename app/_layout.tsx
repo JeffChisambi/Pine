@@ -17,7 +17,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -32,6 +32,13 @@ import { AuthProvider, useAuth } from "../services/auth-context";
 import { BalanceVisibilityProvider } from "@/contexts/balance-visibility";
 import { ThemeProvider, useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
+import {
+  initializeCertificatePinning,
+  enableScreenCaptureProtection,
+  checkDeviceIntegrity,
+  compromisedDeviceTerm,
+} from "../services/security";
+import PrivacyScreen from "../components/PrivacyScreen";
 import {
   configurePushNotifications,
   setupNotificationListeners,
@@ -195,6 +202,28 @@ function RootLayoutNav() {
     // being popped. Keep its fallback surface synchronized with the app theme.
     SystemUI.setBackgroundColorAsync(c.background).catch(() => {});
   }, [c.background]);
+
+  // Security hardening, once at startup. Each step is independently
+  // best-effort: none of them may prevent the app from running.
+  useEffect(() => {
+    // Pin TLS before anything authenticated goes over the wire.
+    initializeCertificatePinning().catch(() => {});
+    // Keep balances and card entry out of screenshots / the recents preview.
+    enableScreenCaptureProtection().catch(() => {});
+    // Warn — never block — on a rooted or jailbroken device.
+    checkDeviceIntegrity()
+      .then((compromised) => {
+        if (!compromised) return;
+        Alert.alert(
+          `This device appears ${compromisedDeviceTerm}`,
+          `On a ${compromisedDeviceTerm} device other apps can read Pine's data, ` +
+            'including your session and anything you type. You can continue, but ' +
+            'avoid using Pine on this device for anything sensitive.',
+          [{ text: 'I understand' }],
+        );
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     // Set up foreground presentation + the Android notification channel once.
@@ -396,6 +425,9 @@ export default function RootLayout() {
                       (installAppAlert() below), so every Alert.alert call site
                       renders the branded card instead of the OS dialog. */}
                   <AppDialogHost />
+                  {/* Covers the UI as the app deactivates so the iOS app
+                      switcher cannot photograph balances or card entry. */}
+                  <PrivacyScreen />
                 </GestureHandlerRootView>
                 </BalanceVisibilityProvider>
               </AuthProvider>
