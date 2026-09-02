@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  Dimensions,
   ImageBackground,
   KeyboardAvoidingView,
   Modal,
@@ -35,6 +36,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import Svg, { Circle, Path, Rect, G, Defs, LinearGradient, Stop } from "react-native-svg";
 import { guardedBack } from "@/utils/navigation";
+import ThreeDSChallenge from "../components/ThreeDSChallenge";
 import { useColors } from "@/hooks/useColors";
 import {
   cardPaymentsApi,
@@ -326,6 +328,26 @@ export default function PaymentCardScreen() {
   // SAME payment (never charged twice); a new attempt gets a fresh key.
   const attemptKeyRef = useRef(makeAttemptKey());
 
+  // ── 3-D Secure challenge ──
+  // Held as state + a stored resolver so the payment flow can simply `await`
+  // the payer finishing with their bank.
+  const [challenge, setChallenge] = useState<{ html: string; returnUrl: string } | null>(null);
+  const challengeResolver = useRef<((completed: boolean) => void) | null>(null);
+
+  /** Show the issuer's challenge; resolves true when the payer comes back. */
+  const runChallenge = (html: string, returnUrl: string): Promise<boolean> =>
+    new Promise<boolean>((resolve) => {
+      challengeResolver.current = resolve;
+      setChallenge({ html, returnUrl });
+    });
+
+  const settleChallenge = (completed: boolean) => {
+    setChallenge(null);
+    const resolve = challengeResolver.current;
+    challengeResolver.current = null;
+    resolve?.(completed);
+  };
+
   /**
    * Runs the full payment workflow. `test` carries a simulated outcome and
    * routes through the mock gateway server-side — every state (loading,
@@ -376,6 +398,35 @@ export default function PaymentCardScreen() {
         });
 
         await updateGatewaySession(handle, card);
+
+        // 3-D Secure. Verifying the payer with their bank shifts chargeback
+        // liability to the issuer; the server decides whether an
+        // unverifiable card may still be charged (broker policy) and always
+        // re-checks the real outcome with the gateway before taking money.
+        const win = Dimensions.get("window");
+        const auth = await hostedCardApi.authenticateCardSession({
+          txRef: handle.txRef,
+          screenWidth: Math.round(win.width),
+          screenHeight: Math.round(win.height),
+          timeZone: new Date().getTimezoneOffset(),
+          language: "en-GB",
+        });
+
+        if (auth.outcome === "REJECTED" || (!auth.canProceed && auth.outcome !== "CHALLENGE")) {
+          Alert.alert(
+            "Payment Not Verified",
+            auth.message || "Your bank did not verify this payment. Please try another card.",
+          );
+          return;
+        }
+
+        if (auth.outcome === "CHALLENGE" && auth.redirectHtml && auth.returnUrl) {
+          const completed = await runChallenge(auth.redirectHtml, auth.returnUrl);
+          if (!completed) {
+            Alert.alert("Verification Cancelled", "Your card was not charged.");
+            return;
+          }
+        }
 
         result = await hostedCardApi.completeCardSession({
           txRef: handle.txRef,
@@ -734,6 +785,18 @@ export default function PaymentCardScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Card-issuer 3-D Secure challenge. Reaching the return URL only means
+          the payer finished — the server re-checks the real outcome. */}
+      {challenge && (
+        <ThreeDSChallenge
+          visible
+          html={challenge.html}
+          returnUrl={challenge.returnUrl}
+          onFinished={() => settleChallenge(true)}
+          onCancel={() => settleChallenge(false)}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 }

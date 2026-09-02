@@ -1286,6 +1286,18 @@ export interface CardSessionHandle {
   currency: 'MWK' | 'USD';
 }
 
+/** Outcome of a 3-D Secure attempt. Never decides the payment on its own. */
+export interface CardAuthOutcome {
+  outcome: 'FRICTIONLESS' | 'CHALLENGE' | 'NOT_AVAILABLE' | 'REJECTED';
+  /** True when the app may complete the payment straight away. */
+  canProceed: boolean;
+  /** Self-submitting issuer HTML — render in a WebView (CHALLENGE only). */
+  redirectHtml?: string;
+  /** Navigating here means the challenge is over. */
+  returnUrl?: string;
+  message?: string;
+}
+
 export const hostedCardApi = {
   /** Step 1 — create the pending deposit and a gateway payment session. */
   createCardSession: (data: {
@@ -1297,6 +1309,24 @@ export const hostedCardApi = {
     idempotencyKey?: string;
   }): Promise<CardSessionHandle> =>
     request<CardSessionHandle>('/payments/card/session', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /**
+   * Step 2b — 3-D Secure. Run after the card reaches the gateway and BEFORE
+   * completing. A CHALLENGE outcome means the issuer wants to verify the
+   * payer: render redirectHtml in a WebView until it navigates to returnUrl.
+   */
+  authenticateCardSession: (data: {
+    txRef: string;
+    userAgent?: string;
+    screenWidth?: number;
+    screenHeight?: number;
+    timeZone?: number;
+    language?: string;
+  }): Promise<CardAuthOutcome> =>
+    request<CardAuthOutcome>('/payments/card/session/authenticate', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
