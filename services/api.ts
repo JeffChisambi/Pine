@@ -533,10 +533,18 @@ export interface PortfolioPerformance {
 }
 
 // One daily portfolio snapshot (GET /portfolio/history). Written by the
-// 14:30 CAT snapshot cron and after every trade settlement. `totalValue`
-// is holdings market value + wallet cash at snapshot time.
+// weekday 12:30 UTC snapshot cron (a new portfolio has none until it runs).
+//
+// Chart `holdingsValue` — the market value of the STOCKS owned. `totalValue`
+// also contains wallet cash, which makes a deposit look like portfolio growth,
+// so it is legacy and must not be charted.
 export interface PortfolioSnapshotPoint {
   date: string;
+  /** Market value of stocks held on this date. The portfolio series. */
+  holdingsValue: number;
+  /** Uninvested cash that day — context only, never part of performance. */
+  cashBalance: number;
+  /** LEGACY: holdings + cash. Do not chart. */
   totalValue: number;
   totalCost: number;
   unrealizedPnl: number;

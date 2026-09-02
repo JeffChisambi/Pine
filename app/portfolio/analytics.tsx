@@ -101,13 +101,18 @@ export default function PortfolioAnalyticsScreen() {
   const { data: perf, isLoading: perfLoading, isFetching: perfFetching, refetch: refetchPerf } = usePortfolioPerformance(period);
   const { data: holdings = [] } = useHoldings();
 
-  // Snapshots store holdings + wallet cash, so the live "today" point must be
-  // built the same way or the last step of the line would be a fake drop.
-  const liveValue = summary ? Number(summary.totalMarketValue ?? 0) + Number(summary.cashBalance ?? 0) : null;
+  // Stocks only. Uninvested cash is deliberately excluded: mixing it in made a
+  // deposit look like portfolio growth and told the investor nothing about
+  // whether their investments are actually performing.
+  const liveValue = summary ? Number(summary.totalMarketValue ?? 0) : null;
 
   const chartData = useMemo<PricePoint[]>(() => {
     const series = perf?.series ?? [];
-    const pts: { date: string; close: number }[] = series.map((s) => ({ date: s.date, close: Number(s.totalValue) }));
+    // holdingsValue matches liveValue above — both are stocks at market.
+    const pts: { date: string; close: number }[] = series.map((s) => ({
+      date: s.date,
+      close: Number(s.holdingsValue ?? 0),
+    }));
 
     if (liveValue !== null) {
       const today = new Date();
@@ -156,7 +161,11 @@ export default function PortfolioAnalyticsScreen() {
 
   const tiles: { label: string; value: string; sub?: string; color?: string }[] = [
     { label: "Invested", value: summary ? fmtK(Number(summary.totalInvested ?? 0)) : "—" },
-    { label: "Cash", value: summary ? fmtK(Number(summary.cashBalance ?? 0)) : "—" },
+    {
+      label: "Cash (not charted)",
+      value: summary ? fmtK(Number(summary.cashBalance ?? 0)) : "—",
+      sub: "uninvested",
+    },
     {
       label: "Unrealized P&L",
       value: summary ? fmtSigned(unrealized) : "—",
@@ -213,7 +222,7 @@ export default function PortfolioAnalyticsScreen() {
 
           <View style={{ paddingHorizontal: 24, marginTop: 14 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: c.mutedForeground, letterSpacing: 0.3, marginBottom: 6 }}>
-              Total portfolio value
+              Investments value
             </Text>
             {headlineValue === null ? (
               summaryLoading ? <ActivityIndicator color={GREEN} style={{ alignSelf: "flex-start", marginVertical: 10 }} /> :
@@ -301,7 +310,7 @@ export default function PortfolioAnalyticsScreen() {
           </View>
 
           <View style={{ marginHorizontal: 24, marginBottom: 8, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: c.card, borderRadius: 10, borderWidth: 1, borderColor: c.border }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: c.primary }}>Value includes holdings at latest MSE close plus wallet cash</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: c.primary }}>Your stock holdings at the latest MSE close — uninvested cash excluded</Text>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 10, color: MUTED, marginTop: 2 }}>
               History is recorded daily after market close and after every settled trade
             </Text>
