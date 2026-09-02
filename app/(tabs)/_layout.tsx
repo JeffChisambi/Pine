@@ -13,6 +13,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { useColors } from "@/hooks/useColors";
 import { tabBarHidden } from "@/contexts/tab-bar-visibility";
+import { TourProvider } from "@/components/tour/TourProvider";
+import { TourOverlay } from "@/components/tour/TourOverlay";
+import { useTourTarget } from "@/components/tour/useTourTarget";
 
 const MUTED = "#9CA3AF";
 
@@ -181,6 +184,8 @@ function AnimatedTabItem({
   const c = useColors();
   const scale = useSharedValue(1);
   const labelOpacity = useSharedValue(isFocused ? 1 : 0.55);
+  // Guided tour spotlights tab icons in place (`tab-market`, `tab-portfolio`, ...).
+  const tourRef = useTourTarget(`tab-${item.name}`);
 
   useEffect(() => {
     scale.value = withTiming(isFocused ? 1.12 : 1, {
@@ -203,6 +208,7 @@ function AnimatedTabItem({
 
   return (
     <TouchableOpacity
+      ref={tourRef}
       accessibilityRole="button"
       accessibilityState={isFocused ? { selected: true } : {}}
       onPress={onPress}
@@ -295,19 +301,25 @@ export default function TabLayout() {
   const c = useColors();
 
   return (
-    <Tabs
-      tabBar={(props) => <AnimatedTabBar {...props} />}
-      screenOptions={{
-        headerShown: false,
-        sceneStyle: { backgroundColor: c.background },
-      }}
-    >
-      <Tabs.Screen name="index" options={{ title: "Home" }} />
-      <Tabs.Screen name="market" options={{ title: "Market" }} />
-      <Tabs.Screen name="portfolio" options={{ title: "Portfolio" }} />
-      <Tabs.Screen name="news" options={{ title: "News" }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile" }} />
-    </Tabs>
+    <TourProvider>
+      <View style={{ flex: 1 }}>
+        <Tabs
+          tabBar={(props) => <AnimatedTabBar {...props} />}
+          screenOptions={{
+            headerShown: false,
+            sceneStyle: { backgroundColor: c.background },
+          }}
+        >
+          <Tabs.Screen name="index" options={{ title: "Home" }} />
+          <Tabs.Screen name="market" options={{ title: "Market" }} />
+          <Tabs.Screen name="portfolio" options={{ title: "Portfolio" }} />
+          <Tabs.Screen name="news" options={{ title: "News" }} />
+          <Tabs.Screen name="profile" options={{ title: "Profile" }} />
+        </Tabs>
+        {/* Sibling after <Tabs> so it overlays every tab AND the tab bar. */}
+        <TourOverlay />
+      </View>
+    </TourProvider>
   );
 }
 

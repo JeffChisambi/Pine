@@ -516,6 +516,32 @@ export interface Holding {
   weight: number;
 }
 
+// Mirrors the backend's PerformanceMetrics (GET /portfolio/performance).
+// Returns are measured against the nearest daily snapshot (±2 days) for the
+// 1d / 7d / 30d / 365d windows; lifetime is current value vs total cost.
+export interface PortfolioPerformance {
+  dailyReturn: number;
+  dailyReturnPct: number;
+  weeklyReturn: number;
+  weeklyReturnPct: number;
+  monthlyReturn: number;
+  monthlyReturnPct: number;
+  yearlyReturn: number;
+  yearlyReturnPct: number;
+  lifetimeReturn: number;
+  lifetimeReturnPct: number;
+}
+
+// One daily portfolio snapshot (GET /portfolio/history). Written by the
+// 14:30 CAT snapshot cron and after every trade settlement. `totalValue`
+// is holdings market value + wallet cash at snapshot time.
+export interface PortfolioSnapshotPoint {
+  date: string;
+  totalValue: number;
+  totalCost: number;
+  unrealizedPnl: number;
+}
+
 export const portfolioApi = {
   getSummary: (): Promise<PortfolioSummary> =>
     request<PortfolioSummary>('/portfolio/summary'),
@@ -523,8 +549,14 @@ export const portfolioApi = {
   getHoldings: (): Promise<Holding[]> =>
     request<Holding[]>('/portfolio/holdings'),
 
-  getPerformance: (period?: string): Promise<any> =>
-    request(`/portfolio/performance${period ? `?period=${period}` : ''}`),
+  // NOTE: the backend ignores `period` — it always returns every window at
+  // once. The param is kept so callers can key their cache on it.
+  getPerformance: (period?: string): Promise<PortfolioPerformance> =>
+    request<PortfolioPerformance>(`/portfolio/performance${period ? `?period=${period}` : ''}`),
+
+  /** Chronological daily snapshots for the portfolio-value chart (`limit` = days). */
+  getHistory: (limit = 90): Promise<PortfolioSnapshotPoint[]> =>
+    request<PortfolioSnapshotPoint[]>(`/portfolio/history?limit=${limit}`),
 
   getAllocation: (): Promise<any> =>
     request('/portfolio/allocation'),

@@ -95,6 +95,18 @@ function ReceiptIcon({ color = "rgba(0,0,0,0.6)" }: { color?: string }) {
   );
 }
 
+/** Portfolio analytics (candlestick-style) icon — opens /portfolio/analytics. */
+function AnalyticsIcon({ color = "rgba(0,0,0,0.6)" }: { color?: string }) {
+  return (
+    <Svg width={28} height={28} viewBox="0 0 1024 1024">
+      <Path
+        fill={color}
+        d="M527.579429 186.660571a119.954286 119.954286 0 1 1-67.949715 0V47.542857a33.938286 33.938286 0 0 1 67.949715 0v139.190857z m281.380571 604.598858a119.954286 119.954286 0 1 1 67.949714 0v139.190857a33.938286 33.938286 0 1 1-67.949714 0v-139.190857z m-698.441143 0a119.954286 119.954286 0 1 1 67.949714 0v139.190857a33.938286 33.938286 0 0 1-67.949714 0v-139.190857zM144.457143 13.531429c18.797714 0 34.011429 15.213714 34.011428 33.938285v410.038857a33.938286 33.938286 0 0 1-67.949714 0V47.542857c0-18.724571 15.213714-33.938286 33.938286-33.938286z m0 722.139428a60.269714 60.269714 0 1 0 0-120.466286 60.269714 60.269714 0 0 0 0 120.466286z m698.514286-722.139428c18.724571 0 33.938286 15.213714 33.938285 33.938285v410.038857a33.938286 33.938286 0 1 1-67.949714 0V47.542857c0-18.724571 15.213714-33.938286 34.011429-33.938286z m0 722.139428a60.269714 60.269714 0 1 0 0-120.466286 60.269714 60.269714 0 0 0 0 120.466286z m-349.403429 228.717714a33.938286 33.938286 0 0 1-33.938286-33.938285V520.411429a33.938286 33.938286 0 0 1 67.949715 0v410.038857a33.938286 33.938286 0 0 1-34.011429 33.938285z m0-722.139428a60.269714 60.269714 0 1 0 0 120.539428 60.269714 60.269714 0 0 0 0-120.539428z"
+      />
+    </Svg>
+  );
+}
+
 function ExchangeIcon() {
   const c = useColors();
   return (
@@ -198,7 +210,7 @@ export default function PortfolioScreen() {
     root: { flex: 1, backgroundColor: c.background },
     header: { backgroundColor: c.background, paddingHorizontal: 24, paddingBottom: 32, minHeight: 180, position: "relative" },
     whiteSheet: { flex: 1, backgroundColor: c.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -24, overflow: "hidden" },
-    topRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", marginBottom: 12, marginTop: 4 },
+    topRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 10, marginBottom: 12, marginTop: 4 },
     receiptBtn: { padding: 4 },
     titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
     titleLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.mutedForeground, letterSpacing: 0.3 },
@@ -265,10 +277,13 @@ export default function PortfolioScreen() {
     <View style={styles.root}>
       {/* Teal Header */}
       <View style={[styles.header, { paddingTop: topPad }]}>
-        {/* Receipt icon top-right */}
+        {/* Receipt (trade history) + analytics icons top-right */}
         <View style={styles.topRow}>
           <TouchableOpacity style={styles.receiptBtn} onPress={() => guardedPush(() => router.push("/trade/history" as any))}>
             <ReceiptIcon color={c.mutedForeground} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.receiptBtn} onPress={() => guardedPush(() => router.push("/portfolio/analytics" as any))}>
+            <AnalyticsIcon color={c.mutedForeground} />
           </TouchableOpacity>
         </View>
 

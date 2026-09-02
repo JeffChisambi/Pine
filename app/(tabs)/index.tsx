@@ -51,6 +51,8 @@ import { EDUCATION_ICON_SVG } from "@/constants/EducationIconSvg";
 import { LinearGradient } from "expo-linear-gradient";
 import { useColors } from "@/hooks/useColors";
 import { useUnreadCount } from "@/hooks/useNotifications";
+import { useTour } from "@/components/tour/TourProvider";
+import { useTourTarget } from "@/components/tour/useTourTarget";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
 const GREEN = "#45B369";
@@ -425,6 +427,20 @@ export default function HomeScreen() {
     if (!reconcilingRef.current) { refetchBalance(); }
   }, [refetchBalance]));
 
+  // ── Guided tour ──────────────────────────────────────────────────────────
+  // Targets register themselves via callback refs; the tour starts once per
+  // install after an authenticated user lands here (or when Help requests a
+  // replay).
+  const tour = useTour();
+  const balanceRef = useTourTarget("balance");
+  const depositRef = useTourTarget("deposit");
+  const tradeRef = useTourTarget("trade");
+  const bellRef = useTourTarget("bell");
+  const isLoggedIn = !!user;
+  useFocusEffect(useCallback(() => {
+    if (isLoggedIn) { tour.startIfFirstRun(); }
+  }, [isLoggedIn, tour.startIfFirstRun]));
+
 
 
   return (
@@ -440,13 +456,13 @@ export default function HomeScreen() {
             </Text>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED2, lineHeight: 20, marginTop: 2 }}>{currentDate}</Text>
           </View>
-          <TouchableOpacity activeOpacity={0.7} onPress={() => setShowNotifications(true)}>
+          <TouchableOpacity ref={bellRef} activeOpacity={0.7} onPress={() => setShowNotifications(true)}>
             <NotificationIcon />
           </TouchableOpacity>
         </View>
 
         {/* Balance card */}
-        <View style={{ backgroundColor: GREEN, borderRadius: 16, padding: 20, gap: 28 }}>
+        <View ref={balanceRef} collapsable={false} style={{ backgroundColor: GREEN, borderRadius: 16, padding: 20, gap: 28 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 16 }}>
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE, opacity: 0.8, letterSpacing: 1, marginBottom: 4 }}>AVAILABLE BALANCE</Text>
@@ -459,7 +475,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           <View style={{ flexDirection: "row", gap: 10 }}>
-            <TouchableOpacity style={{ flex: 1, backgroundColor: WHITE, borderRadius: 12, height: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push("/deposit"))}>
+            <TouchableOpacity ref={depositRef} style={{ flex: 1, backgroundColor: WHITE, borderRadius: 12, height: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push("/deposit"))}>
               <AddCircleIcon color={GREEN} />
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: GREEN }}>Deposit</Text>
             </TouchableOpacity>
@@ -506,6 +522,7 @@ export default function HomeScreen() {
 
             {/* Equity Trading card */}
             <TouchableOpacity
+              ref={tradeRef}
               activeOpacity={0.85}
               onPress={() => guardedPush(() => router.push("/stock-search" as any))}
               style={{

@@ -291,6 +291,7 @@ function RootLayoutNav() {
           options={{ headerShown: false, animation: isDark ? "none" : "fade", animationDuration: 300, gestureEnabled: false }}
         />
         <Stack.Screen name="trade/history" options={section} />
+        <Stack.Screen name="portfolio/analytics" options={section} />
 
         {/* Payment screens — same drill-in slide-from-right as every section */}
         <Stack.Screen name="payment-card" options={section} />

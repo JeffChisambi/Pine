@@ -18,6 +18,7 @@ import { useColors } from "@/hooks/useColors";
 import { guardedBack } from "@/utils/navigation";
 import { useSupportTickets } from "@/hooks/useSupport";
 import type { SupportTicketSummary } from "@/services/api";
+import { requestTourReplay } from "@/components/tour/TourProvider";
 
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
@@ -131,6 +132,22 @@ export default function HelpScreen() {
           <ContactRow c={c} icon="phone" title="Call us" sub={`${CONTACT.phone} · ${CONTACT.phoneHours}`} onPress={() => Linking.openURL(`tel:${CONTACT.phone.replace(/\s/g, "")}`)} chevron />
           <Divider c={c} />
           <ContactRow c={c} icon="mail" title="Email support" sub={`${CONTACT.email} · replies within 24h`} onPress={() => Linking.openURL(`mailto:${CONTACT.email}`)} chevron />
+        </View>
+
+        {/* Getting started */}
+        <SectionLabel c={c}>GETTING STARTED</SectionLabel>
+        <View style={{ backgroundColor: c.card, borderWidth: 1, borderColor: c.border, borderRadius: 16, overflow: "hidden" }}>
+          <ContactRow
+            c={c} icon="compass" title="Show app tour" sub="Replay the guided walkthrough of the app"
+            chevron
+            onPress={() => {
+              // Reset the once-per-install flag, then head home where the
+              // tour picks up the replay request on focus.
+              requestTourReplay().finally(() => {
+                router.navigate("/(tabs)" as any);
+              });
+            }}
+          />
         </View>
 
         {/* My reports */}

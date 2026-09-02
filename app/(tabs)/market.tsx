@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { guardedPush } from "@/utils/navigation";
 import {
   View,
@@ -8,13 +8,20 @@ import {
   TouchableOpacity,
   Platform,
   Image,
-  Animated,
   Dimensions,
   Modal,
-  PanResponder,
+  FlatList,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  runOnJS,
+} from "react-native-reanimated";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 
 const SCREEN_H = Dimensions.get("window").height;
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -307,96 +314,125 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
   c: Colors;
   isDark: boolean;
 }) {
+  // All motion runs on the UI thread via reanimated: the sheet's translateY
+  // and the backdrop opacity are shared values, the drag is a native
+  // Gesture.Pan, and nothing on the JS thread is touched per frame. Timings
+  // are short ease-outs — quick and smooth, deliberately not bouncy.
   const [mounted, setMounted] = useState(false);
-  const slideY  = useRef(new Animated.Value(SCREEN_H)).current;
-  const fadeOvl = useRef(new Animated.Value(0)).current;
+  const translateY = useSharedValue(SCREEN_H);
+  const backdrop   = useSharedValue(0);
+  const dragStart  = useSharedValue(0);
+
+  const OPEN_MS  = 240;
+  const CLOSE_MS = 220;
+
+  const unmount = useCallback(() => setMounted(false), []);
 
   useEffect(() => {
     if (visible) {
+      // Mount first; the enter animation starts once the Modal is on screen
+      // (see the [mounted] effect below) so the first frame is the sheet
+      // fully off-screen, not a half-way jump.
       setMounted(true);
-      Animated.parallel([
-        Animated.spring(slideY, { toValue: 0, damping: 30, stiffness: 520, mass: 0.6, useNativeDriver: true }),
-        Animated.timing(fadeOvl, { toValue: 1, duration: 150, useNativeDriver: true }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(slideY, { toValue: SCREEN_H, duration: 260, useNativeDriver: true }),
-        Animated.timing(fadeOvl, { toValue: 0, duration: 220, useNativeDriver: true }),
-      ]).start(() => setMounted(false));
+      return;
     }
+    if (!mounted) return;
+    backdrop.value = withTiming(0, { duration: CLOSE_MS, easing: Easing.out(Easing.quad) });
+    translateY.value = withTiming(
+      SCREEN_H,
+      { duration: CLOSE_MS, easing: Easing.in(Easing.cubic) },
+      (finished) => { if (finished) runOnJS(unmount)(); },
+    );
   }, [visible]);
+
+  useEffect(() => {
+    if (!mounted || !visible) return;
+    translateY.value = SCREEN_H;
+    backdrop.value = 0;
+    translateY.value = withTiming(0, { duration: OPEN_MS, easing: Easing.out(Easing.cubic) });
+    backdrop.value = withTiming(1, { duration: OPEN_MS - 40, easing: Easing.out(Easing.quad) });
+  }, [mounted]);
+
+  const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: translateY.value }] }));
+  const backdropStyle = useAnimatedStyle(() => ({ opacity: backdrop.value }));
 
   // Drag-to-dismiss on the grabber: the sheet follows the finger downward
   // (never above its resting point) and dismisses past a distance/velocity
-  // threshold, otherwise springs back.
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_evt, g) => Math.abs(g.dy) > 2,
-      onPanResponderMove: (_evt, g) => {
-        slideY.setValue(Math.max(0, g.dy));
-      },
-      onPanResponderRelease: (_evt, g) => {
-        if (g.dy > 110 || g.vy > 0.8) {
-          onClose();
-        } else {
-          Animated.spring(slideY, { toValue: 0, damping: 24, stiffness: 300, mass: 0.7, useNativeDriver: true }).start();
-        }
-      },
-    }),
-  ).current;
-
-  if (!mounted) return null;
+  // threshold, otherwise eases back into place.
+  const pan = useMemo(() => Gesture.Pan()
+    .activeOffsetY([-6, 6])
+    .onStart(() => { "worklet"; dragStart.value = translateY.value; })
+    .onUpdate((e) => { "worklet"; translateY.value = Math.max(0, dragStart.value + e.translationY); })
+    .onEnd((e) => {
+      "worklet";
+      if (translateY.value > 110 || e.velocityY > 800) {
+        runOnJS(onClose)();
+      } else {
+        translateY.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.cubic) });
+      }
+    }), [onClose]);
 
   const SECTOR_ICON_BG = c.card;
   const iconColor = isDark ? WHITE : c.primary;
 
+  const renderSector = useCallback(({ item: sector }: { item: typeof SECTORS[number] }) => {
+    const pct = getSectorChange(sector.key);
+    const positive = pct !== null && pct >= 0;
+    return (
+      <TouchableOpacity
+        activeOpacity={0.75}
+        style={{ width: "33.33%", alignItems: "center", paddingBottom: 28 }}
+        onPress={() => {
+          onClose();
+          guardedPush(() => router.push({ pathname: "/stock-search" as any, params: { sector: sector.key } }));
+        }}
+      >
+        <View style={{ width: 64, height: 64, borderRadius: 16, backgroundColor: SECTOR_ICON_BG, alignItems: "center", justifyContent: "center", marginBottom: 10 }}>{sector.icon(iconColor)}</View>
+        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: c.text, textAlign: "center", marginBottom: 3 }}>{sector.label}</Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, textAlign: "center", color: pct === null ? MUTED : positive ? GREEN : RED }}>
+          {pct === null ? "—" : `${positive ? "+" : ""}${pct.toFixed(2)}%`}
+        </Text>
+      </TouchableOpacity>
+    );
+  }, [getSectorChange, onClose, SECTOR_ICON_BG, iconColor, c.text]);
+
+  if (!mounted) return null;
+
   // Rendered inside the screen's vertical ScrollView, a plain absolute-fill
   // overlay positions against the scrolled content — off-screen once the user
   // has scrolled, which made "View All" look dead. A real Modal always
-  // renders at window level.
+  // renders at window level. RN's Modal is a separate native root, so it needs
+  // its own GestureHandlerRootView for the drag gesture to receive touches.
   return (
     <Modal transparent statusBarTranslucent animationType="none" visible={mounted} onRequestClose={onClose}>
-    <View style={[StyleSheet.absoluteFillObject, { zIndex: 999 }]}>
+    <GestureHandlerRootView style={[StyleSheet.absoluteFillObject, { zIndex: 999 }]}>
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
-        <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.35)", opacity: fadeOvl }]} pointerEvents={visible ? "auto" : "none"}>
+        <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.35)" }, backdropStyle]} pointerEvents={visible ? "auto" : "none"}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
         </Animated.View>
-        <Animated.View style={[{ backgroundColor: c.background, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 24, paddingTop: 14, shadowColor: "#000", shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.10, shadowRadius: 16, elevation: 24 }, { transform: [{ translateY: slideY }] }]}>
+        <Animated.View style={[{ backgroundColor: c.background, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 24, paddingTop: 14, shadowColor: "#000", shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.10, shadowRadius: 16, elevation: 24 }, sheetStyle]}>
           {/* Grabber — generous touch target; drag down to dismiss */}
-          <View {...panResponder.panHandlers} style={{ alignSelf: "stretch", alignItems: "center", paddingVertical: 10, marginTop: -14, marginBottom: 6 }}>
-            <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: c.border }} />
-          </View>
+          <GestureDetector gesture={pan}>
+            <View style={{ alignSelf: "stretch", alignItems: "center", paddingVertical: 10, marginTop: -14, marginBottom: 6 }}>
+              <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: c.border }} />
+            </View>
+          </GestureDetector>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>Stock Sectors</Text>
           </View>
-          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-            {SECTORS.map((sector) => {
-              const pct = getSectorChange(sector.key);
-              const positive = pct !== null && pct >= 0;
-              return (
-                <TouchableOpacity
-                  key={sector.key}
-                  activeOpacity={0.75}
-                  style={{ width: "33.33%", alignItems: "center", paddingBottom: 28 }}
-                  onPress={() => {
-                    onClose();
-                    guardedPush(() => router.push({ pathname: "/stock-search" as any, params: { sector: sector.key } }));
-                  }}
-                >
-                  <View style={{ width: 64, height: 64, borderRadius: 16, backgroundColor: SECTOR_ICON_BG, alignItems: "center", justifyContent: "center", marginBottom: 10 }}>{sector.icon(iconColor)}</View>
-                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: c.text, textAlign: "center", marginBottom: 3 }}>{sector.label}</Text>
-                  <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, textAlign: "center", color: pct === null ? MUTED : positive ? GREEN : RED }}>
-                    {pct === null ? "—" : `${positive ? "+" : ""}${pct.toFixed(2)}%`}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+          <FlatList
+            data={SECTORS}
+            keyExtractor={(s) => s.key}
+            renderItem={renderSector}
+            numColumns={3}
+            scrollEnabled={false}
+            initialNumToRender={9}
+            removeClippedSubviews={false}
+          />
           <View style={{ height: 32 }} />
         </Animated.View>
       </View>
-    </View>
+    </GestureHandlerRootView>
     </Modal>
   );
 }
