@@ -126,7 +126,16 @@ function TourScene() {
   const { stepIndex, steps, reduceMotion, measureTarget, next, dismiss } = tour;
   const c = useColors();
   const insets = useSafeAreaInsets();
-  const { width: W, height: H } = useWindowDimensions();
+  const { width: winW, height: winH } = useWindowDimensions();
+  /**
+   * The overlay's OWN size, not the window's. On Android the window height
+   * excludes the system navigation bar, so painting the backdrop at that
+   * height left the tab bar strip uncovered at the bottom. Measuring the
+   * container we actually fill keeps the scrim edge-to-edge on every device.
+   */
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  const W = box.w || winW;
+  const H = box.h || winH;
 
   const rootRef = useRef<View>(null);
   const [rect, setRect] = useState<TargetRect | null>(null);
@@ -379,6 +388,15 @@ function TourScene() {
     transform: [{ translateY: cardY.value }],
   }));
 
+  const onRootLayout = useCallback((e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setBox((prev) =>
+      Math.abs(prev.w - width) > 1 || Math.abs(prev.h - height) > 1
+        ? { w: width, h: height }
+        : prev,
+    );
+  }, []);
+
   const onCardLayout = useCallback((e: LayoutChangeEvent) => {
     const h = Math.round(e.nativeEvent.layout.height);
     if (h > 0) setCardH((prev) => (Math.abs(prev - h) > 1 ? h : prev));
@@ -389,7 +407,7 @@ function TourScene() {
   const headD = layout.arrow?.head ?? "";
 
   return (
-    <View ref={rootRef} collapsable={false} style={StyleSheet.absoluteFill}>
+    <View ref={rootRef} collapsable={false} onLayout={onRootLayout} style={StyleSheet.absoluteFill}>
       {/* Backdrop with the spotlight cut out (evenodd) + pulsing ring */}
       <Svg width={W} height={H} style={StyleSheet.absoluteFill} pointerEvents="none">
         <AnimatedPath animatedProps={backdropProps} fill={BACKDROP} fillRule="evenodd" />
