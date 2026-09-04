@@ -1,6 +1,7 @@
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import React, { useState, useMemo } from "react";
 import {
+  Alert,
   View,
   Text,
   ScrollView,
@@ -21,6 +22,7 @@ import { ApiStock } from "../../services/api";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 import { PriceChart, PricePoint, CHART_H } from "@/components/PriceChart";
+import { useTradeEligibility, tradeBlockTitle, tradeBlockAction } from "@/hooks/useTradeEligibility";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
 const GREEN = "#45B369";
@@ -48,7 +50,20 @@ export default function StockDetailScreen() {
   const { data: stock, isLoading, error, refetch } = useStockDetail(ticker, activeTimeTab);
 
   const holdingQty = useHoldingQuantity(ticker);
-  const canSell = holdingQty > 0;
+  // Selling needs shares; BOTH sides also need a broker and verified
+  // identity — the server refuses orders without them, so the button says so
+  // rather than letting someone build an order that cannot be placed.
+  const trade = useTradeEligibility();
+  const canSell = holdingQty > 0 && trade.canTrade;
+  const canBuy = trade.canTrade;
+
+  const promptToResolve = () => {
+    if (!trade.reason) return;
+    Alert.alert(tradeBlockTitle(trade.reason), trade.message ?? "", [
+      { text: "Not now", style: "cancel" },
+      { text: tradeBlockAction(trade.reason), onPress: trade.resolve },
+    ]);
+  };
 
   const queryClient = useQueryClient();
   const cachedStock = useMemo<ApiStock | null>(() => {
@@ -236,16 +251,42 @@ export default function StockDetailScreen() {
               : { borderColor: MUTED, backgroundColor: c.background, opacity: 0.45 },
           ]}
           activeOpacity={canSell ? 0.85 : 1}
-          onPress={() => canSell && guardedPush(() => router.push(`/trade/sell?ticker=${ticker}` as any))}
-          disabled={!canSell}
+          onPress={() =>
+            canSell
+              ? guardedPush(() => router.push(`/trade/sell?ticker=${ticker}` as any))
+              : trade.canTrade ? undefined : promptToResolve()
+          }
+          disabled={!canSell && trade.canTrade}
         >
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: canSell ? c.primary : MUTED }}>Sell</Text>
           {!canSell && (
-            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 9, color: MUTED, marginTop: 1 }}>No shares owned</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 9, color: MUTED, marginTop: 1 }}>
+              {trade.shortLabel ?? "No shares owned"}
+            </Text>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={{ flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: c.primary, shadowColor: c.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 5 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push(`/trade/buy?ticker=${ticker}` as any))}>
+        <TouchableOpacity
+          style={[
+            { flex: 1, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: c.primary },
+            canBuy
+              ? { shadowColor: c.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 5 }
+              : { opacity: 0.45 },
+          ]}
+          activeOpacity={canBuy ? 0.85 : 1}
+          // Tapping a blocked button explains what is missing and offers to
+          // go and fix it — a dead button with no reason is worse than none.
+          onPress={() =>
+            canBuy
+              ? guardedPush(() => router.push(`/trade/buy?ticker=${ticker}` as any))
+              : promptToResolve()
+          }
+        >
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: WHITE }}>Buy</Text>
+          {!canBuy && trade.shortLabel && (
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 9, color: WHITE, marginTop: 1 }}>
+              {trade.shortLabel}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

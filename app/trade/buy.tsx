@@ -20,6 +20,7 @@ import { useHoldingQuantity } from "../../hooks/usePortfolio";
 import { useStocks } from "../../hooks/useStocks";
 import { ApiStock } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
+import { useTradeEligibility, tradeBlockAction } from "@/hooks/useTradeEligibility";
 
 const GREEN = "#45B369";
 const RED = "#EF4770";
@@ -42,6 +43,7 @@ export default function BuyScreen() {
   const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const params = useLocalSearchParams<{ mode?: string; ticker?: string }>();
   const c = useColors();
+  const trade = useTradeEligibility();
 
   const [mode, setMode] = useState<"buy" | "sell">(params.mode === "sell" ? "sell" : "buy");
   const { data: stocks = [] } = useStocks();
@@ -211,9 +213,26 @@ export default function BuyScreen() {
 
       {/* Bottom CTA */}
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
+        {/* Screens can be reached directly (a deep link, a stale back stack),
+            so the same broker/KYC gate is applied here, not only on the
+            button that normally leads here. */}
+        {!trade.canTrade && trade.message && (
+          <TouchableOpacity
+            onPress={trade.resolve}
+            activeOpacity={0.8}
+            style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12, padding: 12, borderRadius: 12, backgroundColor: "#FEF3C7", borderWidth: 1, borderColor: "#FCD34D" }}
+          >
+            <Text style={{ flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "#92400E", lineHeight: 18 }}>
+              {trade.message}
+            </Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: "#92400E" }}>
+              {tradeBlockAction(trade.reason)}
+            </Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
-          style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: rawAmount && selectedStock && (isBuy || availableShares > 0) ? 1 : 0.5 }}
-          disabled={!rawAmount || !selectedStock || (!isBuy && availableShares <= 0)}
+          style={{ backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: "center", opacity: rawAmount && selectedStock && trade.canTrade && (isBuy || availableShares > 0) ? 1 : 0.5 }}
+          disabled={!rawAmount || !selectedStock || !trade.canTrade || (!isBuy && availableShares <= 0)}
           onPress={() => guardedPush(() => router.push({
             pathname: "/trade/confirm" as any,
             params: { stockId: selectedStock?.id ?? "", symbol: selectedStock?.symbol ?? "", name: selectedStock?.name ?? "", side: mode.toUpperCase(), amount: rawAmount, price: String(selectedStock?.priceRaw ?? 0) },

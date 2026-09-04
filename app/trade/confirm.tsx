@@ -20,6 +20,7 @@ import { invalidateWalletBalance } from "../../services/wallet-queries";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 import PinVerifyModal from "../../components/PinVerifyModal";
+import { useTradeEligibility, tradeBlockTitle, tradeBlockAction } from "@/hooks/useTradeEligibility";
 
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -46,6 +47,7 @@ export default function ConfirmScreen() {
   const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();
   const { user } = useAuth();
+  const trade = useTradeEligibility();
   const [loading, setLoading] = useState(false);
 
   const params = useLocalSearchParams<{
@@ -114,15 +116,21 @@ export default function ConfirmScreen() {
 
   const blocked =
     (!!quote && ((isBuy && quote.sufficientFunds === false) || (!isBuy && quote.sufficientShares === false))) ||
-    concentrationBlocked;
+    concentrationBlocked ||
+    // Broker AND verified identity, the same gate the buy screen applies and
+    // the server enforces.
+    !trade.canTrade;
 
   const handleConfirmOrder = () => {
     if (!params.stockId || symbol === "—") return;
-    if (blocked) return;
-    if (user && !user.broker) {
-      showBrokerRequiredAlert();
+    if (!trade.canTrade) {
+      Alert.alert(tradeBlockTitle(trade.reason), trade.message ?? "", [
+        { text: "Not now", style: "cancel" },
+        { text: tradeBlockAction(trade.reason), onPress: trade.resolve },
+      ]);
       return;
     }
+    if (blocked) return;
     setShowPinModal(true);
   };
 
