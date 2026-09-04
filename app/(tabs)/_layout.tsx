@@ -12,6 +12,7 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 import { useColors } from "@/hooks/useColors";
+import { useUnreadCount } from "@/hooks/useNotifications";
 import { tabBarHidden } from "@/contexts/tab-bar-visibility";
 import { TourProvider } from "@/components/tour/TourProvider";
 import { TourOverlay } from "@/components/tour/TourOverlay";
@@ -299,6 +300,11 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
 export default function TabLayout() {
   const c = useColors();
+  // Mounted for the whole signed-in area so the app-icon badge tracks the
+  // unread count wherever the person is - reading their inbox from the
+  // profile tab clears the icon, not just the bell. Shares the home tab's
+  // query, so this costs no extra requests.
+  useUnreadCount();
 
   return (
     <TourProvider>
