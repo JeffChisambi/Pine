@@ -26,18 +26,6 @@ const AMBER = "#F59E0B";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
-function ArrowIcon({ type }: { type: "buy" | "sell" }) {
-  const color = type === "buy" ? GREEN : RED;
-  return (
-    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-      {type === "buy" ? (
-        <Path d="M8 12V4M4 8l4 4 4-4" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      ) : (
-        <Path d="M8 4v8M4 8l4-4 4 4" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      )}
-    </Svg>
-  );
-}
 
 type FilterType = "All" | "Pending" | "Complete";
 const FILTERS: FilterType[] = ["All", "Pending", "Complete"];
@@ -113,32 +101,26 @@ function mapTxStatus(s: string): MoneyEntry["status"] {
 }
 
 function StatusBadge({ status }: { status: Order["status"] }) {
-  const configs = {
-    Pending:   { bg: AMBER + "28", text: AMBER },
-    Complete:  { bg: "transparent",  text: GREEN },
-    Cancelled: { bg: RED   + "28", text: RED   },
-    Rejected:  { bg: RED   + "28", text: RED   },
-  };
-  const cfg = configs[status];
+  const text = {
+    Pending:   AMBER,
+    Complete:  GREEN,
+    Cancelled: RED,
+    Rejected:  RED,
+  }[status];
   return (
-    <View style={{ borderRadius: 10, paddingHorizontal: status === "Complete" ? 0 : 8, paddingVertical: 3, backgroundColor: cfg.bg }}>
-      <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: cfg.text }}>{status}</Text>
-    </View>
+    <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: text }}>{status}</Text>
   );
 }
 
 function TBillStatusPill({ status }: { status: TBillInvestment["status"] }) {
-  const configs = {
-    active:  { bg: GREEN + "22", text: GREEN,   label: "Active" },
-    pending: { bg: AMBER + "22", text: AMBER,   label: "Pending" },
-    matured: { bg: "#6366F122",  text: "#6366F1", label: "Matured" },
-    closed:  { bg: MUTED + "22", text: MUTED,   label: "Closed" },
-  };
-  const cfg = configs[status];
+  const cfg = {
+    active:  { text: GREEN,     label: "Active" },
+    pending: { text: AMBER,     label: "Pending" },
+    matured: { text: "#6366F1", label: "Matured" },
+    closed:  { text: MUTED,     label: "Closed" },
+  }[status];
   return (
-    <View style={{ borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: cfg.bg }}>
-      <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: cfg.text }}>{cfg.label}</Text>
-    </View>
+    <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: cfg.text }}>{cfg.label}</Text>
   );
 }
 
@@ -360,19 +342,17 @@ export default function HistoryScreen() {
                   const order = row.item;
                   return (
                     <View key={`o-${order.id}`} style={[{ flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 12 }, borderStyle]}>
-                      <View style={{ position: "relative" }}>
-                        <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, borderWidth: 1, borderColor: c.border, overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
-                          {(order.image || getStockLogo(order.ticker)) ? (
-                            <Image source={order.image || getStockLogo(order.ticker)!} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
-                          ) : (
-                            <View style={{ width: "100%", height: "100%", backgroundColor: c.primary, alignItems: "center", justifyContent: "center" }}>
-                              <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>{order.ticker.slice(0, 3)}</Text>
-                            </View>
-                          )}
-                        </View>
-                        <View style={{ position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: order.type === "buy" ? GREEN + "28" : RED + "28", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: c.background }}>
-                          <ArrowIcon type={order.type} />
-                        </View>
+                      {/* The row already says Buy or Sell in words — the arrow
+                          badge that used to sit over the logo was a second
+                          telling of the same thing. */}
+                      <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, borderWidth: 1, borderColor: c.border, overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
+                        {(order.image || getStockLogo(order.ticker)) ? (
+                          <Image source={order.image || getStockLogo(order.ticker)!} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
+                        ) : (
+                          <View style={{ width: "100%", height: "100%", backgroundColor: c.primary, alignItems: "center", justifyContent: "center" }}>
+                            <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>{order.ticker.slice(0, 3)}</Text>
+                          </View>
+                        )}
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text, marginBottom: 3 }}>{order.ticker}</Text>
