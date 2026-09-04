@@ -10,6 +10,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Modal,
   Platform,
   StyleSheet,
   Text,
@@ -115,9 +116,23 @@ export function TourOverlay() {
 
   if (!mounted) return null;
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, rootStyle]} pointerEvents={active ? "auto" : "none"}>
-      <TourScene />
-    </Animated.View>
+    // A Modal is the only surface RN gives us that is guaranteed to cover the
+    // WHOLE window - status bar and Android navigation bar included - on every
+    // device. Rendering the scrim as a sibling of the tab navigator left the
+    // bottom strip uncovered wherever the app's root view stops short of the
+    // system nav bar, and how far short varies by phone.
+    <Modal
+      visible
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      navigationBarTranslucent
+      onRequestClose={tour.dismiss}
+    >
+      <Animated.View style={[StyleSheet.absoluteFill, rootStyle]} pointerEvents={active ? "auto" : "none"}>
+        <TourScene />
+      </Animated.View>
+    </Modal>
   );
 }
 

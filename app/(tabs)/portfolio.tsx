@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
+import { EyeOpenIcon, EyeClosedIcon, HistoryIcon, PortfolioAnalyticsIcon, SearchIcon as SearchGlyph } from "@/components/icons/AppIcons";
 import { portfolioApi } from "../../services/api";
 import { useBalanceVisibility } from "../../contexts/balance-visibility";
 import { getStockLogo } from "../../utils/stock-logos";
@@ -36,21 +37,7 @@ interface Holding extends StockData {
 }
 
 function EyeIcon({ hidden, color = "rgba(0,0,0,0.5)" }: { hidden: boolean; color?: string }) {
-  if (!hidden) {
-    return (
-      <Svg width={22} height={18} viewBox="-1 -1 22 17">
-        <Path d="M10 0.5C5.5 0.5 1.73 3.61 0.5 7.5C1.73 11.39 5.5 14.5 10 14.5C14.5 14.5 18.27 11.39 19.5 7.5C18.27 3.61 14.5 0.5 10 0.5Z" stroke={color} strokeWidth={1.5} strokeLinecap="round" fill="none" />
-        <Path d="M10 10.5C11.6569 10.5 13 9.15685 13 7.5C13 5.84315 11.6569 4.5 10 4.5C8.34315 4.5 7 5.84315 7 7.5C7 9.15685 8.34315 10.5 10 10.5Z" stroke={color} strokeWidth={1.5} fill="none" />
-      </Svg>
-    );
-  }
-  return (
-    <Svg width={22} height={20} viewBox="-1 -1 24 20">
-      <Path d="M1 1L21 17" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
-      <Path d="M8.5 3.5C9.3 3.19 10.1 3 11 3C15.5 3 19.27 6.11 20.5 10C20.1 11.27 19.44 12.43 18.57 13.4M5.43 5.43C3.28 6.88 1.77 9.27 1.5 10C2.73 13.89 6.5 17 11 17C13.22 17 15.27 16.2 16.9 14.83"
-        stroke={color} strokeWidth={1.5} strokeLinecap="round" fill="none" />
-    </Svg>
-  );
+  return hidden ? <EyeClosedIcon color={color} size={22} /> : <EyeOpenIcon color={color} size={22} />;
 }
 
 function BuyIcon() {
@@ -86,25 +73,12 @@ function PiggyIllustration() {
 }
 
 function ReceiptIcon({ color = "rgba(0,0,0,0.6)" }: { color?: string }) {
-  return (
-    <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-      <Path d="M7.5 15.75V2.25L9 3L10.5 2.25L11.9972 3L13.5145 2.25L15 3L16.4902 2.25L17.9869 3L19.5 2.25L21.0005 3L22.5 2.25V12.75" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
-      <Path d="M22.5 12.75V18C22.5 18.9946 22.1049 19.9484 21.4017 20.6517C20.6984 21.3549 19.7446 21.75 18.75 21.75C17.7555 21.75 16.8016 21.3549 16.0984 20.6517C15.3951 19.9484 15 18.9946 15 18V15.75H2.25003C2.15129 15.7491 2.05337 15.7679 1.96198 15.8053C1.87059 15.8427 1.78757 15.8979 1.71775 15.9677C1.64793 16.0375 1.59272 16.1206 1.55534 16.212C1.51796 16.3033 1.49915 16.4013 1.50003 16.5C1.50003 19.5 1.81597 21.75 5.25003 21.75H18.75" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
-      <Path d="M10.5 6.75H19.5M13.5 10.5H19.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
+  return <HistoryIcon color={color} size={28} />;
 }
 
-/** Portfolio analytics (candlestick-style) icon — opens /portfolio/analytics. */
+/** Portfolio analytics icon — opens /portfolio/analytics. */
 function AnalyticsIcon({ color = "rgba(0,0,0,0.6)" }: { color?: string }) {
-  return (
-    <Svg width={28} height={28} viewBox="0 0 1024 1024">
-      <Path
-        fill={color}
-        d="M527.579429 186.660571a119.954286 119.954286 0 1 1-67.949715 0V47.542857a33.938286 33.938286 0 0 1 67.949715 0v139.190857z m281.380571 604.598858a119.954286 119.954286 0 1 1 67.949714 0v139.190857a33.938286 33.938286 0 1 1-67.949714 0v-139.190857z m-698.441143 0a119.954286 119.954286 0 1 1 67.949714 0v139.190857a33.938286 33.938286 0 0 1-67.949714 0v-139.190857zM144.457143 13.531429c18.797714 0 34.011429 15.213714 34.011428 33.938285v410.038857a33.938286 33.938286 0 0 1-67.949714 0V47.542857c0-18.724571 15.213714-33.938286 33.938286-33.938286z m0 722.139428a60.269714 60.269714 0 1 0 0-120.466286 60.269714 60.269714 0 0 0 0 120.466286z m698.514286-722.139428c18.724571 0 33.938286 15.213714 33.938285 33.938285v410.038857a33.938286 33.938286 0 1 1-67.949714 0V47.542857c0-18.724571 15.213714-33.938286 34.011429-33.938286z m0 722.139428a60.269714 60.269714 0 1 0 0-120.466286 60.269714 60.269714 0 0 0 0 120.466286z m-349.403429 228.717714a33.938286 33.938286 0 0 1-33.938286-33.938285V520.411429a33.938286 33.938286 0 0 1 67.949715 0v410.038857a33.938286 33.938286 0 0 1-34.011429 33.938285z m0-722.139428a60.269714 60.269714 0 1 0 0 120.539428 60.269714 60.269714 0 0 0 0-120.539428z"
-      />
-    </Svg>
-  );
+  return <PortfolioAnalyticsIcon color={color} size={28} />;
 }
 
 function ExchangeIcon() {
@@ -120,12 +94,7 @@ function ExchangeIcon() {
 }
 
 function SearchIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Circle cx={8} cy={8} r={5.5} stroke={color} strokeWidth={1.5} />
-      <Path d="M12 12l3.5 3.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
-    </Svg>
-  );
+  return <SearchGlyph color={color} size={18} />;
 }
 
 function ArrowUpIcon({ color }: { color: string }) {

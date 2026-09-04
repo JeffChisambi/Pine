@@ -27,6 +27,7 @@ const SCREEN_H = Dimensions.get("window").height;
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import Svg, { Path, Circle, Ellipse, Line, Defs, ClipPath, Rect } from "react-native-svg";
+import { SearchIcon as SearchGlyph } from "@/components/icons/AppIcons";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 import { useTheme } from "@/contexts/theme-context";
@@ -61,12 +62,7 @@ function ArrowCircle({ positive }: { positive: boolean }) {
 }
 
 function SearchIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Circle cx={11} cy={11} r={7.5} stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M16.5 16.5L20.5 20.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
+  return <SearchGlyph color={color} size={18} />;
 }
 
 function StockLogo({ symbol, c }: { symbol: string; c: Colors }) {

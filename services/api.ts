@@ -586,6 +586,8 @@ export interface TradeOrder {
   price: string;
   totalAmount: string;
   status: string;
+  /** Why a REJECTED order was refused, in words meant for the investor. */
+  rejectionReason?: string | null;
   createdAt: string;
   executedAt: string | null;
 }

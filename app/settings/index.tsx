@@ -13,6 +13,7 @@ import Constants from "expo-constants";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import { NotificationsIcon, PersonalDataIcon, SecurityIcon, PaymentCardIcon } from "@/components/icons/AppIcons";
 import { useColors } from "@/hooks/useColors";
 import { useTheme } from "@/contexts/theme-context";
 import { useAuth } from "@/services/auth-context";
@@ -154,6 +155,19 @@ function Divider({ c }: { c: ReturnType<typeof useColors> }) {
   return <View style={{ height: 1, backgroundColor: c.border, marginLeft: 16 }} />;
 }
 
+/** Pine's own glyph for the rows that have one; Feather for the rest. */
+const ROW_GLYPHS: Record<string, React.ComponentType<{ color?: string; size?: number }>> = {
+  bell: NotificationsIcon,
+  user: PersonalDataIcon,
+  lock: SecurityIcon,
+  "credit-card": PaymentCardIcon,
+};
+
+function RowGlyph({ name, color }: { name: string; color: string }) {
+  const Glyph = ROW_GLYPHS[name];
+  return Glyph ? <Glyph color={color} size={20} /> : <Feather name={name as any} size={18} color={color} />;
+}
+
 function Row({ c, icon, title, sub, right, chevron, onPress }: {
   c: ReturnType<typeof useColors>; icon: any; title: string; sub: string;
   right?: React.ReactNode; chevron?: boolean; onPress?: () => void;
@@ -162,7 +176,7 @@ function Row({ c, icon, title, sub, right, chevron, onPress }: {
   return (
     <Container activeOpacity={0.7} onPress={onPress} style={{ flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, paddingVertical: 14 }}>
       <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: c.muted, alignItems: "center", justifyContent: "center" }}>
-        <Feather name={icon} size={18} color={c.text} />
+        <RowGlyph name={icon} color={c.text} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text }}>{title}</Text>

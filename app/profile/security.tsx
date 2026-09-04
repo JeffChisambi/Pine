@@ -27,6 +27,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
+import { EyeOpenIcon, EyeClosedIcon } from "@/components/icons/AppIcons";
 import { useColors } from "@/hooks/useColors";
 import { authApi } from "../../services/api";
 import { cachePinIfBiometricsEnabled } from "../../services/biometrics";
@@ -79,22 +80,7 @@ function ShieldIcon({ color }: { color: string }) {
 }
 
 function EyeIcon({ visible, color }: { visible: boolean; color: string }) {
-  if (visible) {
-    return (
-      <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-        <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-        <Circle cx={12} cy={12} r={3} stroke={color} strokeWidth={1.5} />
-      </Svg>
-    );
-  }
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M14.12 14.12A3 3 0 119.88 9.88" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M3 3l18 18" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
+  return visible ? <EyeOpenIcon color={color} size={20} /> : <EyeClosedIcon color={color} size={20} />;
 }
 
 function LockIcon({ color }: { color: string }) {

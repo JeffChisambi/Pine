@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
+import { SearchIcon } from "@/components/icons/AppIcons";
 import { getStockLogo } from "../utils/stock-logos";
 import { useStocks, useStockSearch } from "../hooks/useStocks";
 import { useColors } from "@/hooks/useColors";
@@ -52,10 +53,7 @@ export default function StockSearchScreen() {
           </Svg>
         </TouchableOpacity>
         <View style={{ flex: 1, height: 52, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border, flexDirection: "row", alignItems: "center", paddingHorizontal: 14, gap: 10 }}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-            <Circle cx={11} cy={11} r={7.5} stroke={query.length > 0 ? c.primary : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-            <Path d="M16.5 16.5L20.5 20.5" stroke={query.length > 0 ? c.primary : MUTED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-          </Svg>
+          <SearchIcon color={query.length > 0 ? c.primary : MUTED} size={18} />
           <TextInput
             style={{ flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 15, color: c.text, height: "100%" }}
             placeholder="Search stocks…"

@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
+import { BrokerIcon, VerifyIcon, LogOutIcon, SettingsIcon } from "@/components/icons/AppIcons";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "../../services/auth-context";
 import { useWalletBalance } from "../../services/wallet-queries";
@@ -60,21 +61,11 @@ function FingerprintIcon({ color }: { color: string }) {
 }
 
 function BriefcaseIcon({ color }: { color: string }) {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 8h16a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1Z" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
-      <Path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 12.5h18" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
+  return <BrokerIcon color={color} size={22} />;
 }
 
 function SealCheckIcon({ color }: { color: string }) {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M19 9.09V6c0-.55-.45-1-1-1h-3.09L12.7 2.79a.996.996 0 0 0-1.41 0L9.08 5H5.99c-.55 0-1 .45-1 1v3.09L2.78 11.3a.996.996 0 0 0 0 1.41l2.21 2.21v3.09c0 .55.45 1 1 1h3.09l2.21 2.21c.2.2.45.29.71.29s.51-.1.71-.29l2.21-2.21h3.09c.55 0 1-.45 1-1v-3.09l2.21-2.21a.996.996 0 0 0 0-1.41L19 9.09Z" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
-      <Path d="M9 12l2 2 4-4" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
+  return <VerifyIcon color={color} size={22} />;
 }
 
 
@@ -88,12 +79,7 @@ function MoonIcon({ color }: { color: string }) {
 
 
 function LogoutMenuIcon() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      <Path d="M14.5 7.5l4 4-4 4M18.5 11.5H9" stroke={RED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M11 18.5H5a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 5 3.5h6" stroke={RED} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
+  return <LogOutIcon color={RED} size={22} />;
 }
 
 // ─── Dark Mode toggle ─────────────────────────────────────────────────────────
@@ -311,7 +297,7 @@ export default function ProfileScreen() {
       onPress: isVerified ? null : () => guardedPush(() => router.push("/kyc/upload-id" as any)),
       badge: isVerified ? "verified" : undefined,
     },
-    { icon: <Feather name="settings" size={20} color={iconColor} />, label: "Settings", sub: "Preferences & account", onPress: () => guardedPush(() => router.push("/settings" as any)) },
+    { icon: <SettingsIcon color={iconColor} size={22} />, label: "Settings", sub: "Preferences & account", onPress: () => guardedPush(() => router.push("/settings" as any)) },
   ];
 
   const SETTINGS_GROUP_2: Array<{

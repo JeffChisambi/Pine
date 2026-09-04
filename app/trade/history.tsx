@@ -45,7 +45,9 @@ const FILTERS: FilterType[] = ["All", "Pending", "Complete"];
 interface Order {
   id: string; ticker: string; name: string; image: any;
   type: "buy" | "sell"; date: string; time: string;
-  amount: string; shares: string; status: "Pending" | "Complete" | "Cancelled";
+  amount: string; shares: string; status: "Pending" | "Complete" | "Cancelled" | "Rejected";
+  /** Set on rejected orders — the reason the broker/system gave. */
+  reason?: string | null;
   change: string; positive: boolean;
   /** Sort key */
   ts: number;
@@ -96,7 +98,10 @@ function fmtDateLabel(iso: string): { date: string; time: string; ts: number } {
 function mapOrderStatus(s: string): Order["status"] {
   const u = (s || "").toUpperCase();
   if (["FILLED", "COMPLETED", "SETTLED", "PENDING_SETTLEMENT", "PARTIALLY_FILLED"].includes(u)) return "Complete";
-  if (["REJECTED", "CANCELLED", "EXPIRED"].includes(u)) return "Cancelled";
+  // Rejected is its own outcome: the investor did not cancel it, and they
+  // need to know why it was refused.
+  if (u === "REJECTED") return "Rejected";
+  if (["CANCELLED", "EXPIRED"].includes(u)) return "Cancelled";
   return "Pending";
 }
 
@@ -112,6 +117,7 @@ function StatusBadge({ status }: { status: Order["status"] }) {
     Pending:   { bg: AMBER + "28", text: AMBER },
     Complete:  { bg: "transparent",  text: GREEN },
     Cancelled: { bg: RED   + "28", text: RED   },
+    Rejected:  { bg: RED   + "28", text: RED   },
   };
   const cfg = configs[status];
   return (
@@ -227,6 +233,7 @@ export default function HistoryScreen() {
           amount: `MWK ${Number(o.totalAmount ?? 0).toLocaleString()}`,
           shares: `${qty} share${qty === 1 ? "" : "s"}`,
           status: mapOrderStatus(o.status),
+          reason: o.status?.toUpperCase() === "REJECTED" ? (o.rejectionReason ?? null) : null,
           change: "",
           positive: o.side === "SELL",
         };
@@ -370,6 +377,11 @@ export default function HistoryScreen() {
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text, marginBottom: 3 }}>{order.ticker}</Text>
                         <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED }}>{order.type === "buy" ? "Buy" : "Sell"} · {order.shares} · {order.time}</Text>
+                        {order.status === "Rejected" && (
+                          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: RED, marginTop: 3, lineHeight: 17 }}>
+                            {order.reason || "This order could not be processed."}
+                          </Text>
+                        )}
                       </View>
                       <View style={{ alignItems: "flex-end", gap: 5 }}>
                         <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.text }}>{order.amount}</Text>

@@ -46,6 +46,7 @@ import Svg, {
   ClipPath,
   Text as SvgText,
 } from "react-native-svg";
+import { EyeOpenIcon, EyeClosedIcon } from "@/components/icons/AppIcons";
 import { SvgXml } from "react-native-svg";
 import { EDUCATION_ICON_SVG } from "@/constants/EducationIconSvg";
 import { LinearGradient } from "expo-linear-gradient";
@@ -116,21 +117,7 @@ function NotificationIcon() {
 }
 
 function EyeIcon({ visible }: { visible: boolean }) {
-  if (visible) {
-    return (
-      <Svg width={22} height={18} viewBox="-1 -1 22 17">
-        <Path d="M10 0.5C5.5 0.5 1.73 3.61 0.5 7.5C1.73 11.39 5.5 14.5 10 14.5C14.5 14.5 18.27 11.39 19.5 7.5C18.27 3.61 14.5 0.5 10 0.5Z" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" fill="none" />
-        <Path d="M10 10.5C11.6569 10.5 13 9.15685 13 7.5C13 5.84315 11.6569 4.5 10 4.5C8.34315 4.5 7 5.84315 7 7.5C7 9.15685 8.34315 10.5 10 10.5Z" stroke={WHITE} strokeWidth={1.5} fill="none" />
-      </Svg>
-    );
-  }
-  return (
-    <Svg width={22} height={20} viewBox="-1 -1 24 20">
-      <Path d="M1 1L21 17" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" />
-      <Path d="M8.5 3.5C9.3 3.19 10.1 3 11 3C15.5 3 19.27 6.11 20.5 10C20.1 11.27 19.44 12.43 18.57 13.4M5.43 5.43C3.28 6.88 1.77 9.27 1.5 10C2.73 13.89 6.5 17 11 17C13.22 17 15.27 16.2 16.9 14.83"
-        stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" fill="none" />
-    </Svg>
-  );
+  return visible ? <EyeOpenIcon color={WHITE} size={22} /> : <EyeClosedIcon color={WHITE} size={22} />;
 }
 
 function ArrowCircleUp({ color = GREEN, size = 13 }: { color?: string; size?: number }) {
