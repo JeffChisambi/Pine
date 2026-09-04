@@ -167,6 +167,14 @@ export default function ConfirmScreen() {
       logHandledError("Trade confirm", err);
       const code = err instanceof ApiError ? (err.body?.error?.code as string) : null;
       const message = getErrorMessage(err);
+      // A definitive refusal (4xx) means the server recorded that order as
+      // REJECTED, and rejected is terminal: the same idempotency key would
+      // only replay the refusal. Issue a fresh key so that, once the person
+      // has fixed the cause, Confirm places a NEW order. A timeout or network
+      // failure keeps the key, because the first attempt may have succeeded.
+      if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
+        idemKeyRef.current = `${params.stockId ?? "order"}-${params.side ?? "BUY"}-${params.amount ?? "0"}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      }
       if (code === "AUTH_PIN_INVALID" || code === "AUTH_PIN_NOT_SET") {
         // pinToken expired between verification and submission — re-verify.
         Alert.alert("PIN expired", "Please enter your PIN again to confirm the order.", [
