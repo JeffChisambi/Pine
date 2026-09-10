@@ -34,7 +34,6 @@ import { ThemeProvider, useTheme } from "@/contexts/theme-context";
 import { useColors } from "@/hooks/useColors";
 import {
   initializeCertificatePinning,
-  enableScreenCaptureProtection,
   checkDeviceIntegrity,
   compromisedDeviceTerm,
 } from "../services/security";
@@ -208,8 +207,6 @@ function RootLayoutNav() {
   useEffect(() => {
     // Pin TLS before anything authenticated goes over the wire.
     initializeCertificatePinning().catch(() => {});
-    // Keep balances and card entry out of screenshots / the recents preview.
-    enableScreenCaptureProtection().catch(() => {});
     // Warn — never block — on a rooted or jailbroken device.
     checkDeviceIntegrity()
       .then((compromised) => {

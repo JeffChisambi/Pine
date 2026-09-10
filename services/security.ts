@@ -1,17 +1,18 @@
 /**
  * Device and transport hardening.
  *
- * Three defences, all best-effort and none allowed to break app startup:
+ * Two defences, both best-effort and neither allowed to break app startup:
  *   1. Certificate pinning  — a hostile network with a trusted proxy CA can
  *                             no longer read or alter Pine's traffic.
- *   2. Screen capture       — balances and card entry stay out of screenshots
- *                             and the app-switcher preview.
- *   3. Device integrity     — warn when running on a rooted/jailbroken device,
+ *   2. Device integrity     — warn when running on a rooted/jailbroken device,
  *                             where another app can inspect this one's memory.
+ *
+ * Screenshot blocking was removed deliberately: it stopped people capturing
+ * their own portfolio for their own records, and it never stopped anyone
+ * determined (a second phone photographs the screen regardless).
  */
 import { Platform } from 'react-native';
 import * as Device from 'expo-device';
-import * as ScreenCapture from 'expo-screen-capture';
 import { initializeSslPinning } from 'react-native-ssl-public-key-pinning';
 import { API_BASE_URL, reportSystemError } from './api';
 
@@ -85,27 +86,6 @@ export async function initializeCertificatePinning(): Promise<void> {
     });
   } catch (err) {
     reportSystemError('security.certificatePinning', err, 'HIGH');
-  }
-}
-
-// ─── Screen capture ───────────────────────────────────────────────────────────
-
-/**
- * Block screenshots and screen recording.
- *
- * Android: sets FLAG_SECURE, which also blanks the app in the recents
- * switcher — both halves of the problem in one call.
- *
- * iOS: the OS does not let an app block screenshots at all. This suppresses
- * capture during screen RECORDING; the app-switcher preview is handled
- * separately by <PrivacyScreen/>, which covers the UI as the app deactivates.
- */
-export async function enableScreenCaptureProtection(): Promise<void> {
-  try {
-    await ScreenCapture.preventScreenCaptureAsync();
-  } catch (err) {
-    // Not fatal: the app is still perfectly usable without it.
-    reportSystemError('security.screenCapture', err, 'LOW');
   }
 }
 

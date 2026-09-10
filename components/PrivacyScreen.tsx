@@ -12,8 +12,8 @@ const LOGO = require("../assets/pine_assets/logos/g8 1.png");
  * borrowed or stolen phone. The OS gives apps no way to opt out, so the
  * standard defence is to paint over the UI before the snapshot is taken.
  *
- * Android needs none of this: FLAG_SECURE (set by enableScreenCaptureProtection)
- * already blanks the recents preview, so this renders nothing there.
+ * Android is left alone: its recents preview is the OS's business and Pine no
+ * longer sets FLAG_SECURE, so this renders nothing there.
  */
 export default function PrivacyScreen() {
   const c = useColors();
