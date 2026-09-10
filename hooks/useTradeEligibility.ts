@@ -38,7 +38,9 @@ export function useTradeEligibility(): TradeEligibility {
   const reason: TradeBlockReason = !user ? null : !hasBroker ? 'broker' : !kycApproved ? 'kyc' : null;
 
   const resolve = useCallback(() => {
-    if (reason === 'broker') guardedPush(() => router.push('/broker-select' as any));
+    // Investors no longer pick a broker: Pine's partner is assigned at
+    // registration. An account without one is a support matter.
+    if (reason === 'broker') guardedPush(() => router.push('/help' as any));
     else if (reason === 'kyc') guardedPush(() => router.push('/kyc/upload-id' as any));
   }, [reason]);
 
@@ -47,12 +49,12 @@ export function useTradeEligibility(): TradeEligibility {
     canTrade: !!user && reason === null,
     reason,
     shortLabel:
-      reason === 'broker' ? 'Select a broker first'
+      reason === 'broker' ? 'Account not linked to a broker'
         : reason === 'kyc' ? 'Verify your identity first'
           : null,
     message:
       reason === 'broker'
-        ? 'Choose a broker before you trade — your orders are executed and held by them.'
+        ? 'Your account is not linked to a broker yet, so orders cannot be placed. Contact support and we will sort it out.'
         : reason === 'kyc'
           ? 'Your identity has to be verified before you can trade. It usually takes a few minutes.'
           : null,
@@ -62,9 +64,9 @@ export function useTradeEligibility(): TradeEligibility {
 
 /** Copy for the "why can't I?" prompt, shared by the alert and the buy screen. */
 export function tradeBlockTitle(reason: TradeBlockReason): string {
-  return reason === 'broker' ? 'Select a broker' : 'Verify your identity';
+  return reason === 'broker' ? 'Account not linked' : 'Verify your identity';
 }
 
 export function tradeBlockAction(reason: TradeBlockReason): string {
-  return reason === 'broker' ? 'Select broker' : 'Verify now';
+  return reason === 'broker' ? 'Contact support' : 'Verify now';
 }

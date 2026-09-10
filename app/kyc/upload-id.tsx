@@ -1,4 +1,5 @@
 import { guardedBack, guardedPush } from "@/utils/navigation";
+import { usePreventScreenCapture } from "expo-screen-capture";
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -138,6 +139,9 @@ function UploadSlot({
 }
 
 export default function UploadIdScreen() {
+  // This screen shows something worth keeping out of screenshots and the
+  // recents preview; protection is per-screen, not app-wide.
+  usePreventScreenCapture();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const { user } = useAuth();

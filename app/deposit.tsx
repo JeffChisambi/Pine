@@ -34,7 +34,9 @@ const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 const GREEN = "#45B369";
 
-const QUICK_AMOUNTS = ["10,000", "25,000", "50,000", "100,000"];
+const QUICK_AMOUNTS = ["1,000", "5,000", "10,000", "50,000"];
+/** Smallest deposit the app accepts; the server enforces the same floor. */
+const MIN_DEPOSIT = 1000;
 
 function BackIcon({ color }: { color: string }) {
   return (
@@ -97,11 +99,11 @@ export default function DepositScreen() {
     brokerPromptShown.current = true;
     if (!user.broker) {
       Alert.alert(
-        "Select a Broker",
-        "Select a broker first — deposits go directly to your broker's account.",
+        "Account not linked",
+        "Your account is not linked to a broker yet, so deposits cannot be made. Contact support and we will sort it out.",
         [
-          { text: "Cancel", style: "cancel", onPress: () => guardedBack("/(tabs)") },
-          { text: "Select Broker", onPress: () => guardedPush(() => router.push("/broker-select" as any)) },
+          { text: "Not now", style: "cancel", onPress: () => guardedBack("/(tabs)") },
+          { text: "Contact support", onPress: () => guardedPush(() => router.push("/help" as any)) },
         ],
       );
     }
@@ -121,7 +123,7 @@ export default function DepositScreen() {
   }, []);
 
   const numericValue = parseFloat(rawAmount.replace(/,/g, "")) || 0;
-  const meetsMinimum = numericValue >= 10000 && !loading;
+  const meetsMinimum = numericValue >= MIN_DEPOSIT && !loading;
 
   // Live fee breakdown from the broker's configured deposit fee schedule —
   // debounced so typing doesn't spam the API. Falls back gracefully (no
@@ -445,7 +447,7 @@ export default function DepositScreen() {
             />
           </View>
           <View style={styles.amountDivider} />
-          <Text style={styles.amountHint}>Minimum deposit: MK 10,000</Text>
+          <Text style={styles.amountHint}>Minimum deposit: MK {MIN_DEPOSIT.toLocaleString()}</Text>
         </View>
 
         {/* ── Body ── */}

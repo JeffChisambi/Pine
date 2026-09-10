@@ -101,11 +101,11 @@ export default function ConfirmScreen() {
   // too and rejects orders with BROKER_REQUIRED when no broker is selected).
   const showBrokerRequiredAlert = () => {
     Alert.alert(
-      "Select a Broker",
-      "Select a broker first — your orders are executed and held by your broker.",
+      "Account not linked",
+      "Your account is not linked to a broker yet, so orders cannot be placed. Contact support and we will sort it out.",
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Select Broker", onPress: () => router.push("/broker-select" as any) },
+        { text: "Not now", style: "cancel" },
+        { text: "Contact support", onPress: () => router.push("/help" as any) },
       ],
     );
   };
@@ -233,44 +233,29 @@ export default function ConfirmScreen() {
           </View>
         </View>
 
-        {/* Order summary card — full transparent breakdown from the server */}
-        <View style={{ backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 4, marginBottom: 20 }}>
+        {/* Order summary — the six figures that decide the order, nothing else.
+            "Estimated commission" is every charge on the trade (broker
+            commission plus the statutory levies), so the three money lines add
+            up: amount + commission = total. */}
+        <View style={{ backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 4, marginBottom: 14 }}>
           <Row label="Order Type" value={isBuy ? "Buy" : "Sell"} valueColor={isBuy ? "#16A34A" : "#DC2626"} />
           <Divider />
-          {user?.broker && (
-            <>
-              <Row label="Broker" value={user.broker.name} />
-              <Divider />
-            </>
-          )}
           <Row label="Quantity" value={`${quantity} share${quantity !== 1 ? "s" : ""}`} />
           <Divider />
-          <Row label="Price per Share" value={fmt(price)} />
+          <Row label="Price Per Share" value={fmt(price)} />
           <Divider />
-          <Row label="Order Value" value={fmt(gross)} />
+          <Row label="Estimated Amount" value={fmt(gross)} />
           <Divider />
           {quote ? (
             <>
-              <Row label="Broker Commission" value={fmt(commission)} />
-              <Divider />
-              <Row label="Statutory Levies" value={fmt(levies)} />
+              <Row label="Estimated Commission" value={fmt(commission + levies)} />
               <Divider />
               <Row
-                label={isBuy ? "Total Cost" : "Net Proceeds"}
+                label="Total Amount"
                 value={fmt(total)}
                 bold
                 valueColor={isBuy ? undefined : "#16A34A"}
               />
-              {isBuy && quote.remainingAfter != null && (
-                <>
-                  <Divider />
-                  <Row
-                    label="Balance After"
-                    value={fmt(Math.max(quote.remainingAfter, 0))}
-                    valueColor={quote.sufficientFunds ? undefined : "#DC2626"}
-                  />
-                </>
-              )}
             </>
           ) : quoteError ? (
             <View style={{ paddingVertical: 13 }}>
@@ -287,6 +272,10 @@ export default function ConfirmScreen() {
             </View>
           )}
         </View>
+
+        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, lineHeight: 18, marginBottom: 20, paddingHorizontal: 4 }}>
+          Please note that while this is the current stock price, the fast-moving nature of the market may cause the actual executed price to differ.
+        </Text>
 
         {/* Insufficient funds / shares warning */}
         {quote && isBuy && quote.sufficientFunds === false && (
@@ -329,27 +318,6 @@ export default function ConfirmScreen() {
           </View>
         )}
 
-        {/* Wallet deduction notice for buy orders */}
-        {isBuy && (
-          <View style={{
-            backgroundColor: c.card, borderRadius: 14,
-            borderWidth: 1, borderColor: c.border,
-            paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20,
-            flexDirection: "row", alignItems: "center", gap: 10,
-          }}>
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path d="M21 12a2 2 0 00-2-2h-2a2 2 0 000 4h2a2 2 0 002-2z" stroke={c.primary} strokeWidth={1.5} />
-              <Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2v-1M3 7a2 2 0 012-2h12a2 2 0 012 2v1M3 7h16" stroke={c.primary} strokeWidth={1.5} strokeLinecap="round" />
-            </Svg>
-            <Text style={{ flex: 1, fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, lineHeight: 18 }}>
-              Funds will be deducted from your wallet once the broker confirms your order has been executed.
-            </Text>
-          </View>
-        )}
-
-        <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, textAlign: "center", lineHeight: 18 }}>
-          By confirming, you agree to submit this order for broker execution.{"\n"}Your broker will review and execute the order during market hours.
-        </Text>
       </ScrollView>
 
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>

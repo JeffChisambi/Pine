@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import * as ScreenCapture from "expo-screen-capture";
 import { router } from "expo-router";
 import { authApi, ApiError, getErrorMessage, logHandledError } from "../services/api";
 import {
@@ -63,6 +64,13 @@ export default function PinVerifyModal({
   const inputRefs = useRef<(TextInput | null)[]>(Array(PIN_LENGTH).fill(null));
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
+
+  // Keep PIN entry out of screenshots for as long as the sheet is up.
+  useEffect(() => {
+    if (!visible) return;
+    ScreenCapture.preventScreenCaptureAsync('pin').catch(() => {});
+    return () => { ScreenCapture.allowScreenCaptureAsync('pin').catch(() => {}); };
+  }, [visible]);
 
   const focusManualEntry = () => {
     setBioPending(false);

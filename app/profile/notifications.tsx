@@ -15,6 +15,7 @@ import { notificationsApi, type Notification } from "../../services/api";
 import { useColors } from "@/hooks/useColors";
 import { guardedBack } from "@/utils/navigation";
 import { useInvalidateNotifications } from "@/hooks/useNotifications";
+import { navigateForNotification } from "@/services/push";
 
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
@@ -138,7 +139,12 @@ function NotificationRow({
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      onPress={() => { if (!item.isRead) onMarkRead(item.id); }}
+      // A tap opens what the message is about — the order, the stock, the
+      // history entry — and marks it read on the way.
+      onPress={() => {
+        if (!item.isRead) onMarkRead(item.id);
+        navigateForNotification(item.data);
+      }}
       style={{
         paddingHorizontal: 24,
         paddingVertical: 16,

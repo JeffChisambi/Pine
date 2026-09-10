@@ -1,4 +1,5 @@
 import { guardedBack } from "@/utils/navigation";
+import { usePreventScreenCapture } from "expo-screen-capture";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -38,6 +39,9 @@ function CloseIcon() {
 }
 
 export default function CreatePinScreen() {
+  // This screen shows something worth keeping out of screenshots and the
+  // recents preview; protection is per-screen, not app-wide.
+  usePreventScreenCapture();
   const c = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;

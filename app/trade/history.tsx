@@ -139,7 +139,7 @@ function TBillsSection({ c, filter }: { c: ReturnType<typeof useColors>; filter:
   return (
     <View style={{ marginTop: 8 }}>
       <View style={{ paddingVertical: 8, marginBottom: 4 }}>
-        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase" }}>Debt Securities</Text>
+        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase" }}>Bonds</Text>
       </View>
       {investments.map((inv, i) => (
         <TouchableOpacity

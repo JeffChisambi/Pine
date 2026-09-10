@@ -8,6 +8,7 @@
  * Flow: upload-id → selfie → proof-of-residency → HERE → under-review
  */
 import { guardedBack } from "@/utils/navigation";
+import { usePreventScreenCapture } from "expo-screen-capture";
 import React, { useState } from "react";
 import {
   View,
@@ -59,6 +60,9 @@ function BankIcon({ color }: { color: string }) {
 }
 
 export default function KycBankDetailsScreen() {
+  // This screen shows something worth keeping out of screenshots and the
+  // recents preview; protection is per-screen, not app-wide.
+  usePreventScreenCapture();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const c = useColors();

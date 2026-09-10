@@ -190,23 +190,42 @@ export async function unregisterPushDevice(): Promise<void> {
 }
 
 /**
- * Navigate to the appropriate screen when a push notification is tapped.
+ * Where a notification leads. Shared by push taps and the in-app inbox so a
+ * message opens the same place however it was reached.
+ *
+ * Returns false when the notification has nowhere in particular to go — the
+ * inbox row then simply marks it read rather than navigating in a circle.
  */
-function handleNotificationResponse(data: Record<string, any> | undefined) {
-  if (!data) return;
+export function navigateForNotification(data: Record<string, any> | undefined): boolean {
+  if (!data) return false;
 
   try {
-    if (data.orderId) {
+    if (data.screen === 'stock' && data.symbol) {
+      router.push(`/stock/${data.symbol}` as any);
+    } else if (data.orderId || data.tradeId) {
       router.push('/trade/history' as any);
     } else if (data.type === 'KYC_APPROVED' || data.type === 'KYC_REJECTED') {
       router.push('/profile/personal-data' as any);
-    } else if (data.type === 'DEPOSIT' || data.type === 'WITHDRAWAL') {
-      router.push('/(tabs)/' as any);
+    } else if (
+      data.type === 'DEPOSIT' || data.type === 'WITHDRAWAL' || data.type === 'WITHDRAWAL_REJECTED' ||
+      data.type === 'DIVIDEND' || data.type === 'BONUS_ISSUE' || data.type === 'STOCK_SPLIT'
+    ) {
+      // Money movements and corporate actions all appear in the history list.
+      router.push('/trade/history' as any);
     } else {
-      router.push('/profile/notifications' as any);
+      return false;
     }
+    return true;
   } catch {
     // Navigation may not be ready yet — ignore.
+    return false;
+  }
+}
+
+/** Push tap: go where the notification points, or to the inbox. */
+function handleNotificationResponse(data: Record<string, any> | undefined) {
+  if (!navigateForNotification(data)) {
+    try { router.push('/profile/notifications' as any); } catch { /* not ready */ }
   }
 }
 

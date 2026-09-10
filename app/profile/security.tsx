@@ -13,6 +13,7 @@
  *   POST /auth/pin/change       { currentPin, newPin }
  */
 import { guardedBack } from "@/utils/navigation";
+import { usePreventScreenCapture } from "expo-screen-capture";
 import React, { useState, useCallback } from "react";
 import {
   View,
@@ -197,6 +198,9 @@ function SuccessBanner({ message }: { message: string }) {
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function SecurityScreen() {
+  // This screen shows something worth keeping out of screenshots and the
+  // recents preview; protection is per-screen, not app-wide.
+  usePreventScreenCapture();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();

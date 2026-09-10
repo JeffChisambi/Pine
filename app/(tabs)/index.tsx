@@ -507,7 +507,7 @@ export default function HomeScreen() {
             <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text, marginBottom: 4 }}>Invest</Text>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: MUTED2, marginBottom: 16 }}>Choose what to invest</Text>
 
-            {/* Equity Trading card */}
+            {/* Stocks card */}
             <TouchableOpacity
               ref={tradeRef}
               activeOpacity={0.85}
@@ -529,7 +529,7 @@ export default function HomeScreen() {
                 paddingVertical: 16,
               }}>
                 <View style={{ flex: 1, gap: 4, paddingRight: 12, marginTop: -6 }}>
-                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text, lineHeight: 21 }}>Equity Trading</Text>
+                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text, lineHeight: 21 }}>Stocks</Text>
                   <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: c.mutedForeground, lineHeight: 15 }}>
                     Buy &amp; sell shares of{"\n"}listed companies
                   </Text>
@@ -566,7 +566,7 @@ export default function HomeScreen() {
                 paddingVertical: 16,
               }}>
                 <View style={{ flex: 1, gap: 4, paddingRight: 12, marginTop: -6 }}>
-                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text, lineHeight: 21 }}>Debt Securities</Text>
+                  <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text, lineHeight: 21 }}>Bonds</Text>
                   <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: c.mutedForeground, lineHeight: 15 }}>
                     Low-risk government-backed{"\n"}short-term investments
                   </Text>

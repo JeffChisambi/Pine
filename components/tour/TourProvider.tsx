@@ -59,7 +59,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: "trade",
     target: "trade",
     title: "Buy your first shares",
-    body: "Open Equity Trading, pick a company and place a buy order.",
+    body: "Open Stocks, pick a company and place a buy order.",
   },
   {
     id: "portfolio",

@@ -108,7 +108,7 @@ export default function TreasuryLanding() {
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: "center", paddingRight: 40 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>
-            Debt Securities
+            Bonds
           </Text>
         </View>
       </View>

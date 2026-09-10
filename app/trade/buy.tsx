@@ -28,15 +28,6 @@ const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 const DONE_ACCESSORY_ID = "buy-amount-done";
 
-function PortfolioIcon() {
-  return (
-    <Svg width={40} height={40} viewBox="0 0 40 40" fill="none">
-      <Rect width={40} height={40} rx={20} fill="rgba(255,255,255,0.15)" />
-      <Path d="M12 28V18l8-6 8 6v10H12z" stroke={WHITE} strokeWidth={1.5} strokeLinejoin="round" />
-      <Rect x={17} y={22} width={6} height={6} rx={1} stroke={WHITE} strokeWidth={1.5} />
-    </Svg>
-  );
-}
 
 export default function BuyScreen() {
   const insets = useSafeAreaInsets();
@@ -101,7 +92,6 @@ export default function BuyScreen() {
             </Text>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "rgba(255,255,255,0.55)" }}>{isBuy ? "Ready to invest" : (selectedStock?.name ?? "")}</Text>
           </View>
-          <PortfolioIcon />
         </View>
 
         {/* Order card */}

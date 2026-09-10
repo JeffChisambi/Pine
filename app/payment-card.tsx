@@ -11,6 +11,7 @@
  *   purpose  — optional payment purpose tag
  */
 import React, { useRef, useState } from "react";
+import { usePreventScreenCapture } from "expo-screen-capture";
 import {
   ActivityIndicator,
   Alert,
@@ -245,6 +246,9 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
 // ─── Main screen ───────────────────────────────────────────────────────────────
 
 export default function PaymentCardScreen() {
+  // This screen shows something worth keeping out of screenshots and the
+  // recents preview; protection is per-screen, not app-wide.
+  usePreventScreenCapture();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     amount: string; currency: string; purpose: string;
@@ -463,11 +467,11 @@ export default function PaymentCardScreen() {
       // No broker selected — the server rejects deposits with BROKER_REQUIRED.
       if (/BROKER_REQUIRED/i.test(message) || /BROKER_REQUIRED/i.test(String(err?.message ?? ""))) {
         Alert.alert(
-          "Select a Broker",
-          "Select a broker first — deposits go directly to your broker's account.",
+          "Account not linked",
+          "Your account is not linked to a broker yet, so deposits cannot be made. Contact support and we will sort it out.",
           [
-            { text: "Cancel", style: "cancel", onPress: () => guardedBack("/(tabs)") },
-            { text: "Select Broker", onPress: () => router.push("/broker-select" as any) },
+            { text: "Not now", style: "cancel", onPress: () => guardedBack("/(tabs)") },
+            { text: "Contact support", onPress: () => router.push("/help" as any) },
           ],
         );
         return;

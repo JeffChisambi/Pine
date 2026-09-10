@@ -12,6 +12,7 @@
  * Flow: upload-id -> selfie-camera -> HERE -> under-review
  */
 import { guardedBack } from "@/utils/navigation";
+import { usePreventScreenCapture } from "expo-screen-capture";
 import React, { useState } from "react";
 import {
   View,
@@ -80,6 +81,9 @@ function DocIllustration({ primaryColor }: { primaryColor: string }) {
 }
 
 export default function UploadProofOfResidencyScreen() {
+  // This screen shows something worth keeping out of screenshots and the
+  // recents preview; protection is per-screen, not app-wide.
+  usePreventScreenCapture();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const { applicationId } = useLocalSearchParams<{ applicationId: string }>();
