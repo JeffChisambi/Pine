@@ -53,13 +53,13 @@ export const TOUR_STEPS: TourStep[] = [
     id: "market",
     target: "tab-market",
     title: "Browse the market",
-    body: "See every stock listed on the MSE with live prices and movers.",
+    body: "Every company listed on the MSE, with the latest prices and the day's biggest movers.",
   },
   {
     id: "trade",
     target: "trade",
     title: "Buy your first shares",
-    body: "Open Stocks, pick a company and place a buy order.",
+    body: "Verify your identity once, then open Stocks, pick a company and place your order.",
   },
   {
     id: "portfolio",
@@ -77,7 +77,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: "profile",
     target: "tab-profile",
     title: "Profile & security",
-    body: "Manage your PIN, biometrics and account settings from Profile.",
+    body: "Verify your identity, set your PIN and turn on biometrics — all from Profile.",
   },
 ];
 
