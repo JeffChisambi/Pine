@@ -420,7 +420,6 @@ export default function HomeScreen() {
   // replay).
   const tour = useTour();
   const balanceRef = useTourTarget("balance");
-  const depositRef = useTourTarget("deposit");
   const tradeRef = useTourTarget("trade");
   const bellRef = useTourTarget("bell");
   const isLoggedIn = !!user;
@@ -462,7 +461,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           <View style={{ flexDirection: "row", gap: 10 }}>
-            <TouchableOpacity ref={depositRef} style={{ flex: 1, backgroundColor: WHITE, borderRadius: 12, height: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push("/deposit"))}>
+            <TouchableOpacity style={{ flex: 1, backgroundColor: WHITE, borderRadius: 12, height: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push("/deposit"))}>
               <AddCircleIcon color={GREEN} />
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: GREEN }}>Deposit</Text>
             </TouchableOpacity>

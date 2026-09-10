@@ -28,7 +28,6 @@ export const TOUR_COMPLETED_KEY = "@pine_tour_completed";
 /** Ids of every element the tour can spotlight. */
 export type TourTargetId =
   | "balance"
-  | "deposit"
   | "trade"
   | "bell"
   | "tab-market"
