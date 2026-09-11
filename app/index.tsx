@@ -78,16 +78,18 @@ export default function OnboardingScreen() {
 
   const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
-  const markOnboardedAndGoToLogin = async () => {
+  // Someone on the carousel has never signed in on this phone (the gate
+  // sends returning people straight past it), so the end of it is Sign Up.
+  const markOnboardedAndGoToSignup = async () => {
     await AsyncStorage.setItem("@pine_has_onboarded", "true");
-    router.replace("/login");
+    router.replace("/signup");
   };
 
   const handleNext = () => {
     if (activeSlide < SLIDES.length - 1) {
       flatListRef.current?.scrollToIndex({ index: activeSlide + 1, animated: true });
     } else {
-      markOnboardedAndGoToLogin();
+      markOnboardedAndGoToSignup();
     }
   };
 
@@ -103,7 +105,7 @@ export default function OnboardingScreen() {
 
       {/* ── Top bar ── */}
       <View style={s.topBar}>
-        <TouchableOpacity style={s.skipBtn} activeOpacity={0.7} onPress={markOnboardedAndGoToLogin}>
+        <TouchableOpacity style={s.skipBtn} activeOpacity={0.7} onPress={markOnboardedAndGoToSignup}>
           <Text style={[s.skipText, { color: c.primary }]}>Skip</Text>
         </TouchableOpacity>
       </View>

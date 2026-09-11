@@ -184,8 +184,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const profile = buildProfile(result.user);
     await AuthStore.saveProfile(profile as unknown as Record<string, unknown>);
 
-    // STEP 3: Mark onboarding complete.
+    // STEP 3: Mark onboarding complete, and remember that an account has
+    // signed in on this phone: from now on a cold start lands on Sign In,
+    // where a phone that has never had an account lands on Sign Up.
     await AsyncStorage.setItem('@pine_has_onboarded', 'true');
+    await AsyncStorage.setItem('@pine_has_account', 'true');
 
     // STEP 4: Activate the new user in React state.
     setUser(profile);

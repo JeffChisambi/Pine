@@ -78,12 +78,17 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const { isLoading, isLoggedIn, user } = useAuth();
   const pathname = usePathname();
   const [hasOnboarded, setHasOnboarded] = React.useState<boolean | null>(null);
+  // Whether an account has ever signed in on this phone. Decides where a
+  // signed-out person lands: Sign In if so, Sign Up if not.
+  const [hasAccount, setHasAccount] = React.useState<boolean>(false);
 
-  // Read the persistent onboarding flag once on mount.
+  // Read the persistent flags once on mount.
   useEffect(() => {
-    AsyncStorage.getItem("@pine_has_onboarded").then((val) => {
-      setHasOnboarded(val === "true");
-    });
+    AsyncStorage.multiGet(["@pine_has_onboarded", "@pine_has_account"]).then((pairs) => {
+      const get = (k: string) => pairs.find(([key]) => key === k)?.[1];
+      setHasAccount(get("@pine_has_account") === "true");
+      setHasOnboarded(get("@pine_has_onboarded") === "true");
+    }).catch(() => setHasOnboarded(false));
   }, []);
 
   useEffect(() => {
@@ -154,22 +159,26 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
     const isOnProtectedScreen = !isOnAuthOrOnboardingScreen;
 
+    // Where a signed-out person belongs: Sign In if an account has signed in
+    // on this phone before, Sign Up if none ever has.
+    const home = hasAccount ? "/login" : "/signup";
+
     if (!isLoggedIn && isOnProtectedScreen) {
-      // Unauthenticated user tried to access a protected route → login.
-      router.replace("/login");
+      // Unauthenticated user tried to access a protected route.
+      router.replace(home);
     } else if (
       !isLoggedIn &&
       hasOnboarded &&
       (seg === "" || seg === "onboarding-2" || seg === "onboarding-3")
     ) {
-      // Already completed onboarding in a previous session — skip straight to
-      // login. Logout lands here too: hasOnboarded stays true and the user
-      // ends up on login, never back on the onboarding carousel.
-      router.replace("/login");
+      // Already been through the carousel in a previous session — skip it.
+      // Logout lands here too: hasOnboarded and hasAccount stay true, so a
+      // returning person ends up on Sign In, never back on the carousel.
+      router.replace(home);
     }
     // Fresh install (!isLoggedIn && seg === "" && !hasOnboarded):
     // → stay on the onboarding carousel; no redirect needed.
-  }, [isLoading, isLoggedIn, user?.hasPinSet, user?.emailVerified, user?.email, pathname, hasOnboarded]);
+  }, [isLoading, isLoggedIn, user?.hasPinSet, user?.emailVerified, user?.email, pathname, hasOnboarded, hasAccount]);
 
   // Until the session restore and the onboarding flag have both resolved we
   // don't yet know where the user belongs — cover the navigator with a plain
