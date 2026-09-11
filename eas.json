@@ -28,6 +28,16 @@
         "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1",
         "EXPO_PUBLIC_ENABLE_TEST_TX": "1"
       }
+    },
+    "store": {
+      "extends": "production",
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1",
+        "EXPO_PUBLIC_ENABLE_TEST_TX": "0"
+      }
     }
   },
   "submit": {
