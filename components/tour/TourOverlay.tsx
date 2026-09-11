@@ -12,6 +12,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Modal,
   Platform,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -46,6 +47,10 @@ const EASE_OUT = Easing.out(Easing.cubic);
 const STEP_MS = 280;
 const MEASURE_RETRIES = 8;
 const MEASURE_RETRY_MS = 140;
+// While a step is showing, the target is re-measured on this cadence so the
+// spotlight follows it if the screen settles after the first measurement
+// (a skeleton collapsing, a late date line, fonts arriving).
+const TRACK_MS = 350;
 
 // ─── Path helpers (worklets) ─────────────────────────────────────────────────
 function roundedRectPath(x: number, y: number, w: number, h: number, r: number): string {
@@ -143,6 +148,19 @@ function TourScene() {
   const insets = useSafeAreaInsets();
   const { width: winW, height: winH } = useWindowDimensions();
   /**
+   * How far the app's root view sits below the top of the screen.
+   *
+   * Targets are measured with `measureInWindow`, which on Android is relative
+   * to the app's root view, and this overlay lives in a Modal that covers the
+   * whole screen. When the app is not drawn edge-to-edge the root view starts
+   * under the status bar, so every target measures too high by exactly the
+   * status bar's height and the spotlight lands above the thing it is meant
+   * to ring. A zero top inset is how we know the root is below the bar (an
+   * edge-to-edge root reports the bar's height as its inset instead).
+   */
+  const rootTop =
+    Platform.OS === "android" && insets.top === 0 ? (StatusBar.currentHeight ?? 0) : 0;
+  /**
    * The overlay's OWN size, not the window's. On Android the window height
    * excludes the system navigation bar, so painting the backdrop at that
    * height left the tab bar strip uncovered at the bottom. Measuring the
@@ -151,6 +169,10 @@ function TourScene() {
   const [box, setBox] = useState({ w: 0, h: 0 });
   const W = box.w || winW;
   const H = box.h || winH;
+  // The Modal also covers the navigation bar; when the app itself does not,
+  // the safe-area inset is 0 there, so infer the strip from the size gap.
+  const topInset = Math.max(insets.top, rootTop);
+  const bottomInset = Math.max(insets.bottom, H - winH - rootTop, 0);
 
   const rootRef = useRef<View>(null);
   const [rect, setRect] = useState<TargetRect | null>(null);
@@ -242,7 +264,7 @@ function TourScene() {
               }
             }, 200);
           });
-          const local = { ...r, x: r.x - offset.x, y: r.y - offset.y };
+          const local = { ...r, x: r.x - offset.x, y: r.y - offset.y + rootTop };
           // Off-screen targets (e.g. scrolled away) fall back to a centred card.
           const visible = local.y + local.height > 0 && local.y < H && local.x + local.width > 0 && local.x < W;
           return visible ? local : null;
@@ -251,7 +273,7 @@ function TourScene() {
       }
       return null;
     },
-    [measureTarget, H, W],
+    [measureTarget, H, W, rootTop],
   );
 
   useEffect(() => {
@@ -266,14 +288,29 @@ function TourScene() {
     }
 
     let cancelled = false;
+    let track: ReturnType<typeof setInterval> | null = null;
     (async () => {
       const r = await measureWithRetry(target);
       if (cancelled || seq !== measureSeq.current) return;
       setRect(r);
       setShownStep(stepIndex);
+      if (!r) return;
+      // Keep following the target until the step changes.
+      track = setInterval(async () => {
+        const again = await measureWithRetry(target);
+        if (cancelled || seq !== measureSeq.current || !again) return;
+        setRect((prev) =>
+          prev &&
+          Math.abs(prev.x - again.x) < 1 && Math.abs(prev.y - again.y) < 1 &&
+          Math.abs(prev.width - again.width) < 1 && Math.abs(prev.height - again.height) < 1
+            ? prev
+            : again,
+        );
+      }, TRACK_MS);
     })();
     return () => {
       cancelled = true;
+      if (track) clearInterval(track);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIndex, measureWithRetry]);
@@ -282,8 +319,8 @@ function TourScene() {
   const layout = useMemo(() => {
     const cardX = CARD_MARGIN;
     const cardW = W - CARD_MARGIN * 2;
-    const minTop = insets.top + 12;
-    const maxBottom = H - Math.max(insets.bottom, 8) - 12;
+    const minTop = topInset + 12;
+    const maxBottom = H - Math.max(bottomInset, 8) - 12;
 
     if (!rect) {
       const top = Math.max(minTop, Math.min((H - cardH) / 2, maxBottom - cardH));
@@ -322,7 +359,7 @@ function TourScene() {
     const arrow = tooClose ? null : buildArrow(start, end);
 
     return { cardX, cardW, cardTop, below: placeBelow, arrow, cut };
-  }, [rect, cardH, W, H, insets.top, insets.bottom]);
+  }, [rect, cardH, W, H, topInset, bottomInset]);
 
   // Drive shared values whenever layout changes.
   useEffect(() => {

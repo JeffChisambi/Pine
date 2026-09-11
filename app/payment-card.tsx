@@ -91,7 +91,6 @@ function LockIcon() {
 function VisaIcon() {
   return (
     <Svg width={44} height={28} viewBox="0 0 44 28">
-      <Rect width={44} height={28} rx={4} fill="white" fillOpacity={0.15} />
       <Path d="M18.5 19H15.7l1.74-10.7H20.2L18.5 19zm-5.63-10.7l-2.69 7.36-.32-1.6L8.9 10a1.2 1.2 0 00-1.33-.7H3.06l-.06.3c.93.2 1.97.56 2.6.93L8.3 19h3.1l4.72-10.7h-3.25zm20.7 0h-2.66c-.73 0-1.28.2-1.6.96L24.7 19h3.1l.62-1.7h3.79L32.6 19h2.74L33.57 8.3zm-3.5 6.56l1.57-4.28.9 4.28h-2.47zm-7.47-4.27c0-1.4 3.15-1.22 4.53-.46l.44-2.57C26.5 7.32 25.17 7 23.77 7c-3.27 0-5.56 1.74-5.58 4.22-.02 1.84 1.64 2.87 2.89 3.47 1.28.62 1.71 1.02 1.7 1.58-.01.85-1.02 1.24-1.96 1.24-1.32 0-2.02-.2-3.1-.68l-.43 2.66c.7.32 2 .6 3.34.61 3.49 0 5.77-1.72 5.79-4.38.01-1.65-1.24-2.79-3.48-3.7l.04.04z" fill="white" />
     </Svg>
   );
@@ -100,19 +99,9 @@ function VisaIcon() {
 function MastercardIcon() {
   return (
     <Svg width={44} height={28} viewBox="0 0 44 28">
-      <Rect width={44} height={28} rx={4} fill="white" fillOpacity={0.15} />
       <Circle cx={17} cy={14} r={7} fill="#EB001B" />
       <Circle cx={27} cy={14} r={7} fill="#F79E1B" />
       <Path d="M22 8.8a7 7 0 010 10.4A7 7 0 0122 8.8z" fill="#FF5F00" />
-    </Svg>
-  );
-}
-
-function UnknownCardIcon() {
-  return (
-    <Svg width={44} height={28} viewBox="0 0 44 28">
-      <Rect width={44} height={28} rx={4} fill="white" fillOpacity={0.15} />
-      <Rect x={6} y={10} width={32} height={4} rx={2} fill="white" fillOpacity={0.5} />
     </Svg>
   );
 }
@@ -128,10 +117,12 @@ function detectCardType(num: string): CardType {
   return "unknown";
 }
 
+// Only a recognised network gets a mark; an empty or unknown number shows
+// nothing rather than a placeholder box in the corner of the artwork.
 function CardBrandIcon({ type }: { type: CardType }) {
   if (type === "visa") return <VisaIcon />;
   if (type === "mastercard") return <MastercardIcon />;
-  return <UnknownCardIcon />;
+  return null;
 }
 
 // ─── Card preview ──────────────────────────────────────────────────────────────
@@ -169,7 +160,10 @@ function CardPreview({ cardNumber, cardHolder, expiry, cvv, isCvvFocused, flipAn
             <CardBrandIcon type={cardType} />
           </View>
 
-          <Text style={styles.cardNumberDisplay}>
+          {/* One line on every width: the glyphs shrink before they wrap,
+              so the four groups never spill onto a second row on narrow
+              phones. */}
+          <Text style={styles.cardNumberDisplay} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
             {displayNum4Chars || "•••• •••• •••• ••••"}
           </Text>
 
@@ -646,7 +640,7 @@ export default function PaymentCardScreen() {
                 label="Card Number"
                 value={cardNumber}
                 onChangeText={handleCardNumber}
-                placeholder="0000 0000 0000 0000"
+                placeholder="4242 4242 4242 4242"
                 keyboardType="numeric"
                 maxLength={19}
                 error={errors.cardNumber}
@@ -872,9 +866,9 @@ const styles = StyleSheet.create({
   },
   cardNumberDisplay: {
     fontFamily: "PlusJakartaSans_600SemiBold",
-    fontSize: 20,
+    fontSize: 17,
     color: WHITE,
-    letterSpacing: 3,
+    letterSpacing: 2,
     marginBottom: 16,
     textShadowColor: "rgba(0,0,0,0.35)",
     textShadowOffset: { width: 0, height: 1 },

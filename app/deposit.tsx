@@ -547,18 +547,12 @@ export default function DepositScreen() {
                   {preview == null ? "…" : preview.processingFee === 0 ? "Free" : fmtMK(preview.processingFee)}
                 </Text>
               </View>
-              {user?.broker && (
-                <View style={[styles.summaryRow, { marginTop: 8 }]}>
-                  <Text style={styles.summaryLabel}>Broker</Text>
-                  <Text style={styles.summaryValue} numberOfLines={1}>{user.broker.name}</Text>
-                </View>
-              )}
               {limits && (limits.dailyLimit != null || limits.perTransactionMax != null || limits.monthlyLimit != null) && (
                 <View style={[styles.summaryRow, { marginTop: 8 }]}>
                   <Text style={styles.summaryLabel}>Deposit limit</Text>
                   <Text style={styles.summaryValue} numberOfLines={1}>
                     {limits.maxAllowedNow != null
-                      ? `${fmtMK(Math.max(limits.maxAllowedNow, 0))} available now`
+                      ? fmtMK(Math.max(limits.maxAllowedNow, 0))
                       : "No cap"}
                   </Text>
                 </View>
