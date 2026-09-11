@@ -282,6 +282,9 @@ export interface AuthTokens {
     role: string;
     kycStatus: string;
     hasPinSet: boolean;
+    /** Confirmed with a code. Absent on the registration/login payload. */
+    emailVerified?: boolean;
+    phoneVerified?: boolean;
     avatarUrl: string | null;
     createdAt?: string;
   };
@@ -298,6 +301,9 @@ export interface UserProfile {
   role: string;
   kycStatus: string;
   hasPinSet: boolean;
+  /** Confirmed with a code. Only on the refreshed profile (GET /auth/me). */
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
   avatarUrl: string | null;
   isActive: boolean;
   createdAt: string;
@@ -315,6 +321,14 @@ export interface UserProfile {
   } | null;
   brokerSelectedAt?: string | null;
 }
+
+/**
+ * An OTP destination is a phone number or an email address. Only phone-shaped
+ * values go through the Malawi normaliser: an address with nine digits in it
+ * ("user123456789@…") would otherwise come out as a phone number.
+ */
+const normalizeOtpDestination = (value: string): string =>
+  value.includes('@') ? value.trim().toLowerCase() : normalizeMalawiPhoneNumber(value);
 
 export const authApi = {
   register: (data: {
@@ -372,18 +386,20 @@ export const authApi = {
       skipAuth: true,
     }),
 
+  // Verification codes are requested AFTER registration, by a signed-in
+  // account, and the server only sends them to that account's own contact.
+  // These calls used to skip the token and were refused with 401 before the
+  // email was ever sent — the screen looked like the mail had gone missing.
   sendOtp: (destination: string, purpose: string): Promise<{ message: string; expiresInSeconds: number }> =>
     request('/auth/otp/send', {
       method: 'POST',
-      body: JSON.stringify({ destination: normalizeMalawiPhoneNumber(destination), purpose }),
-      skipAuth: true,
+      body: JSON.stringify({ destination: normalizeOtpDestination(destination), purpose }),
     }),
 
   verifyOtp: (destination: string, purpose: string, code: string): Promise<{ verified: boolean }> =>
     request('/auth/otp/verify', {
       method: 'POST',
-      body: JSON.stringify({ destination: normalizeMalawiPhoneNumber(destination), purpose, code }),
-      skipAuth: true,
+      body: JSON.stringify({ destination: normalizeOtpDestination(destination), purpose, code }),
     }),
 
   createPin: (pin: string): Promise<{ message: string }> =>

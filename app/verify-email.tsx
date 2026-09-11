@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
-import { authApi, getErrorMessage, logHandledError } from "../services/api";
+import { authApi, getErrorMessage, logHandledError, ApiError } from "../services/api";
 import { useAuth } from "../services/auth-context";
 
 const WHITE = "#FFFFFF";
@@ -35,7 +35,7 @@ export default function VerifyEmailScreen() {
   const topPad = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
 
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const email = user?.email ?? "";
 
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
@@ -56,7 +56,10 @@ export default function VerifyEmailScreen() {
         setCooldown(RESEND_COOLDOWN);
       } catch (err) {
         logHandledError("Email OTP send", err);
-        // Cooldown error just means a code is already in flight — fine.
+        // A cooldown means a code is already on its way; anything else the
+        // person needs to see, or they sit waiting for mail that never left.
+        if (err instanceof ApiError && err.status === 429) setCooldown(RESEND_COOLDOWN);
+        else setErrorMsg(getErrorMessage(err));
       }
     })();
   }, [email]);
@@ -108,6 +111,9 @@ export default function VerifyEmailScreen() {
     setErrorMsg("");
     try {
       await authApi.verifyOtp(email, "email_verification", code.join(""));
+      // The root gate reads emailVerified off the profile; refresh it so the
+      // gate lets this session through instead of bouncing back here.
+      await refreshProfile();
       router.replace("/(tabs)");
     } catch (err) {
       logHandledError("Email OTP verify", err);
@@ -207,17 +213,6 @@ export default function VerifyEmailScreen() {
               <Text style={styles.continueBtnText}>{loading ? "Verifying..." : "Continue"}</Text>
             </TouchableOpacity>
 
-            {/* Email delivery can lag — allow entering the app and verifying
-                later from the profile. (The PIN is already set by this point.) */}
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => router.replace("/(tabs)")}
-              style={{ paddingVertical: 14, alignItems: "center" }}
-            >
-              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 14, color: MUTED }}>
-                Skip for now
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
       </View>

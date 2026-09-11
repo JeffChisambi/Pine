@@ -126,6 +126,18 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       return; // don't run the tabs-bounce below until a PIN exists
     }
 
+    // ── Mandatory email verification ───────────────────────────────────────
+    // Same shape as the PIN gate. `emailVerified` is only on the refreshed
+    // profile (never on the registration payload), and only an explicit
+    // false counts: an account that has not been re-read yet is left alone
+    // rather than bounced on a guess.
+    if (isLoggedIn && user && user.email && user.emailVerified === false) {
+      if (!PRE_PIN_ALLOWED.includes(seg)) {
+        router.replace("/verify-email");
+      }
+      return;
+    }
+
     // Fast path — Telegram-style: as soon as the cached session restore says
     // the user is logged in (a purely local check, no network), bounce them
     // off auth/onboarding screens. Waiting for the full `isLoading` (which
@@ -157,7 +169,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
     // Fresh install (!isLoggedIn && seg === "" && !hasOnboarded):
     // → stay on the onboarding carousel; no redirect needed.
-  }, [isLoading, isLoggedIn, user?.hasPinSet, pathname, hasOnboarded]);
+  }, [isLoading, isLoggedIn, user?.hasPinSet, user?.emailVerified, user?.email, pathname, hasOnboarded]);
 
   // Until the session restore and the onboarding flag have both resolved we
   // don't yet know where the user belongs — cover the navigator with a plain
