@@ -14,9 +14,6 @@ import Animated, {
 import { useColors } from "@/hooks/useColors";
 import { useUnreadCount } from "@/hooks/useNotifications";
 import { tabBarHidden } from "@/contexts/tab-bar-visibility";
-import { TourProvider } from "@/components/tour/TourProvider";
-import { TourOverlay } from "@/components/tour/TourOverlay";
-import { useTourTarget } from "@/components/tour/useTourTarget";
 
 const MUTED = "#9CA3AF";
 
@@ -185,8 +182,6 @@ function AnimatedTabItem({
   const c = useColors();
   const scale = useSharedValue(1);
   const labelOpacity = useSharedValue(isFocused ? 1 : 0.55);
-  // Guided tour spotlights tab icons in place (`tab-market`, `tab-portfolio`, ...).
-  const tourRef = useTourTarget(`tab-${item.name}`);
 
   useEffect(() => {
     scale.value = withTiming(isFocused ? 1.12 : 1, {
@@ -216,12 +211,7 @@ function AnimatedTabItem({
       style={[styles.tabItem, { width: tabWidth }]}
       activeOpacity={0.7}
     >
-      {/* The tour ref sits on this inner view, NOT the touchable. The
-          touchable is a fifth of the screen wide so the tap target is
-          comfortable — spotlighting it would ring the icon with ~40px of
-          empty bar on either side. This wrapper hugs the icon and label.
-          `collapsable={false}` keeps it measurable on Android. */}
-      <View ref={tourRef} collapsable={false} style={styles.tabItemContent}>
+      <View style={styles.tabItemContent}>
         <Animated.View style={iconStyle}>
           <item.Icon color={isFocused ? c.primary : MUTED} active={isFocused} />
         </Animated.View>
@@ -313,7 +303,6 @@ export default function TabLayout() {
   useUnreadCount();
 
   return (
-    <TourProvider>
       <View style={{ flex: 1 }}>
         <Tabs
           tabBar={(props) => <AnimatedTabBar {...props} />}
@@ -328,10 +317,7 @@ export default function TabLayout() {
           <Tabs.Screen name="news" options={{ title: "News" }} />
           <Tabs.Screen name="profile" options={{ title: "Profile" }} />
         </Tabs>
-        {/* Sibling after <Tabs> so it overlays every tab AND the tab bar. */}
-        <TourOverlay />
       </View>
-    </TourProvider>
   );
 }
 
@@ -348,7 +334,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingTop: 4,
   },
-  /** Hugs the icon + label so the tour spotlight lands on them, not the bar. */
   tabItemContent: {
     alignItems: "center",
     gap: 3,
