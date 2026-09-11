@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   Platform,
   ScrollView,
@@ -6,15 +6,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
-import { guardedBack } from "@/utils/navigation";
+import { guardedBack, guardedPush } from "@/utils/navigation";
+import { LESSONS, type LessonLanguage } from "@/content/lessons";
+import { useLessonLanguage, useLessonProgress } from "@/hooks/useLessons";
+import { LanguageToggle } from "@/components/education/LanguageToggle";
 
 const GREEN = "#45B369";
-const WHITE = "#FFFFFF";
-
-type Colors = ReturnType<typeof useColors>;
 
 function BackIcon({ color }: { color: string }) {
   return (
@@ -32,6 +33,14 @@ function PlayIcon() {
   );
 }
 
+function CheckIcon() {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+      <Path d="M5 12l5 5L20 7" stroke={GREEN} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 function LockIcon({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
@@ -41,25 +50,38 @@ function LockIcon({ color }: { color: string }) {
   );
 }
 
-const LESSONS = [
-  { number: 1, title: "What Is a Stock?",                duration: "3 min", unlocked: true  },
-  { number: 2, title: "How the Stock Exchange Works",    duration: "4 min", unlocked: false },
-  { number: 3, title: "Reading Stock Prices",            duration: "3 min", unlocked: false },
-  { number: 4, title: "Market Indices Explained",        duration: "5 min", unlocked: false },
-  { number: 5, title: "Buy, Sell & Hold",                duration: "4 min", unlocked: false },
-  { number: 6, title: "Building Your First Portfolio",   duration: "6 min", unlocked: false },
-];
-
-const STATS = [
-  { label: "Lessons",  value: "6"        },
-  { label: "Duration", value: "25 min"   },
-  { label: "Level",    value: "Beginner" },
-];
+const COPY = {
+  en: {
+    title: "Education",
+    lessons: "Lessons",
+    hint: "Complete in order to unlock",
+    done: "Done",
+    min: "min",
+    progress: (n: number, total: number) => `${n} of ${total} completed`,
+    disclaimer: "Educational content only · Not investment advice",
+  },
+  ny: {
+    title: "Maphunziro",
+    lessons: "Maphunziro",
+    hint: "Maliza motsatana kuti utsegule lotsatira",
+    done: "Wamaliza",
+    min: "min",
+    progress: (n: number, total: number) => `Wamaliza ${n} mwa ${total}`,
+    disclaimer: "Maphunziro okha · Si uphungu wa ndalama",
+  },
+} satisfies Record<LessonLanguage, unknown>;
 
 export default function EducationScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const c = useColors();
+  const { language, setLanguage } = useLessonLanguage();
+  const { completed, isUnlocked, reload } = useLessonProgress();
+  const t = COPY[language];
+
+  // A finished lesson writes progress from its own screen; pick it up when
+  // this one comes back into view.
+  useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
@@ -84,83 +106,29 @@ export default function EducationScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: "center", paddingRight: 40 }}>
           <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>
-            Education
+            {t.title}
           </Text>
         </View>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 48 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 6, paddingBottom: 48 }}
       >
-
-        {/* ── Hero card ── */}
-        <View style={{
-          backgroundColor: "#0D3540",
-          borderRadius: 20,
-          padding: 24,
-          marginBottom: 28,
-        }}>
-          {/* Badge */}
-          <View style={{
-            alignSelf: "flex-start",
-            backgroundColor: "rgba(69,179,105,0.18)",
-            borderRadius: 6,
-            paddingHorizontal: 9,
-            paddingVertical: 4,
-            marginBottom: 14,
-          }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 10, color: GREEN, letterSpacing: 1.4 }}>
-              FUNDAMENTALS COURSE
-            </Text>
-          </View>
-
-          {/* Title */}
-          <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 26, color: WHITE, lineHeight: 33, marginBottom: 8 }}>
-            Market Fundamentals
-          </Text>
-
-          {/* Subtitle */}
-          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.52)", lineHeight: 19, marginBottom: 22 }}>
-            Build a confident foundation before you make your first investment.
-          </Text>
-
-          {/* Stats row */}
-          <View style={{ flexDirection: "row", gap: 24 }}>
-            {STATS.map((stat) => (
-              <View key={stat.label}>
-                <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: WHITE }}>{stat.value}</Text>
-                <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.42)", marginTop: 2 }}>{stat.label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Divider */}
-          <View style={{ height: 1, backgroundColor: "rgba(255,255,255,0.08)", marginVertical: 20 }} />
-
-          {/* CTA */}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={{
-              backgroundColor: GREEN,
-              borderRadius: 12,
-              height: 48,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: WHITE }}>
-              Begin Course
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* ── Language ── */}
+        <LanguageToggle value={language} onChange={setLanguage} />
 
         {/* ── Section heading ── */}
-        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text, marginBottom: 4 }}>
-          Lessons
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", marginTop: 24, marginBottom: 4 }}>
+          <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 18, color: c.text }}>
+            {t.lessons}
+          </Text>
+          <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: GREEN }}>
+            {t.progress(completed.size, LESSONS.length)}
+          </Text>
+        </View>
         <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, color: c.mutedForeground, marginBottom: 16 }}>
-          Complete in order to unlock
+          {t.hint}
         </Text>
 
         {/* ── Lesson list ── */}
@@ -171,80 +139,90 @@ export default function EducationScreen() {
           borderColor: c.border,
           overflow: "hidden",
         }}>
-          {LESSONS.map((lesson, index) => (
-            <TouchableOpacity
-              key={lesson.number}
-              activeOpacity={lesson.unlocked ? 0.75 : 1}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                paddingHorizontal: 16,
-                paddingVertical: 15,
-                borderBottomWidth: index < LESSONS.length - 1 ? 1 : 0,
-                borderBottomColor: c.border,
-                opacity: lesson.unlocked ? 1 : 0.48,
-              }}
-            >
-              {/* Number badge */}
-              <View style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: lesson.unlocked ? `${GREEN}18` : c.secondary,
-                alignItems: "center",
-                justifyContent: "center",
-                marginRight: 14,
-                flexShrink: 0,
-              }}>
-                <Text style={{
-                  fontFamily: "PlusJakartaSans_700Bold",
-                  fontSize: 13,
-                  color: lesson.unlocked ? GREEN : c.mutedForeground,
-                }}>
-                  {lesson.number}
-                </Text>
-              </View>
-
-              {/* Title + duration */}
-              <View style={{ flex: 1 }}>
-                <Text style={{
-                  fontFamily: "PlusJakartaSans_600SemiBold",
-                  fontSize: 14,
-                  color: c.text,
-                  lineHeight: 20,
-                }}>
-                  {lesson.title}
-                </Text>
-                <Text style={{
-                  fontFamily: "PlusJakartaSans_400Regular",
-                  fontSize: 12,
-                  color: c.mutedForeground,
-                  marginTop: 2,
-                }}>
-                  {lesson.duration}
-                </Text>
-              </View>
-
-              {/* Status */}
-              {lesson.unlocked ? (
+          {LESSONS.map((lesson, index) => {
+            const unlocked = isUnlocked(lesson.id);
+            const done = completed.has(lesson.id);
+            return (
+              <TouchableOpacity
+                key={lesson.id}
+                activeOpacity={unlocked ? 0.75 : 1}
+                disabled={!unlocked}
+                onPress={() => guardedPush(() => router.push(`/lesson/${lesson.id}` as any))}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !unlocked }}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: 16,
+                  paddingVertical: 15,
+                  borderBottomWidth: index < LESSONS.length - 1 ? 1 : 0,
+                  borderBottomColor: c.border,
+                  opacity: unlocked ? 1 : 0.48,
+                }}
+              >
+                {/* Number badge */}
                 <View style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: `${GREEN}18`,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: unlocked ? `${GREEN}18` : c.secondary,
                   alignItems: "center",
                   justifyContent: "center",
+                  marginRight: 14,
                   flexShrink: 0,
                 }}>
-                  <PlayIcon />
+                  {done ? <CheckIcon /> : (
+                    <Text style={{
+                      fontFamily: "PlusJakartaSans_700Bold",
+                      fontSize: 13,
+                      color: unlocked ? GREEN : c.mutedForeground,
+                    }}>
+                      {lesson.number}
+                    </Text>
+                  )}
                 </View>
-              ) : (
-                <View style={{ flexShrink: 0, width: 32, alignItems: "center" }}>
-                  <LockIcon color={c.mutedForeground} />
+
+                {/* Title + duration */}
+                <View style={{ flex: 1 }}>
+                  <Text style={{
+                    fontFamily: "PlusJakartaSans_600SemiBold",
+                    fontSize: 14,
+                    color: c.text,
+                    lineHeight: 20,
+                  }}>
+                    {lesson.title[language]}
+                  </Text>
+                  <Text style={{
+                    fontFamily: "PlusJakartaSans_400Regular",
+                    fontSize: 12,
+                    color: done ? GREEN : c.mutedForeground,
+                    marginTop: 2,
+                  }}>
+                    {done ? t.done : `${lesson.minutes} ${t.min}`}
+                  </Text>
                 </View>
-              )}
-            </TouchableOpacity>
-          ))}
+
+                {/* Status */}
+                {unlocked ? (
+                  <View style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: `${GREEN}18`,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}>
+                    <PlayIcon />
+                  </View>
+                ) : (
+                  <View style={{ flexShrink: 0, width: 32, alignItems: "center" }}>
+                    <LockIcon color={c.mutedForeground} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Disclaimer */}
@@ -257,7 +235,7 @@ export default function EducationScreen() {
           textAlign: "center",
           opacity: 0.7,
         }}>
-          Educational content only · Not investment advice
+          {t.disclaimer}
         </Text>
 
       </ScrollView>
