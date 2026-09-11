@@ -27,6 +27,7 @@ import Svg, { Path, Circle } from "react-native-svg";
 import { ActivityIndicator } from "react-native";
 import { useColors } from "@/hooks/useColors";
 import { useNews } from "@/hooks/useNews";
+import { parseBody, parseInline, type NewsBlock } from "@/utils/newsBlocks";
 import { API_BASE_URL } from "@/services/api";
 
 // ─── Brand tokens ───────────────────────────────────────────────────────────────
@@ -292,20 +293,93 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
         {/* Divider */}
         <View style={{ height: 1, backgroundColor: c.border, marginHorizontal: 20, marginVertical: 20 }} />
 
-        {/* Body paragraphs */}
+        {/* Body blocks: paragraphs, headings, inline images, quotes, lists */}
         <View style={{ paddingHorizontal: 20, gap: 14 }}>
-          {item.body.map((para, i) => (
-            <Text key={i} style={{
-              fontFamily: "PlusJakartaSans_400Regular",
-              fontSize: 14, color: c.text, lineHeight: 23,
-            }}>
-              {para}
-            </Text>
+          {parseBody(item.body).map((block, i) => (
+            <ArticleBlock key={i} block={block} c={c} />
           ))}
         </View>
       </ScrollView>
     </ReAnimated.View>
   );
+}
+
+// ─── Article body blocks ────────────────────────────────────────────────────────
+// The body is stored as one string per block (see utils/newsBlocks). Plain
+// strings are paragraphs, so articles written before the block editor existed
+// render exactly as they always did.
+function InlineText({ text, style }: { text: string; style: any }) {
+  return (
+    <Text style={style}>
+      {parseInline(text).map((r, i) => (
+        <Text
+          key={i}
+          style={
+            r.bold ? { fontFamily: "PlusJakartaSans_700Bold" }
+              : r.italic ? { fontStyle: "italic" }
+                : undefined
+          }
+        >
+          {r.text}
+        </Text>
+      ))}
+    </Text>
+  );
+}
+
+function ArticleBlock({ block, c }: { block: NewsBlock; c: ReturnType<typeof useColors> }) {
+  const body = { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.text, lineHeight: 23 };
+  switch (block.type) {
+    case "heading":
+      return (
+        <InlineText
+          text={block.text}
+          style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 16, color: c.text, lineHeight: 24, marginTop: 6 }}
+        />
+      );
+    case "image":
+      return (
+        <View style={{ gap: 8 }}>
+          <Image
+            source={{ uri: resolveImageUrl(block.url) }}
+            style={{ width: "100%", aspectRatio: 16 / 10, borderRadius: 12, backgroundColor: c.card }}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+          />
+          {!!block.caption && (
+            <InlineText
+              text={block.caption}
+              style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, lineHeight: 18 }}
+            />
+          )}
+        </View>
+      );
+    case "quote":
+      return (
+        <View style={{ borderLeftWidth: 2, borderLeftColor: GREEN, paddingLeft: 14, gap: 6 }}>
+          <InlineText text={block.text} style={{ ...body, fontStyle: "italic" }} />
+          {!!block.attribution && (
+            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: MUTED }}>
+              — {block.attribution}
+            </Text>
+          )}
+        </View>
+      );
+    case "list":
+      return (
+        <View style={{ gap: 6 }}>
+          {block.items.filter((it) => it.trim()).map((it, j) => (
+            <View key={j} style={{ flexDirection: "row", gap: 10 }}>
+              <Text style={{ ...body, color: GREEN }}>•</Text>
+              <InlineText text={it} style={{ ...body, flex: 1 }} />
+            </View>
+          ))}
+        </View>
+      );
+    default:
+      return <InlineText text={block.text} style={body} />;
+  }
 }
 
 // ─── Category pill ──────────────────────────────────────────────────────────────
