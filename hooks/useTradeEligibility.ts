@@ -10,7 +10,7 @@
  * Broker comes first when both are missing: KYC is reviewed BY the broker, so
  * there is nothing to verify until one is chosen.
  */
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { guardedPush } from '@/utils/navigation';
 import { useAuth } from '@/services/auth-context';
@@ -31,11 +31,28 @@ export interface TradeEligibility {
 }
 
 export function useTradeEligibility(): TradeEligibility {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, refreshProfile } = useAuth();
 
   const hasBroker = !!user?.broker;
   const kycApproved = user?.kycStatus === 'APPROVED';
   const reason: TradeBlockReason = !user ? null : !hasBroker ? 'broker' : !kycApproved ? 'kyc' : null;
+
+  // Both blocks are cleared by something that happens away from this phone
+  // (the broker is assigned server-side, KYC is approved by a reviewer), so
+  // the cached profile is the one thing we must not trust when it says no.
+  // Re-read it once per screen before letting the block stand; the server
+  // also places an unassigned account with the default broker on that read,
+  // so an account that CAN be linked comes back linked.
+  const rechecked = useRef(false);
+  const [rechecking, setRechecking] = useState(false);
+  useEffect(() => {
+    if (reason === null || rechecked.current) return;
+    rechecked.current = true;
+    let live = true;
+    setRechecking(true);
+    refreshProfile().finally(() => { if (live) setRechecking(false); });
+    return () => { live = false; };
+  }, [reason, refreshProfile]);
 
   const resolve = useCallback(() => {
     // Investors no longer pick a broker: Pine's partner is assigned at
@@ -44,18 +61,23 @@ export function useTradeEligibility(): TradeEligibility {
     else if (reason === 'kyc') guardedPush(() => router.push('/kyc/upload-id' as any));
   }, [reason]);
 
+  // While the recheck is in flight the block is withheld entirely: nothing
+  // is shown and a tap does nothing, so the button never flashes a reason
+  // that the fresh profile is about to remove.
+  const shown: TradeBlockReason = rechecking ? null : reason;
+
   return {
-    ready: !isLoading && !!user,
-    canTrade: !!user && reason === null,
-    reason,
+    ready: !isLoading && !!user && !rechecking,
+    canTrade: !!user && !rechecking && reason === null,
+    reason: shown,
     shortLabel:
-      reason === 'broker' ? 'Account not linked to a broker'
-        : reason === 'kyc' ? 'Verify your identity first'
+      shown === 'broker' ? 'Account not linked to a broker'
+        : shown === 'kyc' ? 'Verify your identity first'
           : null,
     message:
-      reason === 'broker'
+      shown === 'broker'
         ? 'Your account is not linked to a broker yet, so orders cannot be placed. Contact support and we will sort it out.'
-        : reason === 'kyc'
+        : shown === 'kyc'
           ? 'Your identity has to be verified before you can trade. It usually takes a few minutes.'
           : null,
     resolve,

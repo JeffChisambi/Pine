@@ -31,6 +31,7 @@ import React, {
   useCallback,
   type ReactNode,
 } from 'react';
+import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthStore } from './auth-store';
 import { clearCachedPin } from './biometrics';
@@ -252,6 +253,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Silently fail — current user state is unaffected.
     }
   }, []);
+
+  // ── Foreground refresh ─────────────────────────────────────────────────────
+  // Things change about an account while the app is closed or in the
+  // background: KYC gets approved, the admin places the account with a
+  // broker. Every gate in the app reads `user`, so a stale copy shows people
+  // blocks that no longer exist. Re-read the profile when the app comes back
+  // to the front; it is one small request and it fails silently.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && isLoggedIn) refreshProfile();
+    });
+    return () => sub.remove();
+  }, [isLoggedIn, refreshProfile]);
 
   // ── markPinCreated ───────────────────────────────────────────────────────────
   // After the user sets their transaction PIN, flip hasPinSet locally so the
