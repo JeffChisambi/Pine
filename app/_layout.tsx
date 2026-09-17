@@ -17,7 +17,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View, useWindowDimensions } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -382,6 +382,33 @@ function ThemedAppRoot({ children }: { children: React.ReactNode }) {
   return <View style={{ flex: 1, backgroundColor: c.background }}>{children}</View>;
 }
 
+/**
+ * Keeps the app phone-shaped on tablets.
+ *
+ * Every screen is laid out for a phone, and the manifest asks for portrait —
+ * but Android 16 ignores orientation locks on large screens, so on a tablet
+ * the app rotates freely and each screen becomes a 1,280px-wide phone with
+ * a button the width of the desk. Rather than teach every screen about wide
+ * layouts, the whole navigator sits in a centred column no wider than a big
+ * phone, with the theme ground filling the sides. Phones are unaffected:
+ * below the threshold the frame is the full window.
+ */
+const PHONE_MAX_WIDTH = 540;
+const TABLET_MIN_WIDTH = 640;
+
+function PhoneFrame({ children }: { children: React.ReactNode }) {
+  const c = useColors();
+  const { width } = useWindowDimensions();
+  if (width < TABLET_MIN_WIDTH) return <>{children}</>;
+  return (
+    <View style={{ flex: 1, backgroundColor: c.background, alignItems: "center" }}>
+      <View style={{ flex: 1, width: "100%", maxWidth: PHONE_MAX_WIDTH, backgroundColor: c.background }}>
+        {children}
+      </View>
+    </View>
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     PlusJakartaSans_300Light,
@@ -427,7 +454,9 @@ export default function RootLayout() {
                       wait for fonts underneath it without delaying the intro. */}
                   {appReady ? (
                     <KeyboardProvider>
-                      <RootLayoutNav />
+                      <PhoneFrame>
+                        <RootLayoutNav />
+                      </PhoneFrame>
                     </KeyboardProvider>
                   ) : (
                     <View style={{ flex: 1, backgroundColor: "#ffffff" }} />
