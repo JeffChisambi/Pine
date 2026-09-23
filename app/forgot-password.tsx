@@ -1,5 +1,6 @@
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
+import { authApi, getErrorMessage } from "../services/api";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -213,7 +214,13 @@ export default function ForgotPasswordScreen() {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+  // phone → the code arrives by email → new password → done. The old
+  // screen stopped at "OTP Sent!" with nowhere to type the code.
+  const [step, setStep] = useState<"phone" | "reset" | "done">("phone");
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [phoneFocused, setPhoneFocused] = useState(false);
 
@@ -231,14 +238,46 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
     setErrorMsg("");
     try {
-      const { authApi } = require("../services/api");
       await authApi.forgotPassword(fullPhone);
-      setSent(true);
+      setStep("reset");
     } catch (err: any) {
-      const { getErrorMessage } = require("../services/api");
       setErrorMsg(getErrorMessage(err));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const passwordRules = {
+    length:    newPassword.length >= 8,
+    uppercase: /[A-Z]/.test(newPassword),
+    lowercase: /[a-z]/.test(newPassword),
+    digit:     /\d/.test(newPassword),
+    special:   /[^a-zA-Z\d]/.test(newPassword),
+  };
+  const passwordValid = Object.values(passwordRules).every(Boolean);
+  const passwordsMatch = confirmPassword === "" || newPassword === confirmPassword;
+  const canReset = code.trim().length === 6 && passwordValid && newPassword === confirmPassword && !loading;
+
+  const handleReset = async () => {
+    if (!canReset) return;
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      await authApi.resetPassword(fullPhone, code.trim(), newPassword);
+      setStep("done");
+    } catch (err: any) {
+      setErrorMsg(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setErrorMsg("");
+    try {
+      await authApi.forgotPassword(fullPhone);
+    } catch (err: any) {
+      setErrorMsg(getErrorMessage(err));
     }
   };
 
@@ -348,16 +387,18 @@ export default function ForgotPasswordScreen() {
           {/* ── Heading ── */}
           <View style={styles.headingSection}>
             <Text style={styles.headline}>
-              {sent ? "OTP Sent!" : "Password Forgotten"}
+              {step === "phone" ? "Password Forgotten" : step === "reset" ? "Check your email" : "Password changed"}
             </Text>
             <Text style={styles.subheadline}>
-              {sent
-                ? "We've sent an OTP to your phone number. Check your messages."
-                : "Please enter your phone number associated with your Pine account"}
+              {step === "phone"
+                ? "Please enter your phone number associated with your Pine account"
+                : step === "reset"
+                  ? "If that number has a Pine account, we've emailed a 6-digit code to the address on it. Enter it with your new password."
+                  : "You can sign in with your new password now. Every other device has been signed out."}
             </Text>
           </View>
 
-          {!sent && (
+          {step === "phone" && (
             <>
               {/* ── Phone row ── */}
               <View style={styles.phoneRow}>
@@ -405,7 +446,7 @@ export default function ForgotPasswordScreen() {
               {/* ── Hint text ── */}
               <View style={styles.hintWrap}>
                 <Text style={styles.hintText}>
-                  Please double-check the number as request will be sent to the number.
+                  The reset code goes to the email address on your account.
                 </Text>
               </View>
 
@@ -434,7 +475,85 @@ export default function ForgotPasswordScreen() {
             </>
           )}
 
-          {sent && (
+          {step === "reset" && (
+            <>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>Reset code</Text>
+                <TextInput
+                  style={styles.fieldInput}
+                  placeholder="6-digit code"
+                  placeholderTextColor={MUTED}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  value={code}
+                  onChangeText={(t) => { setCode(t.replace(/[^0-9]/g, "")); setErrorMsg(""); }}
+                  autoFocus
+                />
+              </View>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>New password</Text>
+                <View style={styles.fieldRow}>
+                  <TextInput
+                    style={[styles.fieldInput, { flex: 1, borderWidth: 0, paddingHorizontal: 0 }]}
+                    placeholder="New password"
+                    placeholderTextColor={MUTED}
+                    secureTextEntry={!showPassword}
+                    value={newPassword}
+                    onChangeText={(t) => { setNewPassword(t); setErrorMsg(""); }}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword((v) => !v)} hitSlop={8}>
+                    <Text style={{ color: c.primary, fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13 }}>{showPassword ? "Hide" : "Show"}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              {newPassword.length > 0 && (
+                <View style={styles.rulesWrap}>
+                  {([
+                    [passwordRules.length,    "At least 8 characters"],
+                    [passwordRules.uppercase, "One uppercase letter"],
+                    [passwordRules.lowercase, "One lowercase letter"],
+                    [passwordRules.digit,     "One number"],
+                    [passwordRules.special,   "One special character (!@#$…)"],
+                  ] as [boolean, string][]).map(([ok, label]) => (
+                    <Text key={label} style={[styles.ruleText, ok && { color: "#22C55E" }]}>● {label}</Text>
+                  ))}
+                </View>
+              )}
+              <View style={styles.fieldWrap}>
+                <Text style={[styles.fieldLabel, !passwordsMatch && { color: "#EF4444" }]}>Confirm new password</Text>
+                <TextInput
+                  style={[styles.fieldInput, !passwordsMatch && { borderColor: "#EF4444" }]}
+                  placeholder="Confirm new password"
+                  placeholderTextColor={MUTED}
+                  secureTextEntry={!showPassword}
+                  value={confirmPassword}
+                  onChangeText={(t) => { setConfirmPassword(t); setErrorMsg(""); }}
+                  returnKeyType="done"
+                  onSubmitEditing={handleReset}
+                />
+                {!passwordsMatch && <Text style={styles.ruleError}>Passwords do not match</Text>}
+              </View>
+              {errorMsg ? (
+                <View style={{ paddingHorizontal: 24, marginBottom: 8 }}>
+                  <Text style={{ color: "#EF4444", fontSize: 13 }}>{errorMsg}</Text>
+                </View>
+              ) : null}
+              <View style={styles.ctaWrap}>
+                <TouchableOpacity
+                  style={[styles.nextBtn, { backgroundColor: c.primary }, !canReset && { opacity: 0.5 }]}
+                  activeOpacity={0.85}
+                  onPress={handleReset}
+                  disabled={!canReset}
+                >
+                  {loading ? <ActivityIndicator color={WHITE} size="small" /> : <Text style={styles.nextBtnText}>Change password</Text>}
+                </TouchableOpacity>
+                <TouchableOpacity activeOpacity={0.7} onPress={handleResend} style={{ paddingVertical: 14, alignItems: "center" }}>
+                  <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: MUTED }}>Didn't get the email? Send again</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+          {step === "done" && (
             <View style={styles.ctaWrap}>
               <TouchableOpacity
                 style={[styles.nextBtn, { backgroundColor: c.primary }]}
@@ -586,6 +705,56 @@ const styles = StyleSheet.create({
   },
 
   // ── CTA ─────────────────────────────────────────────────────────
+  fieldWrap: {
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    fontSize: 11,
+    fontFamily: "PlusJakartaSans_600SemiBold",
+    color: MUTED,
+    letterSpacing: 0.2,
+    marginBottom: 6,
+  },
+  fieldInput: {
+    height: 52,
+    borderWidth: 1,
+    borderColor: BORDER_LIGHT,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    fontFamily: "PlusJakartaSans_400Regular",
+    color: DARK,
+    backgroundColor: WHITE,
+  },
+  fieldRow: {
+    height: 52,
+    borderWidth: 1,
+    borderColor: BORDER_LIGHT,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: WHITE,
+  },
+  rulesWrap: {
+    paddingHorizontal: 28,
+    marginTop: -8,
+    marginBottom: 14,
+    gap: 3,
+  },
+  ruleText: {
+    fontSize: 12,
+    fontFamily: "PlusJakartaSans_400Regular",
+    color: MUTED,
+  },
+  ruleError: {
+    fontSize: 12,
+    fontFamily: "PlusJakartaSans_400Regular",
+    color: "#EF4444",
+    marginTop: 6,
+  },
   ctaWrap: {
     paddingHorizontal: 24,
   },
