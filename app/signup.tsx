@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -320,8 +321,17 @@ export default function SignupScreen() {
         </View>
 
         {/* ── Step body ── */}
+        {/* Scrolls when it has to: on a short landscape screen with the keyboard
+            up, the confirm-password field and the rules list do not fit above
+            the button, and a fixed pane simply clipped them. */}
         <View style={styles.body}>
-          <Animated.View key={step} entering={entering} exiting={exiting} style={styles.stepPane}>
+          <Animated.View key={step} entering={entering} exiting={exiting} style={{ flex: 1 }}>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.stepPane}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <Text style={styles.headline}>{STEP_META[step].title}</Text>
             <Text style={styles.subtitle}>{STEP_META[step].subtitle}</Text>
 
@@ -533,6 +543,7 @@ export default function SignupScreen() {
                 </View>
               </View>
             )}
+          </ScrollView>
           </Animated.View>
         </View>
 
@@ -623,9 +634,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   stepPane: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 28,
+    paddingBottom: 12,
   },
   headline: {
     fontSize: 26,

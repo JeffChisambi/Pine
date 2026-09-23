@@ -38,6 +38,7 @@ import {
   compromisedDeviceTerm,
 } from "../services/security";
 import PrivacyScreen from "../components/PrivacyScreen";
+import { LayoutWidthContext } from "@/hooks/useLayoutWidth";
 import {
   configurePushNotifications,
   setupNotificationListeners,
@@ -400,12 +401,17 @@ function PhoneFrame({ children }: { children: React.ReactNode }) {
   const c = useColors();
   const { width } = useWindowDimensions();
   if (width < TABLET_MIN_WIDTH) return <>{children}</>;
+  // Screens size charts, carousels and the tab bar from useLayoutWidth();
+  // tell them the column's width, not the window's.
+  const frameWidth = Math.min(width, PHONE_MAX_WIDTH);
   return (
-    <View style={{ flex: 1, backgroundColor: c.background, alignItems: "center" }}>
-      <View style={{ flex: 1, width: "100%", maxWidth: PHONE_MAX_WIDTH, backgroundColor: c.background }}>
-        {children}
+    <LayoutWidthContext.Provider value={frameWidth}>
+      <View style={{ flex: 1, backgroundColor: c.background, alignItems: "center" }}>
+        <View style={{ flex: 1, width: "100%", maxWidth: PHONE_MAX_WIDTH, backgroundColor: c.background }}>
+          {children}
+        </View>
       </View>
-    </View>
+    </LayoutWidthContext.Provider>
   );
 }
 

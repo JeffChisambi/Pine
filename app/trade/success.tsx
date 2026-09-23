@@ -5,20 +5,19 @@ import {
   Text,
   TouchableOpacity,
   Platform,
-  Dimensions,
   ScrollView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
+import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 
 const GREEN = "#45B369";
 const AMBER = "#F59E0B";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
-const { width: SCREEN_W } = Dimensions.get("window");
 
 function Sparkle({ x, y, size = 20, color = "#FFD84A" }: { x: number; y: number; size?: number; color?: string }) {
   const arm = size * 0.35;
@@ -31,6 +30,7 @@ function Sparkle({ x, y, size = 20, color = "#FFD84A" }: { x: number; y: number;
 }
 
 function SuccessIllustration({ queued }: { queued: boolean }) {
+  const SCREEN_W = useLayoutWidth();
   const cx = SCREEN_W / 2;
   const cy = 140;
   const accent = queued ? AMBER : GREEN;
@@ -72,6 +72,7 @@ function SuccessIllustration({ queued }: { queued: boolean }) {
 }
 
 export default function SuccessScreen() {
+  const SCREEN_W = useLayoutWidth();
   const insets = useSafeAreaInsets();
   const topPad    = Platform.OS === "web" ? 48 : insets.top || 16;
   const bottomPad = insets.bottom || 24;

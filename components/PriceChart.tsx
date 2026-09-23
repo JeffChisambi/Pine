@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, Dimensions } from "react-native";
+import { View, Text } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedProps,
@@ -18,6 +18,7 @@ import Svg, {
   Text as SvgText,
 } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
+import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 
 /**
  * Line/area chart with a native-thread scrub tooltip.
@@ -34,7 +35,6 @@ const AnimatedLine   = Animated.createAnimatedComponent(Line);
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
-const { width: SCREEN_W } = Dimensions.get("window");
 
 // ─── Chart color tokens (brand / subtle — fine on both themes) ────────────────
 const SVG_GREEN = "#45B369";
@@ -84,6 +84,7 @@ export interface PriceChartProps {
 }
 
 export function PriceChart({ data, positive, period, valuePrefix = "MWK ", emptyMessage = "Insufficient data for this period" }: PriceChartProps) {
+  const SCREEN_W = useLayoutWidth();
   const c = useColors();
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const animX = useSharedValue(0);

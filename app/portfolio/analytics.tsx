@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  Dimensions,
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,6 +12,7 @@ import Svg, { Path, Circle, Line } from "react-native-svg";
 import { guardedBack } from "@/utils/navigation";
 import { useColors } from "@/hooks/useColors";
 import { PriceChart, PricePoint, CHART_H } from "@/components/PriceChart";
+import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 import {
   useHoldings,
   usePortfolioSummary,
@@ -28,7 +28,6 @@ const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 const SVG_GRID = "#EBECEF";
 
-const { width: SCREEN_W } = Dimensions.get("window");
 
 const fmtK = (n: number, digits = 2) =>
   `K ${Math.abs(n).toLocaleString("en", { minimumFractionDigits: 0, maximumFractionDigits: digits })}`;
@@ -60,6 +59,7 @@ function ArrowDownIcon({ color }: { color: string }) {
  * first snapshot lands.
  */
 function SinglePointChart({ value, primary }: { value: number; primary: string }) {
+  const SCREEN_W = useLayoutWidth();
   const Y_PAD = 54, PAD_R = 16;
   const midY = CHART_H / 2 - 8;
   const dotX = SCREEN_W - PAD_R - 6;
@@ -90,6 +90,7 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export default function PortfolioAnalyticsScreen() {
+  const SCREEN_W = useLayoutWidth();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const bottomPad = insets.bottom || 16;

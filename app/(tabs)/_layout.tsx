@@ -14,6 +14,7 @@ import Animated, {
 import { useColors } from "@/hooks/useColors";
 import { useUnreadCount } from "@/hooks/useNotifications";
 import { tabBarHidden } from "@/contexts/tab-bar-visibility";
+import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 
 const MUTED = "#9CA3AF";
 
@@ -227,7 +228,7 @@ function AnimatedTabItem({
 
 function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
+  const width = useLayoutWidth();
   const c = useColors();
 
   const TAB_CONTENT_HEIGHT = 56;

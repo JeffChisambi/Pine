@@ -13,7 +13,6 @@ import { guardedPush } from "@/utils/navigation";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
-  Dimensions,
   Platform,
   StyleSheet,
   Text,
@@ -32,13 +31,13 @@ import Svg, {
 } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 import { invalidateWalletBalance } from "@/services/wallet-queries";
+import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
-const { width: SCREEN_W } = Dimensions.get("window");
 
 // ─── Illustrations ────────────────────────────────────────────────────────────
 
@@ -63,6 +62,7 @@ function Sparkle({
 }
 
 function SuccessIllustration() {
+  const SCREEN_W = useLayoutWidth();
   const cx = SCREEN_W / 2;
   const cy = 140;
   return (
@@ -115,6 +115,7 @@ function normaliseBrand(brand: string): string {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function CardSuccessScreen() {
+  const SCREEN_W = useLayoutWidth();
   const insets    = useSafeAreaInsets();
   const topPad    = Platform.OS === "web" ? 48 : insets.top || 16;
   const bottomPad = insets.bottom || 24;
@@ -255,7 +256,8 @@ const styles = StyleSheet.create({
   },
 
   summaryCard: {
-    width: SCREEN_W - 40,
+    alignSelf: "stretch",
+    marginHorizontal: 20,
     borderRadius: 16,
     borderWidth: 1,
     paddingHorizontal: 16,
@@ -283,7 +285,8 @@ const styles = StyleSheet.create({
   },
 
   ctaWrap: {
-    width: SCREEN_W - 40,
+    alignSelf: "stretch",
+    marginHorizontal: 20,
     gap: 12,
     marginTop: "auto",
   },

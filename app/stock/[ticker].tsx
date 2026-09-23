@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  Dimensions,
   ActivityIndicator,
   Image,
 } from "react-native";
@@ -23,6 +22,7 @@ import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 import { PriceChart, PricePoint, CHART_H } from "@/components/PriceChart";
 import { useTradeEligibility, tradeBlockTitle, tradeBlockAction } from "@/hooks/useTradeEligibility";
+import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
 const GREEN = "#45B369";
@@ -30,7 +30,6 @@ const RED   = "#EF4770";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 
-const { width: SCREEN_W } = Dimensions.get("window");
 
 // ─── Period tabs ─────────────────────────────────────────────────────────────────
 const TIME_TABS = ["1M", "3M", "6M", "1Y", "2Y", "5Y"] as const;
@@ -38,6 +37,7 @@ type TimePeriod = typeof TIME_TABS[number];
 
 // ─── Main screen ────────────────────────────────────────────────────────────────
 export default function StockDetailScreen() {
+  const SCREEN_W = useLayoutWidth();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 44 : insets.top || 16;
   const bottomPad = insets.bottom || 16;

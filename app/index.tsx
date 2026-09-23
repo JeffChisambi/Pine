@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 
 /* ─── Colours ─────────────────────────────────────────────── */
 const WHITE         = "#FFFFFF";
@@ -63,7 +64,8 @@ export default function OnboardingScreen() {
   const insets   = useSafeAreaInsets();
   const topPad   = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad= Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
-  const { width, height }  = useWindowDimensions();
+  const { height }  = useWindowDimensions();
+  const width = useLayoutWidth();
   const isLargeScreen = height > 800;
   const illustrationH = Math.min(height * 0.35, 320);
 

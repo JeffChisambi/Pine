@@ -29,6 +29,7 @@ import { useColors } from "@/hooks/useColors";
 import { useNews } from "@/hooks/useNews";
 import { parseBody, parseInline, type NewsBlock } from "@/utils/newsBlocks";
 import { API_BASE_URL } from "@/services/api";
+import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 
 // ─── Brand tokens ───────────────────────────────────────────────────────────────
 const GREEN = "#45B369";
@@ -212,7 +213,7 @@ function NewsCard({ item, onPress, isLast, c }: { item: NewsItem; onPress: () =>
 function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void }) {
   const insets = useSafeAreaInsets();
   const c = useColors();
-  const { width } = useWindowDimensions();
+  const width = useLayoutWidth();
 
   const translateX = useSharedValue(width);
 
@@ -430,7 +431,7 @@ export default function NewsScreen() {
   const [selected, setSelected] = useState<NewsItem | null>(null);
 
   // ── Expanding search ──
-  const { width: screenW } = useWindowDimensions();
+  const screenW = useLayoutWidth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchProg = useSharedValue(0);

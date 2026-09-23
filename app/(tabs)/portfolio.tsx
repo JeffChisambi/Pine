@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
-  Dimensions,
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,7 +25,6 @@ const GREEN = "#45B369";
 const RED = "#EF4770";
 const WHITE = "#FFFFFF";
 
-const { width: SCREEN_W } = Dimensions.get("window");
 
 interface Holding extends StockData {
   shares: string;

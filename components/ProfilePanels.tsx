@@ -41,6 +41,7 @@ import {
   type PushPermissionStatus,
 } from "../services/push";
 import { useColors } from "@/hooks/useColors";
+import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 
 // ─── Shared tokens ────────────────────────────────────────────────────────────
 const GREEN  = "#45B369";
@@ -62,7 +63,7 @@ function BackChevron({ color }: { color: string }) {
 
 // ─── Shared slide-in wrapper ──────────────────────────────────────────────────
 export function SlidePanel({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  const { width } = useWindowDimensions();
+  const width = useLayoutWidth();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 48 : insets.top || 16;
   const c = useColors();

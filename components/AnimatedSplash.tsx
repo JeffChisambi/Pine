@@ -57,7 +57,7 @@ export function AnimatedSplash({
     return () => clearTimeout(fallback);
   }, [loaded, finish]);
 
-  const width = Dimensions.get("window").width;
+  const width = Math.min(Dimensions.get("window").width, 540);
 
   return (
     <Animated.View style={[styles.wrap, { opacity }]} pointerEvents="none">
