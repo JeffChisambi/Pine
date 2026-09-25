@@ -43,7 +43,8 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
+      # The Android SDK comes preinstalled on GitHub's Ubuntu runners
+      # (ANDROID_HOME is already set), so there is no setup step for it.
 
       - uses: actions/cache@v4
         with:
