@@ -1,0 +1,76 @@
+# Builds a release APK on GitHub's servers and attaches it to the run.
+#
+# Runs on every push to virtual-trading, or by hand from the Actions tab
+# ("Run workflow"). The APK appears under the run's "Artifacts" section.
+#
+# Signing: this uses the debug keystore that `expo prebuild` generates, not
+# the Pine upload key held by EAS. That is fine for testing, but Android
+# will not install it over a Pine build from EAS — uninstall first.
+name: Android APK
+
+on:
+  push:
+    branches: [virtual-trading]
+  workflow_dispatch:
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # Practice builds talk to the practice server only.
+      EXPO_PUBLIC_API_URL: https://practice-api.appine.online/v1
+      EXPO_PUBLIC_ENABLE_TEST_TX: "0"
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'app.json') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate the native Android project
+        run: npx expo prebuild --platform android --no-install --clean
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew app:assembleRelease -x lint -x test -PreactNativeArchitectures=arm64-v8a --no-daemon
+
+      - name: Name the APK
+        run: |
+          short=$(git rev-parse --short HEAD)
+          cp android/app/build/outputs/apk/release/app-release.apk "pine-practice-${short}.apk"
+          echo "APK_NAME=pine-practice-${short}" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.APK_NAME }}.apk
+          retention-days: 30
