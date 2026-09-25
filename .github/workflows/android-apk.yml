@@ -63,11 +63,12 @@ jobs:
       # The runner has 16 GB; Gradle's default heap and metaspace are far
       # smaller, and the release build ran out of Metaspace.
       - name: Give Gradle enough memory
-        # Leading newline: the generated file has no trailing one, and
-        # appending without it glues this onto the previous property.
-        run: printf '
-org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=2g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
-' >> android/gradle.properties
+        # The blank `echo` first: the generated file has no trailing newline,
+        # and appending straight onto it glues this to the previous property.
+        run: |
+          echo >> android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=2g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
+          tail -3 android/gradle.properties
 
       # lintVitalAnalyzeRelease is a separate task from `lint`, so -x lint
       # does not skip it. An unqualified -x excludes it in every module.
