@@ -60,9 +60,16 @@ jobs:
       - name: Generate the native Android project
         run: npx expo prebuild --platform android --no-install --clean
 
+      # The runner has 16 GB; Gradle's default heap and metaspace are far
+      # smaller, and the release build ran out of Metaspace.
+      - name: Give Gradle enough memory
+        run: echo "org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=2g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
+
+      # lintVitalAnalyzeRelease is a separate task from `lint`, so -x lint
+      # does not skip it. An unqualified -x excludes it in every module.
       - name: Build release APK
         working-directory: android
-        run: ./gradlew app:assembleRelease -x lint -x test -PreactNativeArchitectures=arm64-v8a --no-daemon
+        run: ./gradlew app:assembleRelease -x lint -x lintVitalAnalyzeRelease -x lintVitalReportRelease -x lintVitalRelease -x test -PreactNativeArchitectures=arm64-v8a --no-daemon
 
       - name: Name the APK
         run: |
