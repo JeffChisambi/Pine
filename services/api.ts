@@ -449,7 +449,27 @@ export interface WalletTransaction {
   createdAt: string;
 }
 
+/** Practice mode: rolling deposit allowance (GET /wallet/virtual-allowance). */
+export interface VirtualAllowance {
+  cap: number;
+  windowDays: number;
+  used: number;
+  remaining: number;
+  /** When the oldest deposit in the window rolls off, freeing that amount. */
+  nextReleaseAt: string | null;
+}
+
 export const walletApi = {
+  /** Practice mode: credit play money at once (no payment step). */
+  depositPractice: (amount: number, idempotencyKey: string): Promise<{ transactionId: string; status: string; allowance: VirtualAllowance }> =>
+    request('/wallet/deposit', {
+      method: 'POST',
+      body: JSON.stringify({ amount, idempotencyKey }),
+    }),
+
+  getVirtualAllowance: (): Promise<VirtualAllowance> =>
+    request<VirtualAllowance>('/wallet/virtual-allowance'),
+
   getBalance: (): Promise<WalletBalance> =>
     request<WalletBalance>('/wallet/balance'),
 

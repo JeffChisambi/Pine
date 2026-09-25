@@ -15,8 +15,8 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1",
-        "EXPO_PUBLIC_ENABLE_TEST_TX": "1"
+        "EXPO_PUBLIC_API_URL": "https://practice-api.appine.online/v1",
+        "EXPO_PUBLIC_ENABLE_TEST_TX": "0"
       }
     },
     "production": {
@@ -25,8 +25,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1",
-        "EXPO_PUBLIC_ENABLE_TEST_TX": "1"
+        "EXPO_PUBLIC_API_URL": "https://practice-api.appine.online/v1",
+        "EXPO_PUBLIC_ENABLE_TEST_TX": "0"
       }
     },
     "store": {
@@ -35,7 +35,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.appine.online/v1",
+        "EXPO_PUBLIC_API_URL": "https://practice-api.appine.online/v1",
         "EXPO_PUBLIC_ENABLE_TEST_TX": "0"
       }
     }

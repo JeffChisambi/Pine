@@ -52,6 +52,7 @@ import { EDUCATION_ICON_SVG } from "@/constants/EducationIconSvg";
 import { LinearGradient } from "expo-linear-gradient";
 import { useColors } from "@/hooks/useColors";
 import { useUnreadCount } from "@/hooks/useNotifications";
+import { PRACTICE_MODE } from "@/constants/practice";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
 const GREEN = "#45B369";
@@ -436,7 +437,7 @@ export default function HomeScreen() {
         <View style={{ backgroundColor: GREEN, borderRadius: 16, padding: 20, gap: 28 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 16 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE, opacity: 0.8, letterSpacing: 1, marginBottom: 4 }}>AVAILABLE BALANCE</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE, opacity: 0.8, letterSpacing: 1, marginBottom: 4 }}>{PRACTICE_MODE ? "PRACTICE BALANCE" : "AVAILABLE BALANCE"}</Text>
               <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 34, color: WHITE, letterSpacing: -0.5 }} adjustsFontSizeToFit numberOfLines={1}>
                 {balanceVisible ? (totalBalance ?? "—") : "K  ••••••"}
               </Text>
@@ -450,10 +451,22 @@ export default function HomeScreen() {
               <AddCircleIcon color={GREEN} />
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: GREEN }}>Deposit</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={{ flex: 1, borderRadius: 12, height: 48, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push("/withdraw" as any))}>
-              <ImportIcon color={WHITE} />
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: WHITE }}>Withdraw</Text>
-            </TouchableOpacity>
+            {/* Practice money cannot be withdrawn, so the second action is
+                the practice-only comparison tool instead. */}
+            {PRACTICE_MODE ? (
+              <TouchableOpacity style={{ flex: 1, borderRadius: 12, height: 48, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push("/compare" as any))}>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <Path d="M3 17l5-6 4 3 5-7 4 4" stroke={WHITE} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+                  <Path d="M3 20h18" stroke={WHITE} strokeWidth={1.8} strokeLinecap="round" />
+                </Svg>
+                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: WHITE }}>Compare</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={{ flex: 1, borderRadius: 12, height: 48, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push("/withdraw" as any))}>
+                <ImportIcon color={WHITE} />
+                <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: WHITE }}>Withdraw</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>

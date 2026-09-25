@@ -21,6 +21,8 @@ import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
 import PinVerifyModal from "../../components/PinVerifyModal";
 import { useTradeEligibility, tradeBlockTitle, tradeBlockAction } from "@/hooks/useTradeEligibility";
+import { PRACTICE_MODE } from "@/constants/practice";
+import { portfolioKeys } from "@/hooks/usePortfolio";
 
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -158,6 +160,8 @@ export default function ConfirmScreen() {
       // The order's cost is reserved server-side the moment it is accepted —
       // refresh so the available balance drops immediately.
       invalidateWalletBalance(qc).catch(() => {});
+      // A practice order has already filled: holdings changed too.
+      if (PRACTICE_MODE) qc.invalidateQueries({ queryKey: portfolioKeys.all }).catch(() => {});
       router.push({
         pathname: "/trade/success" as any,
         params: {

@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import PinVerifyModal from "@/components/PinVerifyModal";
 import { walletApi } from "../services/api";
 import { invalidateWalletBalance, useWalletBalance } from "../services/wallet-queries";
+import { PRACTICE_MODE } from "@/constants/practice";
 
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -61,7 +62,33 @@ function ClockIcon() {
   );
 }
 
+/** Practice money has nowhere to go; the server refuses withdrawals too. */
 export default function WithdrawScreen() {
+  if (PRACTICE_MODE) return <PracticeNoWithdraw />;
+  return <RealWithdrawScreen />;
+}
+
+function PracticeNoWithdraw() {
+  const insets = useSafeAreaInsets();
+  const c = useColors();
+  return (
+    <View style={{ flex: 1, backgroundColor: c.background, paddingTop: insets.top + 24, paddingHorizontal: 24, gap: 12 }}>
+      <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 22, color: c.text }}>Withdrawals are off</Text>
+      <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, lineHeight: 21 }}>
+        This is a practice account. The money in it is for learning how trading works, so it cannot be withdrawn.
+      </Text>
+      <TouchableOpacity
+        onPress={() => guardedBack("/(tabs)")}
+        activeOpacity={0.85}
+        style={{ marginTop: 12, height: 50, borderRadius: 12, backgroundColor: c.primary, alignItems: "center", justifyContent: "center" }}
+      >
+        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: "#FFFFFF" }}>Back</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function RealWithdrawScreen() {
   const insets = useSafeAreaInsets();
   const topPad    = Platform.OS === "web" ? 44 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);

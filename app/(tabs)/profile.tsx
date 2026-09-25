@@ -28,6 +28,7 @@ import {
   type BiometricInfo,
 } from "../../services/biometrics";
 import PinVerifyModal from "@/components/PinVerifyModal";
+import { PRACTICE_MODE } from "@/constants/practice";
 
 // ─── Static brand / semantic tokens (unchanged across themes) ─────────────────
 const WHITE = "#FFFFFF";
@@ -246,13 +247,14 @@ export default function ProfileScreen() {
     onPress: (() => void) | null; badge?: "verified";
     right?: React.ReactNode;
   }> = [
-    {
+    // Practice mode never asks for identity verification.
+    ...(PRACTICE_MODE ? [] : [{
       icon: <SealCheckIcon color={isVerified ? "#45B369" : iconColor} />,
       label: "Identity Verification",
       sub: isVerified ? "Your identity is verified" : "KYC — verify your identity",
       onPress: isVerified ? null : () => guardedPush(() => router.push("/kyc/upload-id" as any)),
-      badge: isVerified ? "verified" : undefined,
-    },
+      badge: isVerified ? ("verified" as const) : undefined,
+    }]),
     { icon: <SettingsIcon color={iconColor} size={22} />, label: "Settings", sub: "Preferences & account", onPress: () => guardedPush(() => router.push("/settings" as any)) },
   ];
 
@@ -418,7 +420,12 @@ export default function ProfileScreen() {
             <View style={styles.profileTextBlock}>
               <Text style={styles.profileName}>{userName ?? "—"}</Text>
               <Text style={styles.profilePhone}>{userPhone ?? "—"}</Text>
-              {kycStatus === "NOT_SUBMITTED" && (
+              {PRACTICE_MODE && (
+                <View style={[styles.unverifiedChip, { backgroundColor: "#F0FDF4", borderColor: "#86EFAC" }]}>
+                  <Text style={[styles.unverifiedText, { color: "#166534" }]}>Practice account</Text>
+                </View>
+              )}
+              {!PRACTICE_MODE && kycStatus === "NOT_SUBMITTED" && (
                 <TouchableOpacity
                   style={styles.unverifiedChip}
                   onPress={() => guardedPush(() => router.push("/kyc/upload-id" as any))}
@@ -427,17 +434,17 @@ export default function ProfileScreen() {
                   <Text style={styles.unverifiedText}>⚠ Verify Now</Text>
                 </TouchableOpacity>
               )}
-              {kycStatus === "PENDING" && (
+              {!PRACTICE_MODE && kycStatus === "PENDING" && (
                 <View style={[styles.unverifiedChip, { backgroundColor: "#EFF6FF", borderColor: "#93C5FD" }]}>
                   <Text style={[styles.unverifiedText, { color: "#1E40AF" }]}>⏳ Under Review</Text>
                 </View>
               )}
-              {kycStatus === "APPROVED" && (
+              {!PRACTICE_MODE && kycStatus === "APPROVED" && (
                 <View style={[styles.unverifiedChip, { backgroundColor: "#F0FDF4", borderColor: "#86EFAC" }]}>
                   <Text style={[styles.unverifiedText, { color: "#166534" }]}>✓ Verified</Text>
                 </View>
               )}
-              {kycStatus === "REJECTED" && (
+              {!PRACTICE_MODE && kycStatus === "REJECTED" && (
                 <TouchableOpacity
                   style={[styles.unverifiedChip, { backgroundColor: "#FEF2F2", borderColor: "#FCA5A5" }]}
                   onPress={() => guardedPush(() => router.push("/kyc/upload-id" as any))}

@@ -12,6 +12,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 import { useLayoutWidth } from "@/hooks/useLayoutWidth";
+import { PRACTICE_MODE } from "@/constants/practice";
 
 const GREEN = "#45B369";
 const AMBER = "#F59E0B";
@@ -100,7 +101,8 @@ export default function SuccessScreen() {
   // the broker, so the screen shows the green confirmation.
   const waitingForOpen = params.marketOpen !== "1";
 
-  const title = "Order Submitted!";
+  // Practice orders fill the moment they are placed.
+  const title = PRACTICE_MODE ? "Order Filled!" : "Order Submitted!";
   // Prefer the server's message — it knows whether the market is open
   // ("being processed by the broker") or closed ("executed when the market
   // opens"), so the user is never told to wait for open during hours.

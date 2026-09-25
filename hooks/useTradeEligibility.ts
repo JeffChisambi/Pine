@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { guardedPush } from '@/utils/navigation';
 import { useAuth } from '@/services/auth-context';
+import { PRACTICE_MODE } from '@/constants/practice';
 
 export type TradeBlockReason = 'broker' | 'kyc' | null;
 
@@ -34,7 +35,8 @@ export function useTradeEligibility(): TradeEligibility {
   const { user, isLoading, refreshProfile } = useAuth();
 
   const hasBroker = !!user?.broker;
-  const kycApproved = user?.kycStatus === 'APPROVED';
+  // Practice mode trades play money, so identity verification is not asked for.
+  const kycApproved = PRACTICE_MODE || user?.kycStatus === 'APPROVED';
   const reason: TradeBlockReason = !user ? null : !hasBroker ? 'broker' : !kycApproved ? 'kyc' : null;
 
   // Both blocks are cleared by something that happens away from this phone

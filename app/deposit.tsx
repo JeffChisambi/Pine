@@ -1,10 +1,18 @@
-import { guardedBack, guardedPush } from "@/utils/navigation";
+/**
+ * Practice deposit.
+ *
+ * Play money, credited the moment the investor confirms — there is no card
+ * or bank step. Each account may deposit at most MWK 500,000 in any rolling
+ * year; the allowance meter shows how much of that is used and when the
+ * oldest deposit rolls off. The server enforces the cap, so a request over
+ * it comes back with the reason and nothing is credited.
+ */
+import { guardedBack } from "@/utils/navigation";
 import { router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useColors } from "@/hooks/useColors";
 import {
   ActivityIndicator,
-  Alert,
   Keyboard,
   Platform,
   ScrollView,
@@ -15,28 +23,24 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path, Circle } from "react-native-svg";
-import { savedCardsApi, walletApi, type DepositPreview } from "../services/api";
-import { useAuth } from "../services/auth-context";
-
-type SavedCard = {
-  id: string;
-  last4: string;
-  cardBrand: string;
-  cardholderName: string;
-  expiryMonth: string;
-  expiryYear: string;
-  isDefault: boolean;
-};
+import Svg, { Path } from "react-native-svg";
+import { useQueryClient } from "@tanstack/react-query";
+import { walletApi, getErrorMessage, type VirtualAllowance } from "../services/api";
+import { WALLET_BALANCE_QUERY_KEY, WALLET_HISTORY_QUERY_KEY } from "../services/wallet-queries";
+import { PRACTICE_DEPOSIT_CAP } from "@/constants/practice";
 
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 const GREEN = "#45B369";
+const AMBER = "#D97706";
 
-const QUICK_AMOUNTS = ["1,000", "5,000", "10,000", "50,000"];
-/** Smallest deposit the app accepts; the server enforces the same floor. */
+const QUICK_AMOUNTS = [10_000, 50_000, 100_000, 250_000];
+/** Smallest deposit the server accepts. */
 const MIN_DEPOSIT = 1000;
+
+const fmtMK = (n: number) => `MK ${Math.round(n).toLocaleString("en-MW")}`;
 
 function BackIcon({ color }: { color: string }) {
   return (
@@ -46,565 +50,221 @@ function BackIcon({ color }: { color: string }) {
   );
 }
 
-function CheckIcon() {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Circle cx={9} cy={9} r={9} fill={GREEN} />
-      <Path d="M5.5 9l2.5 2.5L12.5 6" stroke={WHITE} strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
+function newKey() {
+  return `practice-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function InfoIcon() {
-  return (
-    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-      <Circle cx={7} cy={7} r={6.25} stroke={MUTED} strokeWidth={1.2} />
-      <Path d="M7 6.5v3.5" stroke={MUTED} strokeWidth={1.2} strokeLinecap="round" />
-      <Circle cx={7} cy={4.5} r={0.75} fill={MUTED} />
-    </Svg>
-  );
-}
-
-function BankCardIcon({ color = "#6366F1" }: { color?: string }) {
-  return (
-    <View style={{ width: 42, height: 42, borderRadius: 10, backgroundColor: color + "18", alignItems: "center", justifyContent: "center" }}>
-      <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-        <Path d="M3 8V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2M3 8v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8M3 8h18" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-        <Path d="M7 15h4" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-      </Svg>
-    </View>
-  );
-}
-
-export default function DepositScreen() {
-  const insets = useSafeAreaInsets();
-  const topPad    = Platform.OS === "web" ? 44 : insets.top;
-  const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 12);
+export default function PracticeDepositScreen() {
   const c = useColors();
-  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+  const topPad = Platform.OS === "web" ? 44 : insets.top;
+  const bottomPad = Math.max(insets.bottom, 16);
+  const qc = useQueryClient();
 
-  const [rawAmount, setRawAmount] = useState("");
-  const [selectedMethod, setSelectedMethod] = useState("bankcard");
-  const [loading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [raw, setRaw] = useState("");
+  const [allowance, setAllowance] = useState<VirtualAllowance | null>(null);
+  const [loadingAllowance, setLoadingAllowance] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState<number | null>(null);
+  // One key per attempt: a retried tap after a timeout must not credit twice.
+  const keyRef = useRef(newKey());
 
-  // Broker-required guard (client-side courtesy — the server enforces this
-  // too and rejects deposits with BROKER_REQUIRED when no broker is selected).
-  // Fires once, as soon as the authenticated profile is available.
-  const brokerPromptShown = useRef(false);
-  useEffect(() => {
-    if (!user || brokerPromptShown.current) return;
-    brokerPromptShown.current = true;
-    if (!user.broker) {
-      Alert.alert(
-        "Account not linked",
-        "Your account is not linked to a broker yet, so deposits cannot be made. Contact support and we will sort it out.",
-        [
-          { text: "Not now", style: "cancel", onPress: () => guardedBack("/(tabs)") },
-          { text: "Contact support", onPress: () => guardedPush(() => router.push("/help" as any)) },
-        ],
-      );
+  const loadAllowance = useCallback(async () => {
+    setLoadingAllowance(true);
+    try {
+      setAllowance(await walletApi.getVirtualAllowance());
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoadingAllowance(false);
     }
-  }, [user]);
-
-  useEffect(() => {
-    savedCardsApi.list().then((cards) => {
-      // Only offer cards that can actually be charged: a saved card is a
-      // gateway token issued by the investor's own broker's merchant, so a
-      // pre-tokenisation card (or one saved under a previous broker) has to
-      // be entered once more rather than failing at the payment step.
-      const usable = cards.filter((c) => c.chargeable !== false);
-      setSavedCards(usable);
-      const def = usable.find((c) => c.isDefault);
-      if (def) setSelectedCardId(def.id);
-    }).catch(() => {});
   }, []);
+  useFocusEffect(useCallback(() => { loadAllowance(); }, [loadAllowance]));
 
-  const numericValue = parseFloat(rawAmount.replace(/,/g, "")) || 0;
-  const meetsMinimum = numericValue >= MIN_DEPOSIT && !loading;
+  const amount = Number(raw.replace(/[^0-9]/g, "")) || 0;
+  const cap = allowance?.cap ?? PRACTICE_DEPOSIT_CAP;
+  const used = allowance?.used ?? 0;
+  const remaining = allowance?.remaining ?? cap;
+  const overAllowance = amount > remaining;
+  const underMinimum = amount > 0 && amount < MIN_DEPOSIT;
+  const canSubmit = amount >= MIN_DEPOSIT && !overAllowance && !submitting && !loadingAllowance;
 
-  // Live fee breakdown from the broker's configured deposit fee schedule —
-  // debounced so typing doesn't spam the API. Falls back gracefully (no
-  // breakdown shown) if the preview fails; the server still applies the
-  // real fee at payment time.
-  const [preview, setPreview] = useState<DepositPreview | null>(null);
-  useEffect(() => {
-    if (!meetsMinimum) { setPreview(null); return; }
-    let cancelled = false;
-    const t = setTimeout(() => {
-      walletApi.previewDeposit(numericValue)
-        .then((p) => { if (!cancelled) setPreview(p); })
-        .catch(() => { if (!cancelled) setPreview(null); });
-    }, 350);
-    return () => { cancelled = true; clearTimeout(t); };
-  }, [numericValue, meetsMinimum]);
+  const usedPct = Math.min(1, used / cap);
+  const pendingPct = Math.min(1 - usedPct, Math.min(amount, remaining) / cap);
 
-  const fmtMK = (n: number) => `MK ${n.toLocaleString("en-MW", { maximumFractionDigits: 2 })}`;
+  const releaseDate = useMemo(() => {
+    if (!allowance?.nextReleaseAt) return null;
+    return new Date(allowance.nextReleaseAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  }, [allowance?.nextReleaseAt]);
 
-  // Broker-configured deposit limits from the preview (server-enforced at
-  // submission; shown here so the client knows the max BEFORE paying).
-  const limits = preview?.limits;
-  const limitBlocked = meetsMinimum && limits != null && !limits.allowed;
-  const canDeposit = meetsMinimum && !limitBlocked;
-
-  const handleQuick = (label: string) => {
-    setRawAmount(label);
-    setErrorMsg("");
+  const onChange = (t: string) => {
+    const digits = t.replace(/[^0-9]/g, "").slice(0, 9);
+    setRaw(digits ? Number(digits).toLocaleString("en-MW") : "");
+    setError("");
   };
 
-  const handleDeposit = () => {
-    if (!canDeposit) return;
-    const card = savedCards.find((c) => c.id === selectedCardId);
-    guardedPush(() => router.push({
-      pathname: "/payment-card" as any,
-      params: {
-        amount: String(numericValue),
-        currency: "MWK",
-        purpose: "wallet_deposit",
-        ...(card ? {
-          savedCardId: card.id,
-          last4: card.last4,
-          cardBrand: card.cardBrand,
-          cardholderName: card.cardholderName,
-          expiryMonth: card.expiryMonth,
-          expiryYear: card.expiryYear,
-        } : {}),
-      },
-    }));
+  const submit = async () => {
+    if (!canSubmit) return;
+    Keyboard.dismiss();
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await walletApi.depositPractice(amount, keyRef.current);
+      setAllowance(res.allowance);
+      setDone(amount);
+      setRaw("");
+      keyRef.current = newKey();
+      qc.invalidateQueries({ queryKey: WALLET_BALANCE_QUERY_KEY });
+      qc.invalidateQueries({ queryKey: WALLET_HISTORY_QUERY_KEY });
+    } catch (err) {
+      setError(getErrorMessage(err));
+      // The server said no; the next attempt is a new request.
+      keyRef.current = newKey();
+      loadAllowance();
+    } finally {
+      setSubmitting(false);
+    }
   };
-
-  const styles = StyleSheet.create({
-    root: {
-      flex: 1,
-      backgroundColor: c.background,
-    },
-
-    /* Header */
-    header: {
-      backgroundColor: c.background,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingBottom: 0,
-    },
-    backBtn: {
-      width: 40,
-      height: 40,
-      justifyContent: "center",
-    },
-    headerTitle: {
-      flex: 1,
-      textAlign: "center",
-      fontFamily: "PlusJakartaSans_700Bold",
-      fontSize: 18,
-      color: c.text,
-    },
-
-    /* Amount band */
-    amountBand: {
-      backgroundColor: c.background,
-      paddingHorizontal: 24,
-      paddingTop: 24,
-      paddingBottom: 32,
-      alignItems: "center",
-    },
-    amountLabel: {
-      fontFamily: "PlusJakartaSans_400Regular",
-      fontSize: 13,
-      color: c.mutedForeground,
-      marginBottom: 12,
-      letterSpacing: 0.4,
-    },
-    amountRow: {
-      flexDirection: "row",
-      alignItems: "baseline",
-      gap: 8,
-    },
-    currencySymbol: {
-      fontFamily: "PlusJakartaSans_600SemiBold",
-      fontSize: 22,
-      color: c.mutedForeground,
-    },
-    amountInput: {
-      fontFamily: "PlusJakartaSans_700Bold",
-      fontSize: 48,
-      color: c.text,
-      minWidth: 120,
-      textAlign: "center",
-      padding: 0,
-    },
-    amountDivider: {
-      width: 200,
-      height: 1.5,
-      backgroundColor: c.border,
-      marginTop: 12,
-      marginBottom: 10,
-    },
-    amountHint: {
-      fontFamily: "PlusJakartaSans_400Regular",
-      fontSize: 12,
-      color: c.mutedForeground,
-    },
-
-    /* Body */
-    body: {
-      flex: 1,
-      backgroundColor: c.background,
-    },
-    bodyContent: {
-      paddingHorizontal: 24,
-      paddingBottom: 24,
-    },
-
-    /* Quick amounts */
-    quickRow: {
-      flexDirection: "row",
-      gap: 10,
-      marginBottom: 28,
-    },
-    quickBtn: {
-      flex: 1,
-      height: 40,
-      borderRadius: 10,
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    quickBtnActive: {
-      backgroundColor: c.primary,
-      borderColor: c.primary,
-    },
-    quickBtnText: {
-      fontFamily: "PlusJakartaSans_600SemiBold",
-      fontSize: 13,
-      color: c.text,
-    },
-    quickBtnTextActive: {
-      color: WHITE,
-    },
-
-    /* Section label */
-    sectionLabel: {
-      fontFamily: "PlusJakartaSans_600SemiBold",
-      fontSize: 14,
-      color: c.text,
-      marginBottom: 12,
-    },
-
-    /* Payment method card */
-    methodCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: c.card,
-      borderRadius: 14,
-      borderWidth: 1.5,
-      borderColor: c.border,
-      padding: 14,
-      gap: 14,
-      marginBottom: 14,
-    },
-    methodCardActive: {
-      borderColor: c.primary,
-    },
-    uncheckCircle: {
-      width: 18,
-      height: 18,
-      borderRadius: 9,
-      borderWidth: 1.5,
-      borderColor: c.mutedForeground,
-    },
-    methodLogoWrap: {
-      width: 44,
-      height: 44,
-      borderRadius: 10,
-      overflow: "hidden",
-      backgroundColor: c.background,
-      borderWidth: 1,
-      borderColor: c.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    methodLogo: {
-      width: 44,
-      height: 44,
-    },
-    methodInfo: {
-      flex: 1,
-    },
-    methodName: {
-      fontFamily: "PlusJakartaSans_600SemiBold",
-      fontSize: 15,
-      color: c.text,
-    },
-    methodSub: {
-      fontFamily: "PlusJakartaSans_400Regular",
-      fontSize: 12,
-      color: c.mutedForeground,
-      marginTop: 2,
-    },
-
-    /* Info note */
-    noteRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: 8,
-      marginBottom: 20,
-    },
-    noteText: {
-      flex: 1,
-      fontFamily: "PlusJakartaSans_400Regular",
-      fontSize: 12,
-      color: c.mutedForeground,
-      lineHeight: 18,
-    },
-
-    /* Summary */
-    summaryCard: {
-      backgroundColor: c.card,
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: c.border,
-      padding: 16,
-    },
-    summaryRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      gap: 12,
-    },
-    summaryLabel: {
-      fontFamily: "PlusJakartaSans_400Regular",
-      fontSize: 13,
-      color: c.mutedForeground,
-      flex: 1,
-    },
-    summaryValue: {
-      fontFamily: "PlusJakartaSans_600SemiBold",
-      fontSize: 13,
-      color: c.text,
-      flexShrink: 0,
-    },
-    summaryDivider: {
-      height: 1,
-      backgroundColor: c.border,
-      marginVertical: 12,
-    },
-
-    /* CTA */
-    ctaWrap: {
-      paddingHorizontal: 24,
-      paddingTop: 12,
-      paddingBottom: 24,
-      backgroundColor: c.background,
-    },
-    ctaBtn: {
-      height: 56,
-      backgroundColor: c.primary,
-      borderRadius: 14,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    ctaBtnDisabled: {
-      opacity: 0.45,
-    },
-    ctaBtnText: {
-      fontFamily: "PlusJakartaSans_600SemiBold",
-      fontSize: 17,
-      color: WHITE,
-    },
-  });
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={[styles.root, { paddingBottom: bottomPad }]}>
-
-        {/* ── Header ── */}
-        <View style={[styles.header, { paddingTop: topPad }]}>
-          <TouchableOpacity style={styles.backBtn} activeOpacity={0.7} onPress={() => guardedBack("/(tabs)")}>
+      <View style={{ flex: 1, backgroundColor: c.background }}>
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: topPad + 8 }]}>
+          <TouchableOpacity onPress={() => guardedBack("/(tabs)")} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Go back">
             <BackIcon color={c.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Deposit</Text>
-          <View style={styles.backBtn} />
+          <Text style={[styles.headerTitle, { color: c.text }]}>Add practice money</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* ── Amount entry ── */}
-        <View style={styles.amountBand}>
-          <Text style={styles.amountLabel}>Enter Amount</Text>
-          <View style={styles.amountRow}>
-            <Text style={styles.currencySymbol}>MK</Text>
-            <TextInput
-              style={styles.amountInput}
-              keyboardType="numeric"
-              placeholder="0.00"
-              placeholderTextColor={MUTED}
-              value={rawAmount}
-              onChangeText={(val) => setRawAmount(val.replace(/[^0-9,]/g, ""))}
-              returnKeyType="done"
-            />
-          </View>
-          <View style={styles.amountDivider} />
-          <Text style={styles.amountHint}>Minimum deposit: MK {MIN_DEPOSIT.toLocaleString()}</Text>
-        </View>
-
-        {/* ── Body ── */}
-        <ScrollView
-          style={styles.body}
-          contentContainerStyle={styles.bodyContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-
-          {/* Quick amounts */}
-          <View style={styles.quickRow}>
-            {QUICK_AMOUNTS.map((a) => {
-              const isActive = rawAmount === a;
-              return (
-                <TouchableOpacity
-                  key={a}
-                  style={[styles.quickBtn, isActive && styles.quickBtnActive]}
-                  activeOpacity={0.7}
-                  onPress={() => handleQuick(a)}
-                >
-                  <Text style={[styles.quickBtnText, isActive && styles.quickBtnTextActive]}>
-                    K{a}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Section label */}
-          <Text style={styles.sectionLabel}>Payment Method</Text>
-
-          {/* Saved cards */}
-          {savedCards.map((card) => {
-            const isActive = selectedCardId === card.id;
-            return (
-              <TouchableOpacity
-                key={card.id}
-                style={[styles.methodCard, isActive && styles.methodCardActive]}
-                activeOpacity={0.7}
-                onPress={() => { setSelectedCardId(card.id); setSelectedMethod("saved"); }}
-              >
-                <View style={styles.methodLogoWrap}>
-                  <BankCardIcon color={c.primary} />
-                </View>
-                <View style={styles.methodInfo}>
-                  <Text style={styles.methodName}>
-                    {card.cardBrand} ••••{card.last4}
-                  </Text>
-                  <Text style={styles.methodSub}>
-                    {card.cardholderName} · {card.expiryMonth}/{card.expiryYear}
-                  </Text>
-                </View>
-                {isActive && selectedMethod === "saved" ? <CheckIcon /> : <View style={styles.uncheckCircle} />}
-              </TouchableOpacity>
-            );
-          })}
-
-          {/* Use different card */}
-          <TouchableOpacity
-            style={[styles.methodCard, selectedMethod === "bankcard" && styles.methodCardActive]}
-            activeOpacity={0.7}
-            onPress={() => { setSelectedCardId(null); setSelectedMethod("bankcard"); }}
-          >
-            <View style={styles.methodLogoWrap}>
-              <BankCardIcon color={c.primary} />
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomPad + 24 }} keyboardShouldPersistTaps="handled">
+          {/* Allowance */}
+          <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+            <View style={styles.rowBetween}>
+              <Text style={[styles.cardLabel, { color: c.mutedForeground }]}>YOUR YEARLY ALLOWANCE</Text>
+              {loadingAllowance && <ActivityIndicator size="small" color={GREEN} />}
             </View>
-            <View style={styles.methodInfo}>
-              <Text style={styles.methodName}>{savedCards.length > 0 ? "Use Different Card" : "Bank Card"}</Text>
-              <Text style={styles.methodSub}>Visa &amp; Mastercard</Text>
+            <Text style={[styles.allowanceBig, { color: c.text }]}>
+              {fmtMK(remaining)} <Text style={[styles.allowanceOf, { color: c.mutedForeground }]}>left of {fmtMK(cap)}</Text>
+            </Text>
+            <View style={[styles.meter, { backgroundColor: c.secondary }]}>
+              <View style={{ width: `${usedPct * 100}%`, backgroundColor: GREEN }} />
+              <View style={{ width: `${pendingPct * 100}%`, backgroundColor: `${GREEN}66` }} />
             </View>
-            {selectedMethod === "bankcard" ? <CheckIcon /> : <View style={styles.uncheckCircle} />}
-          </TouchableOpacity>
-
-          {/* Info note */}
-          <View style={styles.noteRow}>
-            <InfoIcon />
-            <Text style={styles.noteText}>
-              {selectedMethod === "saved"
-                ? "You'll only need to enter your CVV to complete the deposit."
-                : "You'll be able to securely enter your card details to process the deposit."}
+            <Text style={[styles.meterNote, { color: c.mutedForeground }]}>
+              {used > 0 ? `${fmtMK(used)} deposited in the last ${allowance?.windowDays ?? 365} days.` : "You haven't deposited yet."}
+              {releaseDate && remaining < cap ? ` Your earliest deposit frees up on ${releaseDate}.` : ""}
             </Text>
           </View>
 
-          {/* Summary */}
-          {meetsMinimum && (
-            <View style={styles.summaryCard}>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Deposit amount</Text>
-                <Text style={styles.summaryValue} numberOfLines={1}>MK {rawAmount}</Text>
-              </View>
-              <View style={[styles.summaryRow, { marginTop: 8 }]}>
-                <Text style={styles.summaryLabel}>
-                  Processing fee{preview?.feeDescription ? ` — ${preview.feeDescription}` : ""}
-                </Text>
-                <Text style={[styles.summaryValue, (preview?.processingFee ?? 0) === 0 ? { color: GREEN } : null]}>
-                  {preview == null ? "…" : preview.processingFee === 0 ? "Free" : fmtMK(preview.processingFee)}
-                </Text>
-              </View>
-              {limits && (limits.dailyLimit != null || limits.perTransactionMax != null || limits.monthlyLimit != null) && (
-                <View style={[styles.summaryRow, { marginTop: 8 }]}>
-                  <Text style={styles.summaryLabel}>Deposit limit</Text>
-                  <Text style={styles.summaryValue} numberOfLines={1}>
-                    {limits.maxAllowedNow != null
-                      ? fmtMK(Math.max(limits.maxAllowedNow, 0))
-                      : "No cap"}
-                  </Text>
-                </View>
-              )}
-              <View style={styles.summaryDivider} />
-              <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: c.text, fontFamily: "PlusJakartaSans_600SemiBold" }]}>
-                  You receive
-                </Text>
-                <Text style={[styles.summaryValue, { color: c.primary, fontFamily: "PlusJakartaSans_700Bold" }]} numberOfLines={1}>
-                  {preview == null ? `MK ${rawAmount}` : fmtMK(preview.netAmount)}
-                </Text>
-              </View>
-            </View>
-          )}
+          {/* Amount */}
+          <Text style={[styles.sectionLabel, { color: c.text }]}>Amount</Text>
+          <View style={[styles.amountBox, { borderColor: overAllowance || underMinimum ? "#EF4444" : c.border, backgroundColor: c.card }]}>
+            <Text style={[styles.currency, { color: c.mutedForeground }]}>MK</Text>
+            <TextInput
+              value={raw}
+              onChangeText={onChange}
+              placeholder="0"
+              placeholderTextColor={MUTED}
+              keyboardType="number-pad"
+              style={[styles.amountInput, { color: c.text }]}
+              returnKeyType="done"
+              onSubmitEditing={submit}
+            />
+          </View>
+          {overAllowance ? (
+            <Text style={styles.warn}>That's more than your remaining allowance of {fmtMK(remaining)}.</Text>
+          ) : underMinimum ? (
+            <Text style={styles.warn}>The smallest deposit is {fmtMK(MIN_DEPOSIT)}.</Text>
+          ) : null}
 
-          {limitBlocked && limits?.reason && (
-            <View style={{ marginTop: 12, backgroundColor: "#DC262612", borderRadius: 12, borderWidth: 1, borderColor: "#DC262640", paddingHorizontal: 14, paddingVertical: 12 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12.5, color: "#DC2626", lineHeight: 18 }}>
-                {limits.reason}
-              </Text>
-            </View>
-          )}
+          <View style={styles.quickRow}>
+            {QUICK_AMOUNTS.map((q) => {
+              const disabled = q > remaining;
+              return (
+                <TouchableOpacity
+                  key={q}
+                  disabled={disabled}
+                  onPress={() => onChange(String(q))}
+                  style={[styles.quick, { borderColor: c.border, backgroundColor: c.card, opacity: disabled ? 0.4 : 1 }]}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.quickText, { color: c.text }]}>{q >= 1000 ? `${q / 1000}K` : q}</Text>
+                </TouchableOpacity>
+              );
+            })}
+            <TouchableOpacity
+              disabled={remaining < MIN_DEPOSIT}
+              onPress={() => onChange(String(remaining))}
+              style={[styles.quick, { borderColor: GREEN, backgroundColor: `${GREEN}14`, opacity: remaining < MIN_DEPOSIT ? 0.4 : 1 }]}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.quickText, { color: GREEN }]}>Max</Text>
+            </TouchableOpacity>
+          </View>
 
+          <View style={[styles.note, { backgroundColor: `${AMBER}12` }]}>
+            <Text style={[styles.noteText, { color: c.text }]}>
+              This is practice money. It is added instantly, cannot be withdrawn, and is only for learning how trading works.
+            </Text>
+          </View>
+
+          {error ? <Text style={[styles.warn, { marginTop: 12 }]}>{error}</Text> : null}
+          {done != null && !error ? (
+            <View style={[styles.success, { backgroundColor: `${GREEN}14` }]}>
+              <Text style={[styles.successText, { color: c.text }]}>{fmtMK(done)} added to your practice balance.</Text>
+              <TouchableOpacity onPress={() => router.replace("/(tabs)" as any)}>
+                <Text style={{ color: GREEN, fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14 }}>Start trading</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
         </ScrollView>
 
-        {/* ── Error ── */}
-        {errorMsg ? (
-          <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
-            <Text style={{ color: "#EF4444", fontSize: 13, fontFamily: "PlusJakartaSans_400Regular" }}>{errorMsg}</Text>
-          </View>
-        ) : null}
-
-        {/* ── CTA ── */}
-        <View style={[styles.ctaWrap, { paddingBottom: bottomPad > 0 ? 0 : 24 }]}>
+        <View style={{ paddingHorizontal: 20, paddingBottom: bottomPad, paddingTop: 8 }}>
           <TouchableOpacity
-            style={[styles.ctaBtn, !canDeposit && styles.ctaBtnDisabled]}
+            onPress={submit}
+            disabled={!canSubmit}
             activeOpacity={0.85}
-            disabled={!canDeposit}
-            onPress={handleDeposit}
+            style={[styles.cta, { backgroundColor: c.primary, opacity: canSubmit ? 1 : 0.45 }]}
+            accessibilityRole="button"
           >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
+            {submitting ? (
+              <ActivityIndicator color={WHITE} />
             ) : (
-              <Text style={styles.ctaBtnText}>
-                {canDeposit ? `Deposit MK ${rawAmount}` : "Deposit"}
-              </Text>
+              <Text style={styles.ctaText}>{amount >= MIN_DEPOSIT ? `Add ${fmtMK(amount)}` : "Add money"}</Text>
             )}
           </TouchableOpacity>
         </View>
-
       </View>
     </TouchableWithoutFeedback>
   );
 }
+
+const styles = StyleSheet.create({
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 12 },
+  backBtn: { width: 40, height: 40, alignItems: "flex-start", justifyContent: "center" },
+  headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 17 },
+  card: { borderWidth: 1, borderRadius: 16, padding: 16, gap: 10, marginTop: 4 },
+  rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  cardLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 11, letterSpacing: 0.8 },
+  allowanceBig: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 24 },
+  allowanceOf: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 14 },
+  meter: { height: 8, borderRadius: 4, overflow: "hidden", flexDirection: "row" },
+  meterNote: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, lineHeight: 18 },
+  sectionLabel: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, marginTop: 24, marginBottom: 8 },
+  amountBox: { flexDirection: "row", alignItems: "center", borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 16, height: 64 },
+  currency: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 18, marginRight: 8 },
+  amountInput: { flex: 1, fontFamily: "PlusJakartaSans_700Bold", fontSize: 26 },
+  warn: { color: "#EF4444", fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, marginTop: 8 },
+  quickRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 14 },
+  quick: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 9 },
+  quickText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13 },
+  note: { borderRadius: 12, padding: 14, marginTop: 20 },
+  noteText: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, lineHeight: 19 },
+  success: { borderRadius: 12, padding: 14, marginTop: 16, gap: 8 },
+  successText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14 },
+  cta: { height: 54, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  ctaText: { color: WHITE, fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 16 },
+});

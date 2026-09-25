@@ -324,6 +324,7 @@ function RootLayoutNav() {
         <Stack.Screen name="stock-search" options={section} />
         <Stack.Screen name="stock/[ticker]" options={section} />
         <Stack.Screen name="education" options={section} />
+        <Stack.Screen name="compare" options={section} />
         <Stack.Screen name="lesson/[id]" options={section} />
 
         {/* Trade flow — native slide-from-right (see `section`) */}
