@@ -24,6 +24,7 @@ import { PriceChart, PricePoint, CHART_H } from "@/components/PriceChart";
 import { useTradeEligibility, tradeBlockTitle, tradeBlockAction } from "@/hooks/useTradeEligibility";
 import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 import { PRACTICE_MODE } from "@/constants/practice";
+import { CompareIcon } from "@/components/icons/AppIcons";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
 const GREEN = "#45B369";
@@ -195,10 +196,7 @@ export default function StockDetailScreen() {
               accessibilityRole="button"
               style={{ marginHorizontal: 24, marginTop: 16, height: 46, borderRadius: 12, borderWidth: 1, borderColor: c.border, backgroundColor: c.card, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}
             >
-              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-                <Path d="M3 17l5-6 4 3 5-7 4 4" stroke={c.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-                <Path d="M3 20h18" stroke={c.primary} strokeWidth={1.8} strokeLinecap="round" />
-              </Svg>
+              <CompareIcon color={c.primary} size={18} />
               <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: c.primary }}>Compare {ticker} with another stock</Text>
             </TouchableOpacity>
           )}

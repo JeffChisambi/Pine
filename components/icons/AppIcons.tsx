@@ -40,6 +40,15 @@ export function EyeClosedIcon({ color = "#000", size = 22 }: IconProps) {
   );
 }
 
+/** compare.svg */
+export function CompareIcon({ color = "#000", size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <Path d="M1,8A1,1,0,0,1,2,7H9.586L7.293,4.707A1,1,0,1,1,8.707,3.293l4,4a1,1,0,0,1,0,1.414l-4,4a1,1,0,1,1-1.414-1.414L9.586,9H2A1,1,0,0,1,1,8Zm21,7H14.414l2.293-2.293a1,1,0,0,0-1.414-1.414l-4,4a1,1,0,0,0,0,1.414l4,4a1,1,0,0,0,1.414-1.414L14.414,17H22a1,1,0,0,0,0-2Z"/>
+    </Svg>
+  );
+}
+
 /** delete.svg */
 export function DeleteIcon({ color = "#000", size = 22 }: IconProps) {
   return (

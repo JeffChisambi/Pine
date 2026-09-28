@@ -46,7 +46,7 @@ import Svg, {
   ClipPath,
   Text as SvgText,
 } from "react-native-svg";
-import { EyeOpenIcon, EyeClosedIcon } from "@/components/icons/AppIcons";
+import { EyeOpenIcon, EyeClosedIcon, CompareIcon } from "@/components/icons/AppIcons";
 import { SvgXml } from "react-native-svg";
 import { EDUCATION_ICON_SVG } from "@/constants/EducationIconSvg";
 import { LinearGradient } from "expo-linear-gradient";
@@ -455,10 +455,7 @@ export default function HomeScreen() {
                 the practice-only comparison tool instead. */}
             {PRACTICE_MODE ? (
               <TouchableOpacity style={{ flex: 1, borderRadius: 12, height: 48, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push("/compare" as any))}>
-                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                  <Path d="M3 17l5-6 4 3 5-7 4 4" stroke={WHITE} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-                  <Path d="M3 20h18" stroke={WHITE} strokeWidth={1.8} strokeLinecap="round" />
-                </Svg>
+                <CompareIcon color={WHITE} size={20} />
                 <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: WHITE }}>Compare</Text>
               </TouchableOpacity>
             ) : (

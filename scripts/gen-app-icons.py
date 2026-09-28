@@ -13,6 +13,7 @@ NAMES = {
     'broker icon': 'BrokerIcon',
     'call us': 'CallIcon',
     'closed eye': 'EyeClosedIcon',
+    'compare': 'CompareIcon',
     'delete': 'DeleteIcon',
     'email support': 'EmailSupportIcon',
     'history': 'HistoryIcon',
