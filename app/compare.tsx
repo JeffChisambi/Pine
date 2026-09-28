@@ -23,8 +23,10 @@ import {
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Line, Path, Circle, Text as SvgText } from "react-native-svg";
+import Svg, { Path } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
+import { ComparisonChart, CHART_H, type ComparisonSeries } from "@/components/PriceChart";
+import { StockLogo } from "@/components/StockLogo";
 import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 import { useStockDetail, useStocks } from "@/hooks/useStocks";
 import { guardedBack } from "@/utils/navigation";
@@ -35,11 +37,6 @@ type Period = (typeof PERIODS)[number];
 
 const COLOR_A = "#45B369";
 const COLOR_B = "#6366F1";
-const CHART_H = 230;
-const PAD_L = 44;
-const PAD_R = 12;
-const PAD_T = 14;
-const PAD_B = 26;
 
 function BackIcon({ color }: { color: string }) {
   return (
@@ -115,36 +112,16 @@ export default function CompareScreen() {
 
   const chartW = width - 40;
 
-  const chart = useMemo(() => {
-    if (!sa || !sb) return null;
-    const tMin = Math.min(sa.points[0].t, sb.points[0].t);
-    const tMax = Math.max(sa.points[sa.points.length - 1].t, sb.points[sb.points.length - 1].t);
-    const all = [...sa.points, ...sb.points].map((p) => p.pct);
-    let yMin = Math.min(0, ...all);
-    let yMax = Math.max(0, ...all);
-    const span = yMax - yMin || 1;
-    yMin -= span * 0.08;
-    yMax += span * 0.08;
-    const plotW = chartW - PAD_L - PAD_R;
-    const plotH = CHART_H - PAD_T - PAD_B;
-    const x = (t: number) => PAD_L + ((t - tMin) / (tMax - tMin || 1)) * plotW;
-    const y = (v: number) => PAD_T + (1 - (v - yMin) / (yMax - yMin)) * plotH;
-    const path = (s: Series) =>
-      s.points.map((p, i) => `${i === 0 ? "M" : "L"}${x(p.t).toFixed(1)},${y(p.pct).toFixed(1)}`).join(" ");
-    const ticks = [yMax, (yMax + yMin) / 2, yMin].map((v) => ({ v, y: y(v) }));
-    const fmtDate = (t: number) =>
-      new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short", ...(period === "2Y" || period === "5Y" ? { year: "2-digit" } : {}) });
-    return {
-      pathA: path(sa),
-      pathB: path(sb),
-      zeroY: y(0),
-      ticks,
-      endA: { x: x(sa.points[sa.points.length - 1].t), y: y(sa.returnPct) },
-      endB: { x: x(sb.points[sb.points.length - 1].t), y: y(sb.returnPct) },
-      startLabel: fmtDate(tMin),
-      endLabel: fmtDate(tMax),
-    };
-  }, [sa, sb, chartW, period]);
+  // The chart wants plain series; the summary table below still uses the
+  // richer Series objects (period high/low, first/last close).
+  const seriesA: ComparisonSeries | null = useMemo(
+    () => (sa && symA ? { symbol: symA, color: COLOR_A, points: sa.points } : null),
+    [sa, symA],
+  );
+  const seriesB: ComparisonSeries | null = useMemo(
+    () => (sb && symB ? { symbol: symB, color: COLOR_B, points: sb.points } : null),
+    [sb, symB],
+  );
 
   const loading = qa.isLoading || qb.isLoading || loadingList;
   const nameOf = (sym?: string) => stocks.find((s) => s.symbol === sym)?.name ?? "";
@@ -179,9 +156,12 @@ export default function CompareScreen() {
               accessibilityRole="button"
               accessibilityLabel={`Choose ${slot === "a" ? "first" : "second"} stock, currently ${sym ?? "none"}`}
             >
-              <View style={[styles.swatch, { backgroundColor: color }]} />
+              {sym ? <StockLogo symbol={sym} size={32} /> : <View style={[styles.swatch, { backgroundColor: color }]} />}
               <View style={{ flex: 1 }}>
-                <Text style={[styles.pickSym, { color: c.text }]} numberOfLines={1}>{sym ?? "Choose"}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <View style={[styles.swatch, { backgroundColor: color }]} />
+                  <Text style={[styles.pickSym, { color: c.text }]} numberOfLines={1}>{sym ?? "Choose"}</Text>
+                </View>
                 <Text style={[styles.pickName, { color: c.mutedForeground }]} numberOfLines={1}>{nameOf(sym) || " "}</Text>
               </View>
               <ChevronDown color={c.mutedForeground} />
@@ -210,31 +190,14 @@ export default function CompareScreen() {
             <View style={{ height: CHART_H, alignItems: "center", justifyContent: "center" }}>
               <ActivityIndicator color={COLOR_A} />
             </View>
-          ) : !chart ? (
+          ) : !seriesA || !seriesB ? (
             <View style={{ height: CHART_H, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 }}>
               <Text style={{ color: c.mutedForeground, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, textAlign: "center" }}>
                 Not enough price history for {(!sa ? symA : symB) ?? "this stock"} in this period. Try a different period.
               </Text>
             </View>
           ) : (
-            <Svg width={chartW} height={CHART_H}>
-              {chart.ticks.map((t, i) => (
-                <React.Fragment key={i}>
-                  <Line x1={PAD_L} x2={chartW - PAD_R} y1={t.y} y2={t.y} stroke={c.border} strokeWidth={1} strokeDasharray="3 4" />
-                  <SvgText x={PAD_L - 6} y={t.y + 4} fontSize={10} fill={c.mutedForeground} textAnchor="end">
-                    {`${t.v >= 0 ? "+" : ""}${t.v.toFixed(1)}%`}
-                  </SvgText>
-                </React.Fragment>
-              ))}
-              {/* The 0% line: where each stock started */}
-              <Line x1={PAD_L} x2={chartW - PAD_R} y1={chart.zeroY} y2={chart.zeroY} stroke={c.mutedForeground} strokeWidth={1} opacity={0.6} />
-              <Path d={chart.pathB} stroke={COLOR_B} strokeWidth={2} fill="none" strokeLinejoin="round" strokeLinecap="round" />
-              <Path d={chart.pathA} stroke={COLOR_A} strokeWidth={2.4} fill="none" strokeLinejoin="round" strokeLinecap="round" />
-              <Circle cx={chart.endB.x} cy={chart.endB.y} r={3.5} fill={COLOR_B} />
-              <Circle cx={chart.endA.x} cy={chart.endA.y} r={3.5} fill={COLOR_A} />
-              <SvgText x={PAD_L} y={CHART_H - 6} fontSize={10} fill={c.mutedForeground}>{chart.startLabel}</SvgText>
-              <SvgText x={chartW - PAD_R} y={CHART_H - 6} fontSize={10} fill={c.mutedForeground} textAnchor="end">{chart.endLabel}</SvgText>
-            </Svg>
+            <ComparisonChart a={seriesA} b={seriesB} period={period} width={chartW} />
           )}
         </View>
 
@@ -325,7 +288,8 @@ function StockPicker({ visible, stocks, exclude, onClose, onPick }: {
           contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => { setQ(""); onPick(item.symbol); }} style={[styles.pickerRow, { borderBottomColor: c.border }]} activeOpacity={0.7}>
-              <View style={{ flex: 1 }}>
+              <StockLogo symbol={item.symbol} size={36} />
+              <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={[styles.pickSym, { color: c.text }]}>{item.symbol}</Text>
                 <Text style={[styles.pickName, { color: c.mutedForeground }]} numberOfLines={1}>{item.name}</Text>
               </View>
@@ -351,7 +315,7 @@ const styles = StyleSheet.create({
   periods: { flexDirection: "row", borderRadius: 12, padding: 4, marginTop: 16 },
   periodBtn: { flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: "center" },
   periodText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13 },
-  chartCard: { borderWidth: 1, borderRadius: 16, marginTop: 16, overflow: "hidden" },
+  chartCard: { borderWidth: 1, borderRadius: 16, marginTop: 16, overflow: "hidden", paddingVertical: 8 },
   verdict: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, lineHeight: 21, marginTop: 14 },
   table: { borderWidth: 1, borderRadius: 16, marginTop: 14, paddingHorizontal: 14 },
   tr: { flexDirection: "row", alignItems: "center", paddingVertical: 11 },

@@ -44,10 +44,10 @@ const SVG_LABEL = "#9CA3AF";
 
 // Chart dimensions
 export const CHART_H = 220;
-const Y_PAD    = 54;
-const PAD_R    = 16;
-const PAD_TOP  = 18;
-const PAD_BTM  = 28;
+export const Y_PAD = 54;
+export const PAD_R = 16;
+export const PAD_TOP = 18;
+export const PAD_BTM = 28;
 const TT_SIZE  = 82;
 const TT_RX    = 8;
 
@@ -231,6 +231,230 @@ export function PriceChart({ data, positive, period, valuePrefix = "MWK ", empty
         <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 10, fontFamily: "PlusJakartaSans_500Medium", marginTop: 4 }}>{dateTxt}</Text>
       </Animated.View>
     </View>
+    </GestureDetector>
+  );
+}
+
+// ─── Comparison chart ────────────────────────────────────────────────────────
+/**
+ * Two stocks on one set of axes, drawn with the chart chrome above: the same
+ * padding, dashed grid, label type, crosshair and scrub tooltip as the stock
+ * detail chart.
+ *
+ * The one deliberate difference is the y-axis. MSE counters trade orders of
+ * magnitude apart, so plotting raw prices would flatten one line against the
+ * axis. Both series are therefore percentage change from the period's first
+ * close, and each line keeps its own colour instead of the single-series
+ * green/red peak split.
+ */
+export interface ComparisonSeries {
+  symbol: string;
+  color: string;
+  /** Oldest first. `pct` is change from the period's first close. */
+  points: Array<{ t: number; close: number; pct: number }>;
+}
+
+export interface ComparisonChartProps {
+  a: ComparisonSeries;
+  b: ComparisonSeries;
+  period: string;
+  /** Rendered width; defaults to the layout width, like PriceChart. */
+  width?: number;
+}
+
+export function ComparisonChart({ a, b, period, width }: ComparisonChartProps) {
+  const layoutW = useLayoutWidth();
+  const SCREEN_W = width ?? layoutW;
+  const c = useColors();
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const animX = useSharedValue(0);
+  const animYA = useSharedValue(0);
+  const animYB = useSharedValue(0);
+  const xsShared = useSharedValue<number[]>([]);
+  const ysAShared = useSharedValue<number[]>([]);
+  const ysBShared = useSharedValue<number[]>([]);
+
+  const dotAProps = useAnimatedProps(() => ({ cx: animX.value, cy: animYA.value }));
+  const dotBProps = useAnimatedProps(() => ({ cx: animX.value, cy: animYB.value }));
+  const vLineProps = useAnimatedProps(() => ({ x1: animX.value, x2: animX.value }));
+
+  const plotW = SCREEN_W - Y_PAD - PAD_R;
+  const plotH = CHART_H - PAD_TOP - PAD_BTM;
+
+  // Both lines are sampled onto one shared timeline so a single scrub
+  // position reads a comparable point on each of them.
+  const grid = React.useMemo(() => {
+    const tMin = Math.min(a.points[0]?.t ?? 0, b.points[0]?.t ?? 0);
+    const tMax = Math.max(
+      a.points[a.points.length - 1]?.t ?? 0,
+      b.points[b.points.length - 1]?.t ?? 0,
+    );
+    const span = tMax - tMin || 1;
+    const STEPS = 60;
+    const at = (s: ComparisonSeries, t: number) => {
+      const pts = s.points;
+      if (!pts.length) return null;
+      if (t <= pts[0].t) return pts[0];
+      if (t >= pts[pts.length - 1].t) return pts[pts.length - 1];
+      let lo = 0;
+      for (let i = 1; i < pts.length; i++) {
+        if (pts[i].t <= t) lo = i;
+        else break;
+      }
+      return pts[lo];
+    };
+    const ts = Array.from({ length: STEPS + 1 }, (_, i) => tMin + (span * i) / STEPS);
+    const sampled = ts.map((t) => ({ t, a: at(a, t), b: at(b, t) }));
+    const all = [...a.points, ...b.points].map((p) => p.pct);
+    let yMin = Math.min(0, ...all);
+    let yMax = Math.max(0, ...all);
+    const ySpan = yMax - yMin || 1;
+    yMin -= ySpan * 0.08;
+    yMax += ySpan * 0.08;
+    const x = (t: number) => Y_PAD + ((t - tMin) / span) * plotW;
+    const y = (v: number) => PAD_TOP + (1 - (v - yMin) / (yMax - yMin)) * plotH;
+    const pathFor = (s: ComparisonSeries) =>
+      s.points
+        .map((p, i) => (i === 0 ? "M" : "L") + x(p.t).toFixed(1) + "," + y(p.pct).toFixed(1))
+        .join(" ");
+    return {
+      sampled,
+      x,
+      y,
+      pathA: pathFor(a),
+      pathB: pathFor(b),
+      yTicks: [0, 1, 2, 3, 4].map((i) => yMin + ((yMax - yMin) * (4 - i)) / 4),
+      zeroY: y(0),
+    };
+  }, [a, b, plotW, plotH]);
+
+  const snapToIdx = useCallback((idx: number) => {
+    const xs = xsShared.value;
+    const ya = ysAShared.value;
+    const yb = ysBShared.value;
+    if (xs.length < 2) return;
+    animX.value = xs[idx];
+    animYA.value = ya[idx];
+    animYB.value = yb[idx];
+  }, []);
+
+  useEffect(() => {
+    const xs = grid.sampled.map((s) => grid.x(s.t));
+    xsShared.value = xs;
+    ysAShared.value = grid.sampled.map((s) => grid.y(s.a?.pct ?? 0));
+    ysBShared.value = grid.sampled.map((s) => grid.y(s.b?.pct ?? 0));
+    setSelectedIdx(null);
+    snapToIdx(xs.length - 1);
+  }, [grid]);
+
+  const pickAndSnap = (x: number, animate: boolean) => {
+    "worklet";
+    const xs = xsShared.value;
+    const ya = ysAShared.value;
+    const yb = ysBShared.value;
+    const len = xs.length;
+    if (len < 2) return;
+    const t = Math.max(0, Math.min(1, (x - Y_PAD) / plotW));
+    const idx = Math.round(t * (len - 1));
+    if (animate) {
+      const cfg = { damping: 20, stiffness: 300, mass: 0.6 };
+      animX.value = withSpring(xs[idx], cfg);
+      animYA.value = withSpring(ya[idx], cfg);
+      animYB.value = withSpring(yb[idx], cfg);
+    } else {
+      animX.value = xs[idx];
+      animYA.value = ya[idx];
+      animYB.value = yb[idx];
+    }
+    runOnJS(setSelectedIdx)(idx);
+  };
+
+  const gesture = Gesture.Pan()
+    .minDistance(0)
+    .activeOffsetX([-4, 4])
+    .onBegin((e) => {
+      "worklet";
+      pickAndSnap(e.x, true);
+    })
+    .onUpdate((e) => {
+      "worklet";
+      pickAndSnap(e.x, false);
+    });
+
+  const TT_W = 136;
+  const tooltipAnimStyle = useAnimatedStyle(() => {
+    const x = Math.max(Y_PAD, Math.min(SCREEN_W - TT_W - 4, animX.value - TT_W / 2));
+    const above = Math.min(animYA.value, animYB.value) - 70;
+    return { left: x, top: above >= PAD_TOP ? above : Math.max(animYA.value, animYB.value) + 12 };
+  });
+
+  if (a.points.length < 2 || b.points.length < 2) {
+    return (
+      <View style={{ width: SCREEN_W, height: CHART_H, alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 12 }}>Insufficient data for this period</Text>
+      </View>
+    );
+  }
+
+  const activeIdx = selectedIdx !== null ? selectedIdx : grid.sampled.length - 1;
+  const active = grid.sampled[activeIdx];
+  const dateTxt = new Date(active.t).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: period === "1Y" || period === "2Y" || period === "5Y" || period === "ALL" ? "numeric" : undefined,
+  });
+  const xLabelIdxs = Array.from(
+    new Set([0, 1, 2, 3, 4].map((i) => Math.round((i / 4) * (grid.sampled.length - 1)))),
+  );
+  const pctTxt = (v: number | undefined) => ((v ?? 0) >= 0 ? "+" : "") + (v ?? 0).toFixed(2) + "%";
+
+  return (
+    <GestureDetector gesture={gesture}>
+      <View style={{ width: SCREEN_W, height: CHART_H }}>
+        <Svg width={SCREEN_W} height={CHART_H}>
+          {grid.yTicks.map((v, i) => {
+            const y = grid.y(v);
+            return (
+              <React.Fragment key={i}>
+                <Line x1={Y_PAD} y1={y} x2={SCREEN_W - PAD_R} y2={y} stroke={SVG_GRID} strokeWidth={1} strokeLinecap="round" strokeDasharray="3 3" />
+                <SvgText x={Y_PAD - 6} y={y + 4} textAnchor="end" fill={SVG_LABEL} fontSize={10} fontFamily="PlusJakartaSans_400Regular">
+                  {(v >= 0 ? "+" : "") + v.toFixed(1) + "%"}
+                </SvgText>
+              </React.Fragment>
+            );
+          })}
+          {/* The 0% line: where both stocks started the period */}
+          <Line x1={Y_PAD} y1={grid.zeroY} x2={SCREEN_W - PAD_R} y2={grid.zeroY} stroke={SVG_LABEL} strokeWidth={1} opacity={0.6} />
+          <Path d={grid.pathB} stroke={b.color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <Path d={grid.pathA} stroke={a.color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          {xLabelIdxs.map((idx, i) => (
+            <SvgText
+              key={i}
+              x={grid.x(grid.sampled[idx].t)}
+              y={PAD_TOP + plotH + 18}
+              textAnchor={idx === 0 ? "start" : idx === grid.sampled.length - 1 ? "end" : "middle"}
+              fill={SVG_LABEL}
+              fontSize={10}
+              fontFamily="PlusJakartaSans_400Regular"
+            >
+              {fmtXLabel(new Date(grid.sampled[idx].t).toISOString(), period)}
+            </SvgText>
+          ))}
+          <AnimatedLine animatedProps={vLineProps} y1={PAD_TOP} y2={PAD_TOP + plotH} stroke={c.primary} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2" />
+          <AnimatedCircle animatedProps={dotBProps} r={4} fill={WHITE} stroke={b.color} strokeWidth={2} />
+          <AnimatedCircle animatedProps={dotAProps} r={4} fill={WHITE} stroke={a.color} strokeWidth={2} />
+        </Svg>
+        <Animated.View style={[{ position: "absolute", width: TT_W, backgroundColor: c.primary, borderRadius: TT_RX, paddingHorizontal: 10, paddingVertical: 8 }, tooltipAnimStyle]}>
+          <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 10, fontFamily: "PlusJakartaSans_500Medium", marginBottom: 2 }}>{dateTxt}</Text>
+          {([[a, active.a?.pct], [b, active.b?.pct]] as const).map(([s, pct]) => (
+            <View key={s.symbol} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 }}>
+              <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: s.color }} />
+              <Text style={{ color: WHITE, fontSize: 11, fontFamily: "PlusJakartaSans_600SemiBold", flex: 1 }}>{s.symbol}</Text>
+              <Text style={{ color: WHITE, fontSize: 11, fontFamily: "PlusJakartaSans_700Bold", fontVariant: ["tabular-nums"] }}>{pctTxt(pct)}</Text>
+            </View>
+          ))}
+        </Animated.View>
+      </View>
     </GestureDetector>
   );
 }

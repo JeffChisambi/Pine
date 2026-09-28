@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  Image,
   Dimensions,
   Modal,
   FlatList,
@@ -28,13 +27,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import Svg, { Path, Circle, Ellipse, Line, Defs, ClipPath, Rect } from "react-native-svg";
 import { SearchIcon as SearchGlyph } from "@/components/icons/AppIcons";
-import { getStockLogo } from "../../utils/stock-logos";
+import { StockLogo as SharedStockLogo } from "@/components/StockLogo";
 import { useColors } from "@/hooks/useColors";
 import { useTheme } from "@/contexts/theme-context";
 import { useHideTabBarOnScroll } from "@/contexts/tab-bar-visibility";
 
 // ─── Static brand tokens ────────────────────────────────────────────────────────
-const LOGO_COLORS = ["#164951", "#1A3A6B", "#166534", "#7C3AED", "#B45309", "#BE185D"];
 const GREEN = "#45B369";
 const RED = "#EF4770";
 const WHITE = "#FFFFFF";
@@ -65,33 +63,9 @@ function SearchIcon({ color }: { color: string }) {
   return <SearchGlyph color={color} size={18} />;
 }
 
-function StockLogo({ symbol, c }: { symbol: string; c: Colors }) {
-  const logo = getStockLogo(symbol);
-  if (logo) {
-    return (
-      <View style={[logoCircleStyle(c)]}>
-        <Image source={logo} style={{ width: 40, height: 40, borderRadius: 20 }} resizeMode="contain" />
-      </View>
-    );
-  }
-  const colors = LOGO_COLORS;
-  const bg = colors[symbol.charCodeAt(0) % colors.length];
-  return (
-    <View style={[logoCircleStyle(c), { backgroundColor: bg }]}>
-      <Text style={{ color: "#fff", fontFamily: "PlusJakartaSans_700Bold", fontSize: 11 }}>
-        {symbol.slice(0, 3)}
-      </Text>
-    </View>
-  );
-}
-
-function logoCircleStyle(c: Colors) {
-  return {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: c.card,
-    alignItems: "center" as const, justifyContent: "center" as const,
-    overflow: "hidden" as const, borderWidth: 1, borderColor: c.border,
-  };
+/** Market-list badge. The artwork and fallback live in StockLogo. */
+function StockLogo({ symbol }: { symbol: string; c?: Colors }) {
+  return <SharedStockLogo symbol={symbol} size={44} />;
 }
 
 // Sparkline paths
@@ -433,22 +407,9 @@ function SectorsModal({ visible, onClose, getSectorChange, c, isDark }: {
   );
 }
 
-function StockLogoSmall({ symbol, c }: { symbol: string; c: Colors }) {
-  const logo = getStockLogo(symbol);
-  if (logo) {
-    return (
-      <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: c.card, alignItems: "center", justifyContent: "center", overflow: "hidden", borderWidth: 1, borderColor: c.border }}>
-        <Image source={logo} style={{ width: 28, height: 28, borderRadius: 14 }} resizeMode="contain" />
-      </View>
-    );
-  }
-  const colors = LOGO_COLORS;
-  const bg = colors[symbol.charCodeAt(0) % colors.length];
-  return (
-    <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: bg, justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ color: "#fff", fontFamily: "PlusJakartaSans_700Bold", fontSize: 9 }}>{symbol.slice(0, 3)}</Text>
-    </View>
-  );
+/** Search-sheet badge: the same artwork, one step smaller. */
+function StockLogoSmall({ symbol }: { symbol: string; c?: Colors }) {
+  return <SharedStockLogo symbol={symbol} size={36} />;
 }
 
 export default function MarketScreen() {
@@ -764,15 +725,7 @@ function StockSearchOverlay({ onClose }: { onClose: () => void }) {
               onPress={() => guardedPush(() => router.push(`/stock/${s.symbol}` as any))}
               activeOpacity={0.8}
             >
-              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, overflow: "hidden", borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}>
-                {getStockLogo(s.symbol) ? (
-                  <Image source={getStockLogo(s.symbol)!} style={{ width: 34, height: 34, borderRadius: 17 }} resizeMode="contain" />
-                ) : (
-                  <View style={{ width: 44, height: 44, backgroundColor: c.primary, justifyContent: "center", alignItems: "center" }}>
-                    <Text style={{ color: WHITE, fontFamily: "PlusJakartaSans_700Bold", fontSize: 10 }}>{s.symbol.slice(0, 3)}</Text>
-                  </View>
-                )}
-              </View>
+              <SharedStockLogo symbol={s.symbol} size={44} />
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: c.text }}>{s.symbol}</Text>
                 <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: MUTED, marginTop: 2 }} numberOfLines={1}>{s.name}</Text>
