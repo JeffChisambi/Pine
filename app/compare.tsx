@@ -166,9 +166,12 @@ export default function CompareScreen() {
               accessibilityRole="button"
               accessibilityLabel={`Choose ${slot === "a" ? "first" : "second"} stock, currently ${sym ?? "none"}`}
             >
-              {sym ? <StockLogo symbol={sym} size={32} /> : <View style={[styles.swatch, { backgroundColor: color }]} />}
-              <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <View style={[styles.swatch, { backgroundColor: color }]} />
+              {sym ? (
+                <StockLogo symbol={sym} size={32} />
+              ) : (
+                <View style={[styles.emptySlot, { backgroundColor: color }]} />
+              )}
+              <View style={{ flex: 1 }}>
                 <Text style={[styles.pickSym, { color: c.text }]} numberOfLines={1}>{sym ?? "Choose"}</Text>
               </View>
               <ChevronDown color={c.mutedForeground} />
@@ -323,7 +326,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 17 },
   pickRow: { flexDirection: "row", gap: 10, marginTop: 4, marginHorizontal: 20 },
   pick: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 },
-  swatch: { width: 10, height: 10, borderRadius: 5 },
+  emptySlot: { width: 32, height: 32, borderRadius: 16, opacity: 0.35 },
   pickSym: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 15 },
   pickName: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, marginTop: 1 },
   pickPrice: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13 },
