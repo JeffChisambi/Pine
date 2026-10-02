@@ -58,6 +58,8 @@ const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
 const MUTED2 = "#6B7280";
+/** Set once the user chooses never to see the virtual-money reminder again. */
+const VIRTUAL_NOTICE_KEY = "@pine_virtual_notice_hidden";
 const RED = "#EF4770";
 
 type Colors = ReturnType<typeof useColors>;
@@ -327,6 +329,45 @@ export default function HomeScreen() {
     depositTxRef?: string;
   }>();
   const [depositToast, setDepositToast] = useState<{ visible: boolean; amount: string }>({ visible: false, amount: "" });
+
+  /**
+   * A one-line reminder that the money here is not real.
+   *
+   * It shows itself for a few seconds on arriving at the home screen, then
+   * leaves on its own. The cross dismisses it for now; "Hide" means never
+   * again, which is remembered on the device so a returning user is not told
+   * the same thing every morning.
+   */
+  const [virtualNotice, setVirtualNotice] = useState(false);
+  const virtualNoticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const dismissVirtualNotice = useCallback(() => {
+    if (virtualNoticeTimer.current) clearTimeout(virtualNoticeTimer.current);
+    setVirtualNotice(false);
+  }, []);
+
+  const hideVirtualNoticeForGood = useCallback(() => {
+    dismissVirtualNotice();
+    AsyncStorage.setItem(VIRTUAL_NOTICE_KEY, "1").catch(() => {});
+  }, [dismissVirtualNotice]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!PRACTICE_MODE) return;
+      let cancelled = false;
+      AsyncStorage.getItem(VIRTUAL_NOTICE_KEY)
+        .then((hidden) => {
+          if (cancelled || hidden) return;
+          setVirtualNotice(true);
+          virtualNoticeTimer.current = setTimeout(() => setVirtualNotice(false), 7000);
+        })
+        .catch(() => {});
+      return () => {
+        cancelled = true;
+        if (virtualNoticeTimer.current) clearTimeout(virtualNoticeTimer.current);
+      };
+    }, []),
+  );
   const toastShownRef = useRef(false);
 
   const { user } = useAuth();
@@ -474,6 +515,51 @@ export default function HomeScreen() {
           <TouchableOpacity onPress={() => setDepositToast({ visible: false, amount: "" })} hitSlop={12}>
             <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
               <Path d="M4 4l8 8M12 4l-8 8" stroke={WHITE} strokeWidth={1.5} strokeLinecap="round" />
+            </Svg>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {virtualNotice && (
+        <View
+          accessibilityRole="alert"
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            backgroundColor: c.card,
+            borderWidth: 1,
+            borderColor: c.border,
+            marginHorizontal: 20,
+            marginTop: 12,
+            borderRadius: 14,
+            paddingVertical: 12,
+            paddingHorizontal: 14,
+            gap: 10,
+          }}
+        >
+          <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: `${GREEN}22`, alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <Path d="M12 8v5" stroke={GREEN} strokeWidth={2} strokeLinecap="round" />
+              <Path d="M12 16.5v.01" stroke={GREEN} strokeWidth={2} strokeLinecap="round" />
+              <Circle cx={12} cy={12} r={9} stroke={GREEN} strokeWidth={1.6} />
+            </Svg>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: c.text, lineHeight: 18 }}>
+              This is virtual money
+            </Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: c.mutedForeground, lineHeight: 17, marginTop: 2 }}>
+              It is added instantly, cannot be withdrawn, and is only for learning how trading works.
+            </Text>
+            <TouchableOpacity onPress={hideVirtualNoticeForGood} hitSlop={10} style={{ alignSelf: "flex-start", marginTop: 8 }}>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: c.primary }}>
+                Hide this
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity onPress={dismissVirtualNotice} hitSlop={12} accessibilityRole="button" accessibilityLabel="Dismiss">
+            <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+              <Path d="M4 4l8 8M12 4l-8 8" stroke={c.mutedForeground} strokeWidth={1.5} strokeLinecap="round" />
             </Svg>
           </TouchableOpacity>
         </View>
