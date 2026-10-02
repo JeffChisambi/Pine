@@ -28,6 +28,10 @@ const RIBBON_RIGHT =
 const MEDALLION =
   "M20.182 21.065c0.607-1.020 1.504-1.537 2.691-1.553s1.787-0.617 1.803-1.804c0.016-1.186 0.533-2.083 1.553-2.689s1.24-1.428 0.66-2.463-0.58-2.071 0-3.106 0.359-1.856-0.66-2.463-1.537-1.503-1.553-2.69c-0.016-1.186-0.617-1.787-1.803-1.803-1.188-0.016-2.084-0.533-2.691-1.553-0.605-1.020-1.428-1.24-2.463-0.66s-2.070 0.58-3.105 0-1.856-0.359-2.463 0.66c-0.607 1.020-1.503 1.537-2.69 1.553s-1.787 0.618-1.803 1.804c-0.016 1.187-0.533 2.083-1.553 2.69s-1.24 1.428-0.66 2.463c0.58 1.035 0.58 2.071 0 3.106s-0.359 1.856 0.66 2.463c1.020 0.607 1.537 1.504 1.553 2.689 0.016 1.187 0.617 1.788 1.803 1.804s2.083 0.533 2.69 1.553c0.606 1.020 1.428 1.239 2.463 0.66s2.070-0.579 3.105 0 1.857 0.359 2.463-0.661z";
 
+/** Centre of the medallion in the 32-unit viewBox, and the numeral's size. */
+const NUMERAL_CENTER_Y = 11.4;
+const NUMERAL_SIZE = 12;
+
 export interface MedalIconProps {
   /** 1, 2 or 3. Anything else renders nothing. */
   place: number;
@@ -43,14 +47,18 @@ export function MedalIcon({ place, size = 32 }: MedalIconProps) {
       <Path d={RIBBON_LEFT} fill={colors.edge} />
       <Path d={RIBBON_RIGHT} fill={colors.edge} />
       <Path d={MEDALLION} fill={colors.face} stroke={colors.edge} strokeWidth={0.6} />
+      {/* The medallion's centre is (16, 11.4) in this 32-unit art. SvgText
+          places the BASELINE at y, so the glyph is dropped by roughly a third
+          of its size to sit on that centre. alignmentBaseline is deliberately
+          not used: Android applies it inconsistently and shifts the numeral
+          low again. */}
       <SvgText
         x={16}
-        y={15.4}
-        fontSize={11}
+        y={NUMERAL_CENTER_Y + NUMERAL_SIZE * 0.35}
+        fontSize={NUMERAL_SIZE}
         fontWeight="bold"
         fill={colors.numeral}
         textAnchor="middle"
-        alignmentBaseline="middle"
       >
         {place}
       </SvgText>

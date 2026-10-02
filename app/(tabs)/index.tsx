@@ -555,24 +555,9 @@ export default function HomeScreen() {
                   <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 19, color: WHITE, lineHeight: 25, marginBottom: 3 }}>
                     Master the Markets
                   </Text>
-                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 16, marginBottom: 12 }}>
+                  <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 16, marginBottom: 18 }}>
                     Structured courses for every level
                   </Text>
-
-                  {/* Topics */}
-                  <View style={{ gap: 5, marginBottom: 14 }}>
-                    {[
-                      "Market Fundamentals",
-                      "Portfolio Strategy",
-                      "Technical Analysis",
-                      "Risk Management",
-                    ].map((topic) => (
-                      <View key={topic} style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-                        <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: GREEN }} />
-                        <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11.5, color: "rgba(255,255,255,0.7)" }}>{topic}</Text>
-                      </View>
-                    ))}
-                  </View>
 
                   {/* CTA */}
                   <View style={{
