@@ -242,15 +242,13 @@ export default function StockDetailScreen() {
             </View>
           </View>
 
-          {/* MSE badge */}
-          <View style={{ marginHorizontal: 24, marginBottom: 8, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: c.card, borderRadius: 10, borderWidth: 1, borderColor: c.border }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: c.primary }}>Data sourced from Malawi Stock Exchange · MSE</Text>
-            {displayStock.lastUpdated && (
-              <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 10, color: MUTED, marginTop: 2 }}>
-                Last updated: {new Date(displayStock.lastUpdated).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-              </Text>
-            )}
-          </View>
+          {/* How fresh the price is. The exchange attribution that used to sit
+              above this line is gone; only the date earns its place. */}
+          {displayStock.lastUpdated && (
+            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 10, color: MUTED, marginHorizontal: 24, marginBottom: 8 }}>
+              Last updated: {new Date(displayStock.lastUpdated).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+            </Text>
+          )}
         </View>
       </ScrollView>
 
