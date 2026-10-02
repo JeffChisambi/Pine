@@ -7,6 +7,8 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { boardApi } from "@/services/api";
+import { PRACTICE_MODE } from "@/constants/practice";
 import { LESSONS, type LessonLanguage } from "@/content/lessons";
 
 const COMPLETED_KEY = "@pine_lessons_completed";
@@ -17,15 +19,34 @@ export function useLessonProgress() {
   const [loaded, setLoaded] = useState(false);
 
   const reload = useCallback(async () => {
+    let local: string[] = [];
     try {
       const raw = await AsyncStorage.getItem(COMPLETED_KEY);
       const ids: unknown = raw ? JSON.parse(raw) : [];
-      setCompleted(new Set(Array.isArray(ids) ? ids.filter((x) => typeof x === "string") : []));
+      local = Array.isArray(ids) ? ids.filter((x): x is string => typeof x === "string") : [];
     } catch {
-      setCompleted(new Set());
-    } finally {
-      setLoaded(true);
+      local = [];
     }
+
+    // The server also keeps a record now, so a reinstalled app recovers the
+    // course instead of starting over. Merged rather than replaced: storage
+    // may hold a lesson finished while offline that has not reached the
+    // server yet.
+    if (PRACTICE_MODE) {
+      try {
+        const remote = await boardApi.lessons();
+        const merged = new Set([...local, ...remote.completedLessons]);
+        if (merged.size !== local.length) {
+          local = [...merged];
+          await AsyncStorage.setItem(COMPLETED_KEY, JSON.stringify(local)).catch(() => {});
+        }
+      } catch {
+        // Offline, or points are off on this server. Local progress stands.
+      }
+    }
+
+    setCompleted(new Set(local));
+    setLoaded(true);
   }, []);
 
   useEffect(() => { reload(); }, [reload]);
@@ -45,6 +66,12 @@ export function useLessonProgress() {
     if (!ids.includes(id)) ids.push(id);
     await AsyncStorage.setItem(COMPLETED_KEY, JSON.stringify(ids)).catch(() => {});
     setCompleted(new Set(ids));
+
+    // Report it for points. Fire and forget: the server dedupes per lesson,
+    // and failing to score must never stop someone finishing the course.
+    if (PRACTICE_MODE) {
+      boardApi.claimLesson(id).catch(() => undefined);
+    }
   }, []);
 
   const isUnlocked = useCallback(

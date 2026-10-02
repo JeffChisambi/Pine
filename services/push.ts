@@ -14,6 +14,8 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { notificationsApi } from './api';
+import { boardApi } from './api';
+import { PRACTICE_MODE } from '@/constants/practice';
 
 export type PushPermissionStatus =
   | 'granted'
@@ -223,6 +225,21 @@ export function navigateForNotification(data: Record<string, any> | undefined): 
 }
 
 /** Push tap: go where the notification points, or to the inbox. */
+/**
+ * Tells the server this notification was just opened, for Pine Points.
+ *
+ * Sends the id and nothing else: the server compares its own delivery
+ * timestamp against the moment the request lands, so a wrong device clock
+ * cannot earn anything. Fire and forget — a points failure must never
+ * interfere with opening a notification.
+ */
+function claimNotificationOpen(data: Record<string, any> | undefined): void {
+  if (!PRACTICE_MODE) return;
+  const id = data?.notificationId;
+  if (typeof id !== 'string' || !id) return;
+  boardApi.claimNotificationOpen(id).catch(() => undefined);
+}
+
 function handleNotificationResponse(data: Record<string, any> | undefined) {
   if (!navigateForNotification(data)) {
     try { router.push('/profile/notifications' as any); } catch { /* not ready */ }
@@ -258,6 +275,7 @@ async function handleResponseOnce(response: {
     const data = response.notification.request.content.data as
       | Record<string, any>
       | undefined;
+    claimNotificationOpen(data);
     handleNotificationResponse(data);
   } catch {
     // Tap routing is best-effort — never break the app over it.

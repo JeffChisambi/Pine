@@ -8,7 +8,7 @@
  * underneath puts the numbers to it: each stock's return, its high and low
  * for the period, and the gap between the two.
  */
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -29,6 +29,8 @@ import { ComparisonChart, CHART_H, type ComparisonSeries } from "@/components/Pr
 import { StockLogo } from "@/components/StockLogo";
 import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 import { useStockDetail, useStocks } from "@/hooks/useStocks";
+import { boardApi } from "@/services/api";
+import { PRACTICE_MODE } from "@/constants/practice";
 import { guardedBack } from "@/utils/navigation";
 import type { ApiStock, ApiStockDetail } from "@/services/api";
 
@@ -120,6 +122,18 @@ export default function CompareScreen() {
     () => (sb && symB ? { symbol: symB, color: COLOR_B, points: sb.points } : null),
     [sb, symB],
   );
+
+  // Comparing two stocks earns a point, once a day. Reported after both
+  // sides have loaded so an idle screen with a half-chosen pair does not
+  // count, and ignored on failure — the chart is the thing that matters.
+  const claimedPair = useRef<string | null>(null);
+  useEffect(() => {
+    if (!PRACTICE_MODE || !symA || !symB || !sa || !sb) return;
+    const pair = [symA, symB].sort().join(":");
+    if (claimedPair.current === pair) return;
+    claimedPair.current = pair;
+    boardApi.claimCompare(symA, symB).catch(() => undefined);
+  }, [symA, symB, sa, sb]);
 
   const loading = qa.isLoading || qb.isLoading || loadingList;
   const nameOf = (sym?: string) => stocks.find((s) => s.symbol === sym)?.name ?? "";

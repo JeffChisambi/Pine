@@ -1003,6 +1003,166 @@ export const newsApi = {
     request<string[]>('/news/categories'),
 };
 
+// ─── Board API (Pine Points leaderboard, practice only) ──────────────────────
+
+export type PointRuleView = {
+  key: string;
+  points: number;
+  /** Most times a day this can be earned; null means no limit. */
+  dailyCap: number | null;
+  oneTime: boolean;
+  icon: string;
+  title: string;
+  hint: string;
+  earnedToday: number;
+  earnedTotal: number;
+  completed: boolean;
+  cappedToday: boolean;
+};
+
+export type PointRuleGroup = {
+  group: string;
+  title: string;
+  rules: PointRuleView[];
+};
+
+export type BoardSeason = {
+  slug: string;
+  name: string;
+  startsAt?: string;
+  endsAt: string;
+  closed: boolean;
+  daysRemaining: number;
+};
+
+export type PointsRules = {
+  season: BoardSeason | null;
+  prizes: Array<{ rank: number; label: string }>;
+  groups: PointRuleGroup[];
+};
+
+export type BoardRow = {
+  rank: number;
+  displayName: string;
+  points: number;
+  /** Places gained since the last refresh; positive is upward. */
+  movement: number | null;
+  isMe: boolean;
+};
+
+export type BoardMe = {
+  rank: number | null;
+  points: number;
+  movement: number | null;
+  displayName: string | null;
+  onThisPage: boolean;
+};
+
+export type Leaderboard = {
+  season: BoardSeason | null;
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  rows: BoardRow[];
+  me: BoardMe | null;
+};
+
+export type PointsSummary = {
+  season: BoardSeason | null;
+  totalPoints: number;
+  rank: number | null;
+  percentile: number | null;
+  movement: number | null;
+  totalParticipants?: number;
+  currentStreak: number;
+  longestStreak: number;
+  checkedInToday: boolean;
+  pointsToday: number;
+  nextMilestone: {
+    key: string;
+    title: string;
+    points: number;
+    progress: { current: number; target: number };
+  } | null;
+};
+
+export type PointsHistory = {
+  total: number;
+  limit: number;
+  offset: number;
+  items: Array<{
+    id: string;
+    ruleKey: string;
+    title: string;
+    points: number;
+    createdAt: string;
+    metadata: Record<string, unknown> | null;
+  }>;
+};
+
+export type ClaimResult = {
+  awarded: boolean;
+  points: number;
+  reason?: string;
+  newTotal: number;
+};
+
+export const boardApi = {
+  rules: (lang: 'en' | 'ny' = 'en'): Promise<PointsRules> =>
+    request<PointsRules>(`/points/rules?lang=${lang}`),
+
+  leaderboard: (page = 1, limit = 25): Promise<Leaderboard> =>
+    request<Leaderboard>(`/points/leaderboard?page=${page}&limit=${limit}`),
+
+  summary: (): Promise<PointsSummary> => request<PointsSummary>('/points/me'),
+
+  history: (limit = 20, offset = 0): Promise<PointsHistory> =>
+    request<PointsHistory>(`/points/me/history?limit=${limit}&offset=${offset}`),
+
+  /** Lessons the server has recorded, so a reinstalled app recovers progress. */
+  lessons: (): Promise<{ completedLessons: string[]; totalLessons: number }> =>
+    request<{ completedLessons: string[]; totalLessons: number }>('/points/lessons'),
+
+  checkIn: (): Promise<
+    ClaimResult & { currentStreak: number; longestStreak: number; bonus: { key: string; points: number } | null }
+  > =>
+    request('/points/check-in', { method: 'POST' }),
+
+  /**
+   * Sends only the notification's id. The server times the gap against its
+   * own delivery record, so there is nothing here a wrong device clock could
+   * influence.
+   */
+  claimNotificationOpen: (
+    notificationId: string,
+  ): Promise<ClaimResult & { latencyMs: number }> =>
+    request('/points/claims/notification-open', {
+      method: 'POST',
+      body: JSON.stringify({ notificationId }),
+    }),
+
+  claimLesson: (
+    lessonId: string,
+  ): Promise<
+    ClaimResult & {
+      completedLessons: string[];
+      totalLessons: number;
+      milestone: { key: string; points: number } | null;
+    }
+  > =>
+    request('/points/claims/lesson', {
+      method: 'POST',
+      body: JSON.stringify({ lessonId }),
+    }),
+
+  claimCompare: (symbolA: string, symbolB: string): Promise<ClaimResult> =>
+    request('/points/claims/compare', {
+      method: 'POST',
+      body: JSON.stringify({ symbolA, symbolB }),
+    }),
+};
+
 // ─── Support API (Help & Support / Report a problem) ──────────────────────────
 
 export type SupportCategory =
