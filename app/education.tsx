@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Linking,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +17,9 @@ import { useLessonLanguage, useLessonProgress } from "@/hooks/useLessons";
 import { LanguageToggle } from "@/components/education/LanguageToggle";
 
 const GREEN = "#45B369";
+
+/** Where the course continues, beyond the lessons that ship in the app. */
+const LEARN_MORE_URL = "https://investpine.online/";
 
 function BackIcon({ color }: { color: string }) {
   return (
@@ -59,6 +63,7 @@ const COPY = {
     min: "min",
     progress: (n: number, total: number) => `${n} of ${total} completed`,
     disclaimer: "Educational content only · Not investment advice",
+    learnMore: "Learn more",
   },
   ny: {
     title: "Maphunziro",
@@ -68,6 +73,7 @@ const COPY = {
     min: "min",
     progress: (n: number, total: number) => `Wamaliza ${n} mwa ${total}`,
     disclaimer: "Maphunziro okha · Si uphungu wa ndalama",
+    learnMore: "Phunzirani zambiri",
   },
 } satisfies Record<LessonLanguage, unknown>;
 
@@ -115,8 +121,27 @@ export default function EducationScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 6, paddingBottom: 48 }}
       >
-        {/* ── Language ── */}
-        <LanguageToggle value={language} onChange={setLanguage} />
+        {/* ── Language, and where the course continues ── */}
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <LanguageToggle value={language} onChange={setLanguage} />
+          <TouchableOpacity
+            onPress={() => Linking.openURL(LEARN_MORE_URL).catch(() => {})}
+            activeOpacity={0.75}
+            hitSlop={10}
+            accessibilityRole="link"
+            accessibilityLabel={`${t.learnMore}, opens investpine.online`}
+            style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+          >
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: GREEN }}>
+              {t.learnMore}
+            </Text>
+            {/* Leaves the app, so it says so. */}
+            <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+              <Path d="M14 4h6v6M20 4l-8 8" stroke={GREEN} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M19 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4" stroke={GREEN} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
+        </View>
 
         {/* ── Section heading ── */}
         <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", marginTop: 24, marginBottom: 4 }}>
