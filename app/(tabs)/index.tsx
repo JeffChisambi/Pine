@@ -439,7 +439,7 @@ export default function HomeScreen() {
           <View style={{ flexDirection: "row", gap: 10 }}>
             <TouchableOpacity style={{ flex: 1, backgroundColor: WHITE, borderRadius: 12, height: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }} activeOpacity={0.85} onPress={() => guardedPush(() => router.push("/deposit"))}>
               <AddCircleIcon color={GREEN} />
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: GREEN }}>Deposit</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 15, color: GREEN }}>Top up</Text>
             </TouchableOpacity>
             {/* Practice money cannot be withdrawn, so the second action is
                 the practice-only comparison tool instead. */}
@@ -468,7 +468,7 @@ export default function HomeScreen() {
             </Svg>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 14, color: WHITE, lineHeight: 20 }}>Deposit Successful!</Text>
+            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 14, color: WHITE, lineHeight: 20 }}>Top up successful!</Text>
             <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: "rgba(255,255,255,0.85)", lineHeight: 17 }}>MK {depositToast.amount} has been added to your wallet.</Text>
           </View>
           <TouchableOpacity onPress={() => setDepositToast({ visible: false, amount: "" })} hitSlop={12}>

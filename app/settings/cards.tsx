@@ -142,7 +142,7 @@ export default function CardsSettingsScreen() {
             </View>
             <Text style={[styles.emptyTitle, { color: c.text }]}>No saved cards</Text>
             <Text style={[styles.emptySub, { color: MUTED }]}>
-              Cards are saved when you check "Save this card" during a deposit.
+              Cards are saved when you check "Save this card" during a top up.
             </Text>
           </View>
         ) : (

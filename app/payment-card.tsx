@@ -462,7 +462,7 @@ export default function PaymentCardScreen() {
       if (/BROKER_REQUIRED/i.test(message) || /BROKER_REQUIRED/i.test(String(err?.message ?? ""))) {
         Alert.alert(
           "Account not linked",
-          "Your account is not linked to a broker yet, so deposits cannot be made. Contact support and we will sort it out.",
+          "Your account is not linked to a broker yet, so you cannot top up. Contact support and we will sort it out.",
           [
             { text: "Not now", style: "cancel", onPress: () => guardedBack("/(tabs)") },
             { text: "Contact support", onPress: () => router.push("/help" as any) },
@@ -585,7 +585,7 @@ export default function PaymentCardScreen() {
 
         {/* Amount banner */}
         <View style={[styles.amountBanner, { backgroundColor: c.background, borderBottomColor: c.border }]}>
-          <Text style={styles.amountBannerLabel}>Depositing</Text>
+          <Text style={styles.amountBannerLabel}>Topping up</Text>
           <Text style={[styles.amountBannerValue, { color: c.primary }]}>
             {currency === "MWK" ? "MK" : "$"} {amount.toLocaleString()}
           </Text>
@@ -697,7 +697,7 @@ export default function PaymentCardScreen() {
                     </Svg>
                   )}
                 </View>
-                <Text style={[styles.saveCardText, { color: c.text }]}>Save this card for future deposits</Text>
+                <Text style={[styles.saveCardText, { color: c.text }]}>Save this card for future top ups</Text>
               </TouchableOpacity>
             </>
           )}

@@ -237,7 +237,7 @@ export default function HistoryScreen() {
             : type.startsWith("DIVIDEND") ? "dividend"
             : "other";
           const label =
-            kind === "deposit" ? "Deposit"
+            kind === "deposit" ? "Top up"
             : kind === "withdrawal" ? "Withdrawal"
             : kind === "dividend" ? "Dividend received"
             : type.charAt(0) + type.slice(1).toLowerCase().replace(/_/g, " ");

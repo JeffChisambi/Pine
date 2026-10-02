@@ -26,7 +26,7 @@ const MUTED = "#9CA3AF";
 const RED = "#EF4770";
 
 const CATEGORIES: { key: SupportCategory; label: string }[] = [
-  { key: "DEPOSITS", label: "Deposits" },
+  { key: "DEPOSITS", label: "Top ups" },
   { key: "WITHDRAWALS", label: "Withdrawals" },
   { key: "TRADING", label: "Trading" },
   { key: "TREASURY", label: "Treasury bills" },

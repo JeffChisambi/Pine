@@ -122,7 +122,7 @@ export default function BrokerSelectScreen() {
       // First-time selection — simple confirmation.
       Alert.alert(
         `Trade with ${broker.name}?`,
-        "Your deposits, orders and portfolio will be held with this broker.",
+        "Your money, orders and portfolio will be held with this broker.",
         [
           { text: "Cancel", style: "cancel" },
           { text: "Confirm", onPress: () => doSelect(broker, false) },

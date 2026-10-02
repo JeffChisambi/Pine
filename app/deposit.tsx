@@ -135,7 +135,7 @@ export default function PracticeDepositScreen() {
           <TouchableOpacity onPress={() => guardedBack("/(tabs)")} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Go back">
             <BackIcon color={c.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: c.text }]}>Add virtual money</Text>
+          <Text style={[styles.headerTitle, { color: c.text }]}>Top up</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -154,8 +154,8 @@ export default function PracticeDepositScreen() {
               <View style={{ width: `${pendingPct * 100}%`, backgroundColor: `${GREEN}66` }} />
             </View>
             <Text style={[styles.meterNote, { color: c.mutedForeground }]}>
-              {used > 0 ? `${fmtMK(used)} deposited in the last ${allowance?.windowDays ?? 365} days.` : "You haven't deposited yet."}
-              {releaseDate && remaining < cap ? ` Your earliest deposit frees up on ${releaseDate}.` : ""}
+              {used > 0 ? `${fmtMK(used)} topped up in the last ${allowance?.windowDays ?? 365} days.` : "You haven't topped up yet."}
+              {releaseDate && remaining < cap ? ` Your earliest top up frees up on ${releaseDate}.` : ""}
             </Text>
           </View>
 
@@ -177,7 +177,7 @@ export default function PracticeDepositScreen() {
           {overAllowance ? (
             <Text style={styles.warn}>That's more than your remaining allowance of {fmtMK(remaining)}.</Text>
           ) : underMinimum ? (
-            <Text style={styles.warn}>The smallest deposit is {fmtMK(MIN_DEPOSIT)}.</Text>
+            <Text style={styles.warn}>The smallest top up is {fmtMK(MIN_DEPOSIT)}.</Text>
           ) : null}
 
           <View style={styles.quickRow}>

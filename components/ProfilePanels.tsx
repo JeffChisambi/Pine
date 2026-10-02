@@ -336,7 +336,7 @@ const CATEGORY_CONFIG: Record<string, { label: string; description: string }> = 
   SECURITY:  { label: "Security Alerts",   description: "Login, password & security events" },
   TRADING:   { label: "Trading",           description: "Order executions, rejections & settlements" },
   PORTFOLIO: { label: "Portfolio",         description: "Holdings updates & dividends" },
-  WALLET:    { label: "Wallet",            description: "Deposits, withdrawals & balance changes" },
+  WALLET:    { label: "Wallet",            description: "Top ups, withdrawals & balance changes" },
   KYC:       { label: "KYC Verification",  description: "Identity verification status updates" },
   MARKET:    { label: "Market Updates",    description: "Price alerts & market movements" },
   SYSTEM:    { label: "System",            description: "App updates & maintenance notices" },

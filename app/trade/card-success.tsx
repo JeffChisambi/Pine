@@ -161,7 +161,7 @@ export default function CardSuccessScreen() {
   }, []);
 
   const STATS = [
-    { label: "Amount Deposited", value: formatAmount(amount, currency) },
+    { label: "Amount Added", value: formatAmount(amount, currency) },
     { label: "Card",             value: `${cardBrand} ••••${last4}` },
     { label: "Status",           value: "Successful ✓" },
     ...(txRef ? [{ label: "Reference", value: txRef.slice(-12) }] : []),
@@ -174,7 +174,7 @@ export default function CardSuccessScreen() {
 
       {/* Heading */}
       <View style={styles.headingWrap}>
-        <Text style={[styles.heading, { color: c.text }]}>Deposit Successful!</Text>
+        <Text style={[styles.heading, { color: c.text }]}>Top up successful!</Text>
         <Text style={[styles.subheading, { color: MUTED }]}>
           Your wallet has been topped up. Funds are available immediately.
         </Text>
