@@ -10,16 +10,34 @@
 import Constants from 'expo-constants';
 import { AuthStore } from './auth-store';
 import { normalizeMalawiPhoneNumber } from './phone';
+import { PRACTICE_MODE } from '@/constants/practice';
+
+/** The live server, which this build must never reach. */
+const LIVE_API_HOST = 'api.appine.online';
+const PRACTICE_API_URL = 'https://practice-api.appine.online/v1';
 
 function resolveBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
+    const configured = process.env.EXPO_PUBLIC_API_URL;
+    // A dev build takes EXPO_PUBLIC_* from Metro, i.e. from the local .env,
+    // not from the eas.json profile. A stale .env therefore pointed the
+    // practice app at real accounts, where the practice endpoints 404.
+    if (PRACTICE_MODE && configured.includes(LIVE_API_HOST)) {
+      console.warn(
+        `[practice] EXPO_PUBLIC_API_URL points at the live server (${configured}); ` +
+        `using ${PRACTICE_API_URL} instead. Fix .env to silence this.`,
+      );
+      return PRACTICE_API_URL;
+    }
+    return configured;
   }
 
   const hostUri: string | undefined =
     (Constants.expoConfig as any)?.hostUri ??
     (Constants as any).manifest?.debuggerHost ??
     (Constants as any).manifest2?.extra?.expoGo?.debuggerHost;
+
+  if (PRACTICE_MODE) return PRACTICE_API_URL;
 
   if (hostUri) {
     const host = hostUri.split(':')[0];
