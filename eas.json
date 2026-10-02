@@ -10,6 +10,13 @@
       "channel": "development",
       "ios": {
         "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://practice-api.appine.online/v1",
+        "EXPO_PUBLIC_ENABLE_TEST_TX": "0"
+      },
+      "android": {
+        "buildType": "apk"
       }
     },
     "preview": {
