@@ -47,8 +47,6 @@ import Svg, {
   Text as SvgText,
 } from "react-native-svg";
 import { EyeOpenIcon, EyeClosedIcon, CompareIcon } from "@/components/icons/AppIcons";
-import { SvgXml } from "react-native-svg";
-import { EDUCATION_ICON_SVG } from "@/constants/EducationIconSvg";
 import { LinearGradient } from "expo-linear-gradient";
 import { useColors } from "@/hooks/useColors";
 import { useTheme } from "@/contexts/theme-context";
@@ -594,11 +592,13 @@ export default function HomeScreen() {
                   </View>
                 </View>
 
-                {/* Right: contained square photo */}
+                {/* Right: the graduation cap, sitting on the card itself.
+                    The art is transparent and already trimmed, so it needs no
+                    frame and must not be cropped. */}
                 <Image
-                  source={require("../../attached_assets/image_da53edb6-914b-41d1-bc8b-dfe23a6d2164_1785280173516.png")}
-                  style={{ width: 155, height: 155, borderRadius: 14 }}
-                  resizeMode="cover"
+                  source={require("../../assets/images/education-cap.png")}
+                  style={{ width: 155, height: 155 }}
+                  resizeMode="contain"
                 />
               </View>
             </TouchableOpacity>
