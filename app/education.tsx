@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Platform,
   ScrollView,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { G, Path } from "react-native-svg";
+import Svg, { Path, Polygon } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 import { guardedBack, guardedPush } from "@/utils/navigation";
 import { LESSONS, type LessonLanguage } from "@/content/lessons";
@@ -63,7 +63,12 @@ const COPY = {
     min: "min",
     progress: (n: number, total: number) => `${n} of ${total} completed`,
     disclaimer: "Educational content only · Not investment advice",
-    learnMore: "Learn more",
+    masterClass: "Master Class",
+    masterClassBody:
+      "The six lessons here are the groundwork. The Master Class goes further: " +
+      "reading a company's results, judging what a share is worth, and building " +
+      "a portfolio you can hold through a bad year.",
+    masterClassCta: "Open the Master Class",
   },
   ny: {
     title: "Maphunziro",
@@ -73,9 +78,140 @@ const COPY = {
     min: "min",
     progress: (n: number, total: number) => `Wamaliza ${n} mwa ${total}`,
     disclaimer: "Maphunziro okha · Si uphungu wa ndalama",
-    learnMore: "Phunzirani zambiri",
+    masterClass: "Master Class",
+    masterClassBody:
+      "Maphunziro asanu ndi limodzi pano ndi maziko. Master Class imapitiriza: " +
+      "kuwerenga zotsatira za kampani, kudziwa mtengo weniweni wa sheya, ndi " +
+      "kupanga portfolio yomwe mungakhale nayo ngakhale chaka chikakhala choipa.",
+    masterClassCta: "Tsegulani Master Class",
   },
 } satisfies Record<LessonLanguage, unknown>;
+
+/** The graduation cap, from the supplied artwork. */
+function GraduationIcon({ size = 26 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 512 512" fill="none">
+      <Polygon
+        points="445.055 384.794 445.055 221.864 418.805 234.989 418.805 384.777 401.301 429.785 462.551 429.785 445.055 384.794"
+        fill={GREEN}
+      />
+      <Path
+        d="M229.0648,306.3708l-107.7643-53.88v53.7754c0,36.2433,58.7634,65.625,131.25,65.625,72.4887,0,131.25-29.3817,131.25-65.625V252.49L276.0277,306.3741C257.5813,313.681,247.5133,313.6789,229.0648,306.3708Z"
+        fill={GREEN}
+      />
+      <Path
+        d="M264.2912,282.8969l186.5207-93.26c6.4579-3.2289,6.4579-8.5107,0-11.74l-186.5207-93.26c-6.4556-3.2289-17.0214-3.2289-23.4793,0l-186.5207,93.26c-6.4556,3.2289-6.4556,8.5107,0,11.74l186.5207,93.26C247.27,286.1258,257.8356,286.1258,264.2912,282.8969Z"
+        fill={GREEN}
+      />
+    </Svg>
+  );
+}
+
+function ChevronIcon({ color, up }: { color: string; up: boolean }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path
+        d={up ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"}
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * The Master Class, as a card that opens.
+ *
+ * Collapsed it is one line, so it does not compete with the lessons a learner
+ * came here for. Opened it explains what the Master Class covers and offers
+ * the link, which leaves the app — so the card says what it is before anyone
+ * taps through to a browser.
+ */
+function MasterClassCard({ copy }: { copy: { masterClass: string; masterClassBody: string; masterClassCta: string } }) {
+  const c = useColors();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <View
+      style={{
+        marginTop: 16,
+        borderRadius: 16,
+        backgroundColor: c.card,
+        borderWidth: 1,
+        borderColor: c.border,
+        overflow: "hidden",
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => setOpen((v) => !v)}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 20,
+          paddingVertical: 16,
+          gap: 12,
+        }}
+      >
+        <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 17, color: c.text, flex: 1 }}>
+          {copy.masterClass}
+        </Text>
+        <View
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: c.background,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <GraduationIcon />
+        </View>
+        <ChevronIcon color={c.mutedForeground} up={open} />
+      </TouchableOpacity>
+
+      {open && (
+        <View style={{ paddingHorizontal: 20, paddingBottom: 18, marginTop: -4 }}>
+          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, lineHeight: 20, color: c.mutedForeground }}>
+            {copy.masterClassBody}
+          </Text>
+          <TouchableOpacity
+            onPress={() => Linking.openURL(LEARN_MORE_URL).catch(() => {})}
+            activeOpacity={0.85}
+            accessibilityRole="link"
+            accessibilityLabel={`${copy.masterClassCta}, opens investpine.online`}
+            style={{
+              alignSelf: "flex-start",
+              marginTop: 14,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              backgroundColor: GREEN,
+              borderRadius: 10,
+              paddingHorizontal: 14,
+              paddingVertical: 9,
+            }}
+          >
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: "#FFFFFF" }}>
+              {copy.masterClassCta}
+            </Text>
+            {/* Leaves the app, so it says so. */}
+            <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+              <Path d="M14 4h6v6M20 4l-8 8" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M19 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
 
 export default function EducationScreen() {
   const insets = useSafeAreaInsets();
@@ -121,32 +257,11 @@ export default function EducationScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 6, paddingBottom: 48 }}
       >
-        {/* ── Language, and where the course continues ── */}
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <LanguageToggle value={language} onChange={setLanguage} />
-          <TouchableOpacity
-            onPress={() => Linking.openURL(LEARN_MORE_URL).catch(() => {})}
-            activeOpacity={0.75}
-            hitSlop={10}
-            accessibilityRole="link"
-            accessibilityLabel={`${t.learnMore}, opens investpine.online`}
-            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-          >
-            {/* The source art sits at an offset, so the group shifts it back
-                to the origin of the 32-unit box. */}
-            <Svg width={15} height={15} viewBox="0 0 32 32" fill="none">
-              <G transform="translate(-204 -671)">
-                <Path
-                  d="M231.596,694.829 C229.681,694.192 227.622,693.716 225.455,693.408 C225.75,691.675 225.907,689.859 225.957,688 L233.962,688 C233.783,690.521 232.936,692.854 231.596,694.829 L231.596,694.829 Z M223.434,700.559 C224.1,698.95 224.645,697.211 225.064,695.379 C226.862,695.645 228.586,696.038 230.219,696.554 C228.415,698.477 226.073,699.892 223.434,700.559 L223.434,700.559 Z M220.971,700.951 C220.649,700.974 220.328,701 220,701 C219.672,701 219.352,700.974 219.029,700.951 C218.178,699.179 217.489,697.207 216.979,695.114 C217.973,695.027 218.98,694.976 220,694.976 C221.02,694.976 222.027,695.027 223.022,695.114 C222.511,697.207 221.822,699.179 220.971,700.951 L220.971,700.951 Z M209.781,696.554 C211.414,696.038 213.138,695.645 214.936,695.379 C215.355,697.211 215.9,698.95 216.566,700.559 C213.927,699.892 211.586,698.477 209.781,696.554 L209.781,696.554 Z M208.404,694.829 C207.064,692.854 206.217,690.521 206.038,688 L214.043,688 C214.093,689.859 214.25,691.675 214.545,693.408 C212.378,693.716 210.319,694.192 208.404,694.829 L208.404,694.829 Z M208.404,679.171 C210.319,679.808 212.378,680.285 214.545,680.592 C214.25,682.325 214.093,684.141 214.043,686 L206.038,686 C206.217,683.479 207.064,681.146 208.404,679.171 L208.404,679.171 Z M216.566,673.441 C215.9,675.05 215.355,676.789 214.936,678.621 C213.138,678.356 211.414,677.962 209.781,677.446 C211.586,675.523 213.927,674.108 216.566,673.441 L216.566,673.441 Z M219.029,673.049 C219.352,673.027 219.672,673 220,673 C220.328,673 220.649,673.027 220.971,673.049 C221.822,674.821 222.511,676.794 223.022,678.886 C222.027,678.973 221.02,679.024 220,679.024 C218.98,679.024 217.973,678.973 216.979,678.886 C217.489,676.794 218.178,674.821 219.029,673.049 L219.029,673.049 Z M223.954,688 C223.9,689.761 223.74,691.493 223.439,693.156 C222.313,693.058 221.168,693 220,693 C218.832,693 217.687,693.058 216.562,693.156 C216.26,691.493 216.1,689.761 216.047,688 L223.954,688 L223.954,688 Z M216.047,686 C216.1,684.239 216.26,682.507 216.562,680.844 C217.687,680.942 218.832,681 220,681 C221.168,681 222.313,680.942 223.438,680.844 C223.74,682.507 223.9,684.239 223.954,686 L216.047,686 L216.047,686 Z M230.219,677.446 C228.586,677.962 226.862,678.356 225.064,678.621 C224.645,676.789 224.1,675.05 223.434,673.441 C226.073,674.108 228.415,675.523 230.219,677.446 L230.219,677.446 Z M231.596,679.171 C232.936,681.146 233.783,683.479 233.962,686 L225.957,686 C225.907,684.141 225.75,682.325 225.455,680.592 C227.622,680.285 229.681,679.808 231.596,679.171 L231.596,679.171 Z M220,671 C211.164,671 204,678.163 204,687 C204,695.837 211.164,703 220,703 C228.836,703 236,695.837 236,687 C236,678.163 228.836,671 220,671 L220,671 Z"
-                  fill={GREEN}
-                />
-              </G>
-            </Svg>
-            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: GREEN }}>
-              {t.learnMore}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* ── Language ── */}
+        <LanguageToggle value={language} onChange={setLanguage} />
+
+        {/* ── Master Class ── */}
+        <MasterClassCard copy={t} />
 
         {/* ── Section heading ── */}
         <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", marginTop: 24, marginBottom: 4 }}>
