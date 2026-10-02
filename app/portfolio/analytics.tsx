@@ -339,12 +339,10 @@ export default function PortfolioAnalyticsScreen() {
             </View>
           </View>
 
-          <View style={{ marginHorizontal: 24, marginBottom: 8, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: c.card, borderRadius: 10, borderWidth: 1, borderColor: c.border }}>
-            <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: c.primary }}>Your stock holdings at the latest MSE close — uninvested cash excluded</Text>
-            <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 10, color: MUTED, marginTop: 2 }}>
-              History is recorded daily after market close and after every settled trade
-            </Text>
-          </View>
+          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 10, color: MUTED, marginHorizontal: 24, marginBottom: 8 }}>
+            Holdings only, uninvested cash excluded. Recorded daily after market
+            close and after every settled trade.
+          </Text>
         </View>
       </ScrollView>
     </View>
