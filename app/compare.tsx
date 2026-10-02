@@ -247,7 +247,7 @@ export default function CompareScreen() {
         )}
 
         <Text style={[styles.foot, { color: c.mutedForeground }]}>
-          Lines show each stock's % change from the first trading day in the period, so stocks at very different prices can be compared. Past performance does not predict future returns.
+          Past performance does not predict future returns.
         </Text>
       </ScrollView>
 
