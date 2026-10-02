@@ -332,23 +332,27 @@ export function ComparisonChart({ a, b, period, width }: ComparisonChartProps) {
     };
   }, [a, b, plotW, plotH]);
 
-  const snapToIdx = useCallback((idx: number) => {
-    const xs = xsShared.value;
-    const ya = ysAShared.value;
-    const yb = ysBShared.value;
-    if (xs.length < 2) return;
-    animX.value = xs[idx];
-    animYA.value = ya[idx];
-    animYB.value = yb[idx];
-  }, []);
-
   useEffect(() => {
     const xs = grid.sampled.map((s) => grid.x(s.t));
+    const ysA = grid.sampled.map((s) => grid.y(s.a?.pct ?? 0));
+    const ysB = grid.sampled.map((s) => grid.y(s.b?.pct ?? 0));
     xsShared.value = xs;
-    ysAShared.value = grid.sampled.map((s) => grid.y(s.a?.pct ?? 0));
-    ysBShared.value = grid.sampled.map((s) => grid.y(s.b?.pct ?? 0));
+    ysAShared.value = ysA;
+    ysBShared.value = ysB;
     setSelectedIdx(null);
-    snapToIdx(xs.length - 1);
+
+    // Positioned from these local arrays, NOT by reading the shared values
+    // back: a shared value holding an array does not read back as the new
+    // array on the same tick, so the marker and the tooltip stayed at zero
+    // and sat against the left edge until the chart was first dragged. The
+    // single-series chart above works for the same reason — it snaps from the
+    // data it was handed.
+    if (xs.length >= 2) {
+      const last = xs.length - 1;
+      animX.value = xs[last];
+      animYA.value = ysA[last];
+      animYB.value = ysB[last];
+    }
   }, [grid]);
 
   const pickAndSnap = (x: number, animate: boolean) => {
