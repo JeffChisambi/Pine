@@ -61,26 +61,55 @@ function ArrowDownIcon({ color }: { color: string }) {
 function SinglePointChart({ value, primary }: { value: number; primary: string }) {
   const SCREEN_W = useLayoutWidth();
   const Y_PAD = 54, PAD_R = 16;
-  const midY = CHART_H / 2 - 8;
+
+  // The grid is kept to the top two thirds and the captions sit in the clear
+  // space beneath it. They used to be centred over the whole canvas, which
+  // ran a dashed line straight through the words and read as a strike-through.
+  const GRID_TOP = 18;
+  const GRID_BOTTOM = Math.round(CHART_H * 0.52);
+  const LINES = 3;
+  const lineY = (i: number) => GRID_TOP + (i / (LINES - 1)) * (GRID_BOTTOM - GRID_TOP);
+  const dotY = GRID_BOTTOM;
   const dotX = SCREEN_W - PAD_R - 6;
+
   return (
-    <View style={{ width: SCREEN_W, height: CHART_H, alignItems: "center", justifyContent: "center" }}>
+    <View style={{ width: SCREEN_W, height: CHART_H }}>
       <Svg width={SCREEN_W} height={CHART_H} style={{ position: "absolute" }}>
-        {[0, 1, 2, 3, 4].map((i) => {
-          const y = 18 + (i / 4) * (CHART_H - 18 - 28);
-          return <Line key={i} x1={Y_PAD} y1={y} x2={SCREEN_W - PAD_R} y2={y} stroke={SVG_GRID} strokeWidth={1} strokeLinecap="round" strokeDasharray="3 3" />;
-        })}
-        <Line x1={Y_PAD} y1={midY} x2={dotX} y2={midY} stroke={GREEN} strokeWidth={1.5} strokeLinecap="round" strokeDasharray="2 4" opacity={0.5} />
-        <Circle cx={dotX} cy={midY} r={4} fill={WHITE} stroke={GREEN} strokeWidth={2} />
+        {Array.from({ length: LINES }, (_, i) => (
+          <Line
+            key={i}
+            x1={Y_PAD}
+            y1={lineY(i)}
+            x2={SCREEN_W - PAD_R}
+            y2={lineY(i)}
+            stroke={SVG_GRID}
+            strokeWidth={1}
+            strokeLinecap="round"
+            strokeDasharray="3 3"
+          />
+        ))}
+        <Line x1={Y_PAD} y1={dotY} x2={dotX} y2={dotY} stroke={GREEN} strokeWidth={1.5} strokeLinecap="round" strokeDasharray="2 4" opacity={0.5} />
+        <Circle cx={dotX} cy={dotY} r={4} fill={WHITE} stroke={GREEN} strokeWidth={2} />
       </Svg>
-      <View style={{ backgroundColor: primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, alignItems: "center", marginTop: -36 }}>
-        <Text style={{ color: WHITE, fontSize: 12, fontFamily: "PlusJakartaSans_700Bold" }}>{fmtK(value)}</Text>
-        <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 10, fontFamily: "PlusJakartaSans_500Medium", marginTop: 4 }}>
-          {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+
+      {/* Today's value, above the point it belongs to. */}
+      <View style={{ position: "absolute", left: 0, right: 0, top: dotY - 74, alignItems: "center" }}>
+        <View style={{ backgroundColor: primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, alignItems: "center" }}>
+          <Text style={{ color: WHITE, fontSize: 12, fontFamily: "PlusJakartaSans_700Bold" }}>{fmtK(value)}</Text>
+          <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 10, fontFamily: "PlusJakartaSans_500Medium", marginTop: 4 }}>
+            {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          </Text>
+        </View>
+      </View>
+
+      <View style={{ position: "absolute", left: 0, right: 0, bottom: 16, alignItems: "center", paddingHorizontal: 24 }}>
+        <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, textAlign: "center" }}>
+          Your history starts today
+        </Text>
+        <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, marginTop: 3, textAlign: "center" }}>
+          Daily snapshots are recorded after market close
         </Text>
       </View>
-      <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, marginTop: 34 }}>Your history starts today</Text>
-      <Text style={{ color: MUTED, fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, marginTop: 3 }}>Daily snapshots are recorded after market close</Text>
     </View>
   );
 }
@@ -238,7 +267,7 @@ export default function PortfolioAnalyticsScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: c.card, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1, borderColor: c.border }}>
                 {hasHistory && direction === "up" && <ArrowUpIcon color={GREEN} />}
                 {hasHistory && direction === "down" && <ArrowDownIcon color={RED} />}
-                <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: hasHistory ? changeColor : c.mutedForeground }}>
+                <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: hasHistory ? changeColor : c.text }}>
                   {hasHistory ? `${fmtSigned(changeAbs)} (${fmtPct(changePct)})` : "No change yet"}
                 </Text>
               </View>
