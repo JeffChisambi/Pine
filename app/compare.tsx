@@ -135,7 +135,6 @@ export default function CompareScreen() {
   }, [symA, symB, sa, sb]);
 
   const loading = qa.isLoading || qb.isLoading || loadingList;
-  const nameOf = (sym?: string) => stocks.find((s) => s.symbol === sym)?.name ?? "";
 
   const verdict = useMemo(() => {
     if (!sa || !sb || !symA || !symB) return null;
@@ -168,12 +167,9 @@ export default function CompareScreen() {
               accessibilityLabel={`Choose ${slot === "a" ? "first" : "second"} stock, currently ${sym ?? "none"}`}
             >
               {sym ? <StockLogo symbol={sym} size={32} /> : <View style={[styles.swatch, { backgroundColor: color }]} />}
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <View style={[styles.swatch, { backgroundColor: color }]} />
-                  <Text style={[styles.pickSym, { color: c.text }]} numberOfLines={1}>{sym ?? "Choose"}</Text>
-                </View>
-                <Text style={[styles.pickName, { color: c.mutedForeground }]} numberOfLines={1}>{nameOf(sym) || " "}</Text>
+              <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <View style={[styles.swatch, { backgroundColor: color }]} />
+                <Text style={[styles.pickSym, { color: c.text }]} numberOfLines={1}>{sym ?? "Choose"}</Text>
               </View>
               <ChevronDown color={c.mutedForeground} />
             </TouchableOpacity>
