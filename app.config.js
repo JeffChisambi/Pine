@@ -1,32 +1,26 @@
 /**
  * Per-build identity.
  *
- * app.json holds everything shared. The one thing that differs is who the
- * build claims to be:
+ * app.json holds everything shared. The store bundle differs in one thing:
+ * it is simply named "Pine" rather than "Pine Virtual".
  *
- *   store builds  →  "Pine", com.pine.virtual
- *   everything else → the values in app.json
+ * It keeps com.pine.app. A separate package (com.pine.virtual) was tried and
+ * reverted on request: the Firebase project has only one Android app
+ * registered, com.pine.app, so a different package fails the Google Services
+ * step at build time and would ship without push notifications until a new
+ * app is registered in Firebase.
  *
- * The store bundle must NOT carry com.pine.app: that is the live Pine app's
- * package on Google Play, and uploading under it would replace the real app
- * for everyone who has installed it. A separate package means the two are
- * separate listings and can sit side by side on a phone.
+ * Note what that package means on Google Play: a bundle uploaded under
+ * com.pine.app belongs to the existing Pine listing and replaces the live app
+ * for everyone who has it installed.
  *
- * Driven by APP_VARIANT, set in the `store` profile in eas.json, so a local
- * run or a tester APK is unaffected.
+ * Driven by APP_VARIANT, set in the `store` profile in eas.json, so tester
+ * APKs and local runs keep the name in app.json.
  */
 const STORE_NAME = 'Pine';
-const STORE_PACKAGE = 'com.pine.virtual';
 
 module.exports = ({ config }) => {
   if (process.env.APP_VARIANT !== 'store') return config;
 
-  return {
-    ...config,
-    name: STORE_NAME,
-    android: {
-      ...config.android,
-      package: STORE_PACKAGE,
-    },
-  };
+  return { ...config, name: STORE_NAME };
 };
