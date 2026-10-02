@@ -87,7 +87,6 @@ function toSeries(detail: ApiStockDetail | undefined): Series | null {
 }
 
 const fmtPct = (n: number) => `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
-const fmtMK = (n: number) => `MK ${n.toLocaleString("en-MW", { maximumFractionDigits: 2 })}`;
 
 export default function CompareScreen() {
   const params = useLocalSearchParams<{ a?: string; b?: string }>();
@@ -232,19 +231,18 @@ export default function CompareScreen() {
               <Text style={[styles.thVal, { color: COLOR_A }]}>{symA}</Text>
               <Text style={[styles.thVal, { color: COLOR_B }]}>{symB}</Text>
             </View>
-            {([
-              ["Return", fmtPct(sa.returnPct), fmtPct(sb.returnPct), true],
-              ["Start price", fmtMK(sa.first), fmtMK(sb.first), false],
-              ["Latest price", fmtMK(sa.last), fmtMK(sb.last), false],
-              ["Period high", fmtMK(sa.high), fmtMK(sb.high), false],
-              ["Period low", fmtMK(sa.low), fmtMK(sb.low), false],
-            ] as const).map(([label, va, vb, signed], i, arr) => (
-              <View key={label} style={[styles.tr, i < arr.length - 1 && { borderBottomColor: c.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-                <Text style={[styles.th, { color: c.mutedForeground }]}>{label}</Text>
-                <Text style={[styles.td, { color: signed ? (sa.returnPct >= 0 ? COLOR_A : "#EF4444") : c.text }]}>{va}</Text>
-                <Text style={[styles.td, { color: signed ? (sb.returnPct >= 0 ? COLOR_A : "#EF4444") : c.text }]}>{vb}</Text>
-              </View>
-            ))}
+            {/* Return is the only figure that answers the question the screen
+                asks. Start, latest, high and low are all a tap away on each
+                stock's own page. */}
+            <View style={styles.tr}>
+              <Text style={[styles.th, { color: c.mutedForeground }]}>Return</Text>
+              <Text style={[styles.td, { color: sa.returnPct >= 0 ? COLOR_A : "#EF4444" }]}>
+                {fmtPct(sa.returnPct)}
+              </Text>
+              <Text style={[styles.td, { color: sb.returnPct >= 0 ? COLOR_A : "#EF4444" }]}>
+                {fmtPct(sb.returnPct)}
+              </Text>
+            </View>
           </View>
         )}
 
