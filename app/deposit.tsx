@@ -84,6 +84,7 @@ export default function PracticeDepositScreen() {
 
   const amount = Number(raw.replace(/[^0-9]/g, "")) || 0;
   const cap = allowance?.cap ?? PRACTICE_DEPOSIT_CAP;
+  const windowDays = allowance?.windowDays ?? 7;
   const used = allowance?.used ?? 0;
   const remaining = allowance?.remaining ?? cap;
   const overAllowance = amount > remaining;
@@ -143,7 +144,7 @@ export default function PracticeDepositScreen() {
           {/* Allowance */}
           <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
             <View style={styles.rowBetween}>
-              <Text style={[styles.cardLabel, { color: c.mutedForeground }]}>YOUR YEARLY ALLOWANCE</Text>
+              <Text style={[styles.cardLabel, { color: c.mutedForeground }]}>YOUR WEEKLY ALLOWANCE</Text>
               {loadingAllowance && <ActivityIndicator size="small" color={GREEN} />}
             </View>
             <Text style={[styles.allowanceBig, { color: c.text }]}>
@@ -154,7 +155,9 @@ export default function PracticeDepositScreen() {
               <View style={{ width: `${pendingPct * 100}%`, backgroundColor: `${GREEN}66` }} />
             </View>
             <Text style={[styles.meterNote, { color: c.mutedForeground }]}>
-              {used > 0 ? `${fmtMK(used)} topped up in the last ${allowance?.windowDays ?? 365} days.` : "You haven't topped up yet."}
+              {used > 0
+                ? `${fmtMK(used)} topped up ${windowDays === 7 ? "this week" : `in the last ${windowDays} days`}.`
+                : "You haven't topped up yet."}
               {releaseDate && remaining < cap ? ` Your earliest top up frees up on ${releaseDate}.` : ""}
             </Text>
           </View>
