@@ -135,7 +135,7 @@ export default function PracticeDepositScreen() {
           <TouchableOpacity onPress={() => guardedBack("/(tabs)")} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Go back">
             <BackIcon color={c.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: c.text }]}>Add practice money</Text>
+          <Text style={[styles.headerTitle, { color: c.text }]}>Add virtual money</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -207,14 +207,14 @@ export default function PracticeDepositScreen() {
 
           <View style={[styles.note, { backgroundColor: `${AMBER}12` }]}>
             <Text style={[styles.noteText, { color: c.text }]}>
-              This is practice money. It is added instantly, cannot be withdrawn, and is only for learning how trading works.
+              This is virtual money. It is added instantly, cannot be withdrawn, and is only for learning how trading works.
             </Text>
           </View>
 
           {error ? <Text style={[styles.warn, { marginTop: 12 }]}>{error}</Text> : null}
           {done != null && !error ? (
             <View style={[styles.success, { backgroundColor: `${GREEN}14` }]}>
-              <Text style={[styles.successText, { color: c.text }]}>{fmtMK(done)} added to your practice balance.</Text>
+              <Text style={[styles.successText, { color: c.text }]}>{fmtMK(done)} added to your virtual balance.</Text>
               <TouchableOpacity onPress={() => router.replace("/(tabs)" as any)}>
                 <Text style={{ color: GREEN, fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14 }}>Start trading</Text>
               </TouchableOpacity>

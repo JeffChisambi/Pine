@@ -422,7 +422,7 @@ export default function ProfileScreen() {
               <Text style={styles.profilePhone}>{userPhone ?? "—"}</Text>
               {PRACTICE_MODE && (
                 <View style={[styles.unverifiedChip, { backgroundColor: "#F0FDF4", borderColor: "#86EFAC" }]}>
-                  <Text style={[styles.unverifiedText, { color: "#166534" }]}>Practice account</Text>
+                  <Text style={[styles.unverifiedText, { color: "#166534" }]}>Virtual account</Text>
                 </View>
               )}
               {!PRACTICE_MODE && kycStatus === "NOT_SUBMITTED" && (

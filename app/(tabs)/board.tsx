@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import Svg, { Path } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
+import { MedalIcon, MEDAL_COLORS } from "@/components/MedalIcon";
 import { useLayoutWidth } from "@/hooks/useLayoutWidth";
 import {
   useBoardRules,
@@ -37,14 +38,16 @@ import type { BoardRow, PointRuleView } from "@/services/api";
 const GREEN = "#45B369";
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
-const GOLD = "#D4A32C";
-const SILVER = "#9AA3AE";
-const BRONZE = "#B2763F";
 
 const SEGMENTS = ["Ranking", "Earn", "Prizes"] as const;
 type Segment = (typeof SEGMENTS)[number];
 
-const PLACE_COLORS: Record<number, string> = { 1: GOLD, 2: SILVER, 3: BRONZE };
+/** The podium colours, taken from the medal artwork so the two agree. */
+const PLACE_COLORS: Record<number, string> = {
+  1: MEDAL_COLORS[1].face,
+  2: MEDAL_COLORS[2].face,
+  3: MEDAL_COLORS[3].face,
+};
 
 function TrophyIcon({ color }: { color: string }) {
   return (
@@ -306,16 +309,20 @@ function RankingSegment({
                 row.isMe && { backgroundColor: withAlpha(c.primary, 0.08) },
               ]}
             >
-              <View style={[styles.place, { backgroundColor: PLACE_COLORS[row.rank] ?? "transparent" }]}>
-                <Text
-                  style={{
-                    fontFamily: "PlusJakartaSans_700Bold",
-                    fontSize: 13,
-                    color: PLACE_COLORS[row.rank] ? WHITE : c.mutedForeground,
-                  }}
-                >
-                  {row.rank}
-                </Text>
+              <View style={styles.place}>
+                {row.rank <= 3 ? (
+                  <MedalIcon place={row.rank} size={30} />
+                ) : (
+                  <Text
+                    style={{
+                      fontFamily: "PlusJakartaSans_700Bold",
+                      fontSize: 13,
+                      color: c.mutedForeground,
+                    }}
+                  >
+                    {row.rank}
+                  </Text>
+                )}
               </View>
               <Text
                 style={{
@@ -502,9 +509,7 @@ function PrizesSegment({
             },
           ]}
         >
-          <View style={[styles.prizeBadge, { backgroundColor: PLACE_COLORS[prize.rank] ?? c.border }]}>
-            <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 15, color: WHITE }}>{prize.rank}</Text>
-          </View>
+          <MedalIcon place={prize.rank} size={40} />
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 12, color: c.mutedForeground }}>
               {ordinal(prize.rank)} place
@@ -579,5 +584,4 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 16,
   },
-  prizeBadge: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
 });

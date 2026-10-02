@@ -427,7 +427,7 @@ export default function HomeScreen() {
         <View style={{ backgroundColor: GREEN, borderRadius: 16, padding: 20, gap: 28 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 16 }}>
-              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE, opacity: 0.8, letterSpacing: 1, marginBottom: 4 }}>{PRACTICE_MODE ? "PRACTICE BALANCE" : "AVAILABLE BALANCE"}</Text>
+              <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 12, color: WHITE, opacity: 0.8, letterSpacing: 1, marginBottom: 4 }}>{PRACTICE_MODE ? "VIRTUAL BALANCE" : "AVAILABLE BALANCE"}</Text>
               <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 34, color: WHITE, letterSpacing: -0.5 }} adjustsFontSizeToFit numberOfLines={1}>
                 {balanceVisible ? (totalBalance ?? "—") : "K  ••••••"}
               </Text>

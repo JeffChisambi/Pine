@@ -75,7 +75,7 @@ function PracticeNoWithdraw() {
     <View style={{ flex: 1, backgroundColor: c.background, paddingTop: insets.top + 24, paddingHorizontal: 24, gap: 12 }}>
       <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 22, color: c.text }}>Withdrawals are off</Text>
       <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, color: c.mutedForeground, lineHeight: 21 }}>
-        This is a practice account. The money in it is for learning how trading works, so it cannot be withdrawn.
+        This is a virtual account. The money in it is for learning how trading works, so it cannot be withdrawn.
       </Text>
       <TouchableOpacity
         onPress={() => guardedBack("/(tabs)")}
