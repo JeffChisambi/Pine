@@ -60,8 +60,11 @@ def convert(path):
     # numeric attributes must be JSX expressions
     inner = re.sub(r'(strokeWidth|cx|cy|r|x|y|width|height|rx|ry)="([\d.]+)"', r'\1={\2}', inner)
     inner = re.sub(r'\s+', ' ', inner).strip()
-    # A root-level fill applies to children that set none - only the
-    # filled glyphs (delete, log out, settings, verify) rely on it.
+    # JSX keeps whitespace between two tags on the SAME line as a text
+    # child, and React Native throws "Text strings must be rendered
+    # within a <Text> component" when that child lands inside an <Svg>.
+    # Whitespace containing a newline is dropped, so break siblings apart.
+    inner = re.sub(r'>\s+<', '>\n      <', inner)
     default_fill = 'color' if root_fill and root_fill.group(1) not in ('none',) else 'none'
     return view, inner, default_fill
 
