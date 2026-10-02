@@ -141,7 +141,7 @@ export default function CompareScreen() {
     const gap = sa.returnPct - sb.returnPct;
     if (Math.abs(gap) < 0.01) return `${symA} and ${symB} moved the same over this period.`;
     const [winner, loser] = gap > 0 ? [symA, symB] : [symB, symA];
-    return `${winner} did better than ${loser} by ${Math.abs(gap).toFixed(2)} percentage points over this period.`;
+    return `${winner} did better than ${loser} by ${Math.abs(gap).toFixed(2)} percentage over this period.`;
   }, [sa, sb, symA, symB]);
 
   return (
