@@ -110,8 +110,6 @@ export default function CompareScreen() {
   const sa = useMemo(() => toSeries(qa.data), [qa.data]);
   const sb = useMemo(() => toSeries(qb.data), [qb.data]);
 
-  const chartW = width - 40;
-
   // The chart wants plain series; the summary table below still uses the
   // richer Series objects (period high/low, first/last close).
   const seriesA: ComparisonSeries | null = useMemo(
@@ -144,7 +142,7 @@ export default function CompareScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 32 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>
         {/* Pickers */}
         <View style={styles.pickRow}>
           {([["a", symA, COLOR_A], ["b", symB, COLOR_B]] as const).map(([slot, sym, color]) => (
@@ -169,35 +167,44 @@ export default function CompareScreen() {
           ))}
         </View>
 
-        {/* Periods */}
-        <View style={[styles.periods, { backgroundColor: c.secondary }]}>
+        {/* Periods — same pills as the stock page */}
+        <View style={styles.periods}>
           {PERIODS.map((p) => (
             <TouchableOpacity
               key={p}
               onPress={() => setPeriod(p)}
               style={[styles.periodBtn, p === period && { backgroundColor: c.primary }]}
+              activeOpacity={0.75}
               accessibilityRole="button"
               accessibilityState={{ selected: p === period }}
             >
-              <Text style={[styles.periodText, { color: p === period ? "#FFFFFF" : c.mutedForeground }]}>{p}</Text>
+              <Text
+                style={{
+                  fontFamily: p === period ? "PlusJakartaSans_600SemiBold" : "PlusJakartaSans_500Medium",
+                  fontSize: 12,
+                  color: p === period ? "#FFFFFF" : c.text,
+                }}
+              >
+                {p}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Chart */}
-        <View style={[styles.chartCard, { backgroundColor: c.card, borderColor: c.border }]}>
+        <View style={{ paddingTop: 4 }}>
           {loading ? (
-            <View style={{ height: CHART_H, alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width, height: CHART_H, alignItems: "center", justifyContent: "center" }}>
               <ActivityIndicator color={COLOR_A} />
             </View>
           ) : !seriesA || !seriesB ? (
-            <View style={{ height: CHART_H, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 }}>
+            <View style={{ width, height: CHART_H, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 }}>
               <Text style={{ color: c.mutedForeground, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13, textAlign: "center" }}>
                 Not enough price history for {(!sa ? symA : symB) ?? "this stock"} in this period. Try a different period.
               </Text>
             </View>
           ) : (
-            <ComparisonChart a={seriesA} b={seriesB} period={period} width={chartW} />
+            <ComparisonChart a={seriesA} b={seriesB} period={period} width={width} />
           )}
         </View>
 
@@ -306,23 +313,21 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 12 },
   backBtn: { width: 40, height: 40, alignItems: "flex-start", justifyContent: "center" },
   headerTitle: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 17 },
-  pickRow: { flexDirection: "row", gap: 10, marginTop: 4 },
+  pickRow: { flexDirection: "row", gap: 10, marginTop: 4, marginHorizontal: 20 },
   pick: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 },
   swatch: { width: 10, height: 10, borderRadius: 5 },
   pickSym: { fontFamily: "PlusJakartaSans_700Bold", fontSize: 15 },
   pickName: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, marginTop: 1 },
   pickPrice: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13 },
-  periods: { flexDirection: "row", borderRadius: 12, padding: 4, marginTop: 16 },
-  periodBtn: { flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: "center" },
-  periodText: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13 },
-  chartCard: { borderWidth: 1, borderRadius: 16, marginTop: 16, overflow: "hidden", paddingVertical: 8 },
-  verdict: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, lineHeight: 21, marginTop: 14 },
-  table: { borderWidth: 1, borderRadius: 16, marginTop: 14, paddingHorizontal: 14 },
+  periods: { flexDirection: "row", justifyContent: "center", gap: 4, marginTop: 16, marginHorizontal: 16 },
+  periodBtn: { paddingVertical: 7, paddingHorizontal: 13, borderRadius: 8, alignItems: "center" },
+  verdict: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, lineHeight: 21, marginTop: 14, marginHorizontal: 20 },
+  table: { borderWidth: 1, borderRadius: 16, marginTop: 14, paddingHorizontal: 14, marginHorizontal: 20 },
   tr: { flexDirection: "row", alignItems: "center", paddingVertical: 11 },
   th: { flex: 1.2, fontFamily: "PlusJakartaSans_400Regular", fontSize: 13 },
   thVal: { flex: 1, textAlign: "right", fontFamily: "PlusJakartaSans_700Bold", fontSize: 13 },
   td: { flex: 1, textAlign: "right", fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, fontVariant: ["tabular-nums"] },
-  foot: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, lineHeight: 16, marginTop: 16 },
+  foot: { fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, lineHeight: 16, marginTop: 16, marginHorizontal: 20 },
   pickerHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 12 },
   search: { marginHorizontal: 20, height: 46, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, fontFamily: "PlusJakartaSans_400Regular", fontSize: 14, marginBottom: 8 },
   pickerRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth },

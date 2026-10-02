@@ -279,6 +279,8 @@ export function ComparisonChart({ a, b, period, width }: ComparisonChartProps) {
   const dotAProps = useAnimatedProps(() => ({ cx: animX.value, cy: animYA.value }));
   const dotBProps = useAnimatedProps(() => ({ cx: animX.value, cy: animYB.value }));
   const vLineProps = useAnimatedProps(() => ({ x1: animX.value, x2: animX.value }));
+  const hLineAProps = useAnimatedProps(() => ({ y1: animYA.value, y2: animYA.value }));
+  const hLineBProps = useAnimatedProps(() => ({ y1: animYB.value, y2: animYB.value }));
 
   const plotW = SCREEN_W - Y_PAD - PAD_R;
   const plotH = CHART_H - PAD_TOP - PAD_BTM;
@@ -449,8 +451,8 @@ export function ComparisonChart({ a, b, period, width }: ComparisonChartProps) {
           })}
           {/* The 0% line: where both stocks started the period */}
           <Line x1={Y_PAD} y1={grid.zeroY} x2={SCREEN_W - PAD_R} y2={grid.zeroY} stroke={SVG_LABEL} strokeWidth={1} opacity={0.6} />
-          <Path d={grid.pathB} stroke={b.color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <Path d={grid.pathA} stroke={a.color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <Path d={grid.pathB} stroke={b.color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <Path d={grid.pathA} stroke={a.color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
           {xLabelIdxs.map((idx, i) => (
             <SvgText
               key={i}
@@ -465,18 +467,20 @@ export function ComparisonChart({ a, b, period, width }: ComparisonChartProps) {
             </SvgText>
           ))}
           <AnimatedLine animatedProps={vLineProps} y1={PAD_TOP} y2={PAD_TOP + plotH} stroke={c.primary} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2" />
+          <AnimatedLine animatedProps={hLineBProps} x1={Y_PAD} x2={SCREEN_W - PAD_R} stroke={b.color} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2" />
+          <AnimatedLine animatedProps={hLineAProps} x1={Y_PAD} x2={SCREEN_W - PAD_R} stroke={a.color} strokeWidth={0.5} strokeLinecap="round" strokeDasharray="2 2" />
           <AnimatedCircle animatedProps={dotBProps} r={4} fill={WHITE} stroke={b.color} strokeWidth={2} />
           <AnimatedCircle animatedProps={dotAProps} r={4} fill={WHITE} stroke={a.color} strokeWidth={2} />
         </Svg>
-        <Animated.View style={[{ position: "absolute", width: TT_W, backgroundColor: c.primary, borderRadius: TT_RX, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", elevation: 4, shadowColor: "#000", shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } }, tooltipAnimStyle]}>
-          <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 10, fontFamily: "PlusJakartaSans_500Medium", marginBottom: 2 }}>{dateTxt}</Text>
-          {([[a, active.a?.pct], [b, active.b?.pct]] as const).map(([s, pct]) => (
-            <View key={s.symbol} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 }}>
+        <Animated.View style={[{ position: "absolute", width: TT_W, backgroundColor: c.primary, borderRadius: TT_RX, alignItems: "center", justifyContent: "center", paddingHorizontal: 8, paddingVertical: 8 }, tooltipAnimStyle]}>
+          {([[a, active.a?.pct], [b, active.b?.pct]] as const).map(([s, pct], i) => (
+            <View key={s.symbol} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: i === 0 ? 0 : 3, alignSelf: "stretch" }}>
               <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: s.color }} />
-              <Text style={{ color: WHITE, fontSize: 11, fontFamily: "PlusJakartaSans_600SemiBold", flex: 1 }}>{s.symbol}</Text>
-              <Text style={{ color: WHITE, fontSize: 11, fontFamily: "PlusJakartaSans_700Bold", fontVariant: ["tabular-nums"] }}>{pctTxt(pct)}</Text>
+              <Text numberOfLines={1} style={{ color: WHITE, fontSize: 12, fontFamily: "PlusJakartaSans_700Bold", flex: 1 }}>{s.symbol}</Text>
+              <Text style={{ color: WHITE, fontSize: 12, fontFamily: "PlusJakartaSans_700Bold", fontVariant: ["tabular-nums"] }}>{pctTxt(pct)}</Text>
             </View>
           ))}
+          <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 10, fontFamily: "PlusJakartaSans_500Medium", marginTop: 4 }}>{dateTxt}</Text>
         </Animated.View>
       </View>
     </GestureDetector>
