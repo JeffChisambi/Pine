@@ -481,9 +481,17 @@ export default function HomeScreen() {
 
       {/* White/dark sheet */}
       <View style={{ flex: 1, backgroundColor: c.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: 12, overflow: "hidden" }}>
+        {/* Everything fits on a phone now that bonds and the course bullets
+            are gone, so this does not scroll in practice: flexGrow lets the
+            content fill the sheet instead of ending early, and the Android
+            overscroll glow is off so there is no hint of movement. It stays a
+            ScrollView rather than a plain View for two reasons — pull to
+            refresh, and a short screen or large font setting can still make
+            the content taller than the sheet. */}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 40 }}
+          overScrollMode="never"
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}
         >
           <View style={{ backgroundColor: c.background, paddingHorizontal: 20, paddingTop: 24 }}>
@@ -589,7 +597,6 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={{ height: 24 }} />
         </ScrollView>
       </View>
     </View>
