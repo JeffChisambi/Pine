@@ -101,6 +101,9 @@ export default function ConfirmScreen() {
 
   // Broker-required guard (client-side courtesy — the server enforces this
   // too and rejects orders with BROKER_REQUIRED when no broker is selected).
+  /** Off to top up; this order stays on the stack to come back to. */
+  const goTopUp = () => router.push("/deposit" as any);
+
   const showBrokerRequiredAlert = () => {
     Alert.alert(
       "Account not linked",
@@ -198,6 +201,11 @@ export default function ConfirmScreen() {
       ) {
         // No broker selected — offer to go pick one.
         showBrokerRequiredAlert();
+      } else if (code === "WALLET_INSUFFICIENT_FUNDS" || /insufficient (available )?funds/i.test(message)) {
+        Alert.alert("Not enough funds", message, [
+          { text: "Cancel", style: "cancel" },
+          { text: "Top up", onPress: goTopUp },
+        ]);
       } else {
         Alert.alert("Order Not Placed", message);
       }
@@ -287,6 +295,19 @@ export default function ConfirmScreen() {
             <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 13, color: "#DC2626" }}>
               Insufficient available funds — you have {fmt(quote.cashAvailable)} available.
             </Text>
+            {/* The fix is one screen away, so the warning offers it rather
+                than leaving the person to find the top-up button themselves. */}
+            <TouchableOpacity
+              onPress={goTopUp}
+              activeOpacity={0.75}
+              hitSlop={8}
+              accessibilityRole="link"
+              style={{ alignSelf: "flex-start", marginTop: 8 }}
+            >
+              <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: 13, color: "#DC2626", textDecorationLine: "underline" }}>
+                Top up your wallet
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
         {quote && !isBuy && quote.sufficientShares === false && (

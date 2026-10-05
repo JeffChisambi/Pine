@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
-import { VerifyIcon, LogOutIcon, SettingsIcon } from "@/components/icons/AppIcons";
+import { VerifyIcon, LogOutIcon, SettingsIcon, LiveChatIcon } from "@/components/icons/AppIcons";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "../../services/auth-context";
 import { useWalletBalance } from "../../services/wallet-queries";
@@ -255,6 +255,7 @@ export default function ProfileScreen() {
       onPress: isVerified ? null : () => guardedPush(() => router.push("/kyc/upload-id" as any)),
       badge: isVerified ? ("verified" as const) : undefined,
     }]),
+    { icon: <LiveChatIcon color={iconColor} size={22} />, label: "Help & Support", sub: "Get help, contact us", onPress: () => guardedPush(() => router.push("/help" as any)) },
     { icon: <SettingsIcon color={iconColor} size={22} />, label: "Settings", sub: "Preferences & account", onPress: () => guardedPush(() => router.push("/settings" as any)) },
   ];
 

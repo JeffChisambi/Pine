@@ -60,6 +60,12 @@ const MUTED = "#9CA3AF";
 const MUTED2 = "#6B7280";
 /** Set once the user chooses never to see the virtual-money reminder again. */
 const VIRTUAL_NOTICE_KEY = "@pine_virtual_notice_hidden";
+/**
+ * The cross dismisses the reminder for this run of the app only. Held at
+ * module level, so it survives moving between tabs but resets when the app is
+ * next launched — which is when the reminder is meant to come back.
+ */
+let virtualNoticeDismissedThisSession = false;
 const RED = "#EF4770";
 
 type Colors = ReturnType<typeof useColors>;
@@ -333,16 +339,14 @@ export default function HomeScreen() {
   /**
    * A one-line reminder that the money here is not real.
    *
-   * It shows itself for a few seconds on arriving at the home screen, then
-   * leaves on its own. The cross dismisses it for now; "Hide" means never
-   * again, which is remembered on the device so a returning user is not told
-   * the same thing every morning.
+   * It stays until the user acts on it. The cross dismisses it until the app
+   * is next opened; "Hide this" means never again, remembered on the device so
+   * a returning user is not told the same thing every morning.
    */
   const [virtualNotice, setVirtualNotice] = useState(false);
-  const virtualNoticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dismissVirtualNotice = useCallback(() => {
-    if (virtualNoticeTimer.current) clearTimeout(virtualNoticeTimer.current);
+    virtualNoticeDismissedThisSession = true;
     setVirtualNotice(false);
   }, []);
 
@@ -353,18 +357,16 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (!PRACTICE_MODE) return;
+      if (!PRACTICE_MODE || virtualNoticeDismissedThisSession) return;
       let cancelled = false;
       AsyncStorage.getItem(VIRTUAL_NOTICE_KEY)
         .then((hidden) => {
-          if (cancelled || hidden) return;
+          if (cancelled || hidden || virtualNoticeDismissedThisSession) return;
           setVirtualNotice(true);
-          virtualNoticeTimer.current = setTimeout(() => setVirtualNotice(false), 7000);
         })
         .catch(() => {});
       return () => {
         cancelled = true;
-        if (virtualNoticeTimer.current) clearTimeout(virtualNoticeTimer.current);
       };
     }, []),
   );

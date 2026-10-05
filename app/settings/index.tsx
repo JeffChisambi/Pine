@@ -19,7 +19,7 @@ import { useTheme } from "@/contexts/theme-context";
 import { useAuth } from "@/services/auth-context";
 import { guardedBack } from "@/utils/navigation";
 import PinVerifyModal from "@/components/PinVerifyModal";
-import { accountApi, getErrorMessage, logHandledError } from "@/services/api";
+import { accountApi, getErrorMessage, logHandledError, tradingApi } from "@/services/api";
 
 const WHITE = "#FFFFFF";
 const MUTED = "#9CA3AF";
@@ -37,7 +37,37 @@ export default function SettingsScreen() {
 
   const appVersion = (Constants.expoConfig as any)?.version ?? "1.0.0";
 
-  const confirmDelete = () => {
+  /** Orders still moving. Mirrors the server, which refuses closure over these. */
+  const OPEN_STATUSES = new Set([
+    "PENDING_VALIDATION", "VALIDATED", "SUBMITTED", "ACCEPTED",
+    "PARTIALLY_FILLED", "FILLED", "PENDING_SETTLEMENT",
+  ]);
+
+  // Checked before the PIN prompt, so nobody types their PIN only to be told
+  // no. The server makes the same check and is the one that counts; if this
+  // lookup fails, the confirmation goes ahead and the server decides.
+  const confirmDelete = async () => {
+    try {
+      const { orders } = await tradingApi.getOrders();
+      const open = orders.filter((o) => OPEN_STATUSES.has(String(o.status))).length;
+      if (open > 0) {
+        Alert.alert(
+          "You have trades in progress",
+          `${open} trade${open === 1 ? " is" : "s are"} still being processed. Wait for ${open === 1 ? "it" : "them"} to complete, or cancel ${open === 1 ? "it" : "them"}, before closing your account.`,
+          [
+            { text: "OK", style: "cancel" },
+            { text: "View orders", onPress: () => guardedPush(() => router.push("/trade/history" as any)) },
+          ],
+        );
+        return;
+      }
+    } catch {
+      // fall through to the normal confirmation
+    }
+    showDeleteConfirmation();
+  };
+
+  const showDeleteConfirmation = () => {
     Alert.alert(
       "Delete account?",
       "This closes your account and removes your personal data. Your transaction history is retained for legal and compliance reasons. This cannot be undone.",
@@ -93,9 +123,6 @@ export default function SettingsScreen() {
           <Divider c={c} />
           <Row c={c} icon="credit-card" title="Payment Methods" sub="Saved cards & bank details"
             onPress={() => guardedPush(() => router.push("/settings/cards" as any))} chevron />
-          <Divider c={c} />
-          <Row c={c} icon="help-circle" title="Help & Support" sub="Get help, contact us"
-            onPress={() => guardedPush(() => router.push("/help" as any))} chevron />
         </Group>
 
         {/* About */}
