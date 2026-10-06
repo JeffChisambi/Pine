@@ -86,6 +86,46 @@ function PortfolioIcon({ color, active }: { color: string; active?: boolean }) {
   );
 }
 
+function NewsIcon({ color, active }: { color: string; active?: boolean }) {
+  return (
+    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M21 7V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V7C3 4 4.5 2 8 2H16C19.5 2 21 4 21 7Z"
+        fill={active ? color : "none"}
+        stroke={active ? "none" : color}
+        strokeWidth={1.5}
+        strokeMiterlimit={10}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M14.5 4.5V6.5C14.5 7.6 15.4 8.5 16.5 8.5H18.5"
+        stroke={active ? "#FFFFFF" : color}
+        strokeWidth={1.5}
+        strokeMiterlimit={10}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M8 13H12"
+        stroke={active ? "#FFFFFF" : color}
+        strokeWidth={1.5}
+        strokeMiterlimit={10}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M8 17H16"
+        stroke={active ? "#FFFFFF" : color}
+        strokeWidth={1.5}
+        strokeMiterlimit={10}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 function BoardIcon({ color, active }: { color: string; active?: boolean }) {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
@@ -152,7 +192,8 @@ function ProfileIcon({ color, active }: { color: string; active?: boolean }) {
   );
 }
 
-const VISIBLE_TABS = 5;
+// Six tabs since News returned beside Board; labels are sized to fit 60pt.
+const VISIBLE_TABS = 6;
 
 interface TabItemConfig {
   name: string;
@@ -164,6 +205,7 @@ const TAB_ITEMS: TabItemConfig[] = [
   { name: "index", label: "Home", Icon: HomeIcon },
   { name: "market", label: "Market", Icon: MarketIcon },
   { name: "portfolio", label: "Portfolio", Icon: PortfolioIcon },
+  { name: "news", label: "News", Icon: NewsIcon },
   { name: "board", label: "Board", Icon: BoardIcon },
   { name: "profile", label: "Profile", Icon: ProfileIcon },
 ];
@@ -318,6 +360,7 @@ export default function TabLayout() {
           <Tabs.Screen name="index" options={{ title: "Home" }} />
           <Tabs.Screen name="market" options={{ title: "Market" }} />
           <Tabs.Screen name="portfolio" options={{ title: "Portfolio" }} />
+          <Tabs.Screen name="news" options={{ title: "News" }} />
           <Tabs.Screen name="board" options={{ title: "Board" }} />
           <Tabs.Screen name="profile" options={{ title: "Profile" }} />
         </Tabs>

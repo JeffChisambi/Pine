@@ -988,6 +988,8 @@ export type ApiNewsItem = {
   /** Hero image URL (or null). */
   image: string | null;
   featured: boolean;
+  /** The original document or page, for articles imported from the MSE. */
+  sourceUrl?: string | null;
 };
 
 export const newsApi = {

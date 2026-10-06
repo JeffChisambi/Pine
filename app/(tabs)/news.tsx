@@ -21,7 +21,7 @@ import ReAnimated, {
   interpolateColor,
   interpolate,
 } from "react-native-reanimated";
-import { TextInput } from "react-native";
+import { Linking, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle } from "react-native-svg";
 import { ActivityIndicator } from "react-native";
@@ -30,6 +30,8 @@ import { useNews } from "@/hooks/useNews";
 import { parseBody, parseInline, type NewsBlock } from "@/utils/newsBlocks";
 import { API_BASE_URL } from "@/services/api";
 import { useLayoutWidth } from "@/hooks/useLayoutWidth";
+import { useStocks } from "@/hooks/useStocks";
+import { getStockLogo } from "@/utils/stock-logos";
 
 // ─── Brand tokens ───────────────────────────────────────────────────────────────
 const GREEN = "#45B369";
@@ -51,6 +53,8 @@ type NewsItem = {
   source: string;
   image: any;
   featured?: boolean;
+  /** The original, for articles imported from the MSE website. */
+  sourceUrl?: string | null;
 };
 
 const CATEGORIES = ["All", "Banking", "Markets", "Insurance"];
@@ -112,6 +116,84 @@ function BackIcon({ color }: { color: string }) {
 
 
 // ─── Featured card ──────────────────────────────────────────────────────────────
+/**
+ * What to show when an article has no picture.
+ *
+ * Most notices imported from the MSE are PDFs with nothing to illustrate
+ * them, and an empty grey box reads as a failed load. The company's own logo
+ * says more: imported articles carry the listed company's name as their
+ * source, which matches a stock and so a logo. Anything else gets a quiet
+ * tile with the source's initials.
+ */
+function useSourceLogo() {
+  const { data: stocks = [] } = useStocks();
+  return useMemo(() => {
+    const bySymbol = new Map(stocks.map((st) => [st.name.toLowerCase(), st.symbol]));
+    return (source: string) => {
+      const symbol = bySymbol.get(source.toLowerCase());
+      return symbol ? getStockLogo(symbol) : null;
+    };
+  }, [stocks]);
+}
+
+function initials(source: string): string {
+  const words = source.replace(/\b(plc|limited|ltd)\b/gi, "").trim().split(/\s+/).filter(Boolean);
+  return (words.length >= 2 ? words[0][0] + words[1][0] : (words[0] ?? "MSE").slice(0, 3)).toUpperCase();
+}
+
+function NewsArt({
+  item,
+  height,
+  width,
+  radius,
+  logoSize,
+  c,
+}: {
+  item: NewsItem;
+  height: number;
+  width: number | "100%";
+  radius: number;
+  logoSize: number;
+  c: ReturnType<typeof useColors>;
+}) {
+  const logoFor = useSourceLogo();
+  if (item.image) {
+    return (
+      <Image
+        source={imgSrc(item.image)}
+        style={{ width, height, borderRadius: radius, backgroundColor: c.border }}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={150}
+      />
+    );
+  }
+  const logo = logoFor(item.source);
+  return (
+    <View
+      style={{
+        width,
+        height,
+        borderRadius: radius,
+        backgroundColor: c.card,
+        borderWidth: 1,
+        borderColor: c.border,
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+      }}
+    >
+      {logo ? (
+        <Image source={logo} style={{ width: logoSize, height: logoSize }} contentFit="contain" />
+      ) : (
+        <Text style={{ fontFamily: "PlusJakartaSans_700Bold", fontSize: Math.max(11, logoSize * 0.32), color: GREEN }}>
+          {initials(item.source)}
+        </Text>
+      )}
+    </View>
+  );
+}
+
 function FeaturedCard({ item, onPress, c }: { item: NewsItem; onPress: () => void; c: ReturnType<typeof useColors> }) {
   return (
     <TouchableOpacity
@@ -127,14 +209,8 @@ function FeaturedCard({ item, onPress, c }: { item: NewsItem; onPress: () => voi
         marginBottom: 12,
       }}
     >
-      {/* Cover image — clipped by card's overflow: hidden */}
-      <Image
-        source={imgSrc(item.image)}
-        style={{ width: "100%", height: 192, backgroundColor: c.border }}
-        contentFit="cover"
-        cachePolicy="memory-disk"
-        transition={150}
-      />
+      {/* Cover — a picture, or the company's logo on a shorter band */}
+      <NewsArt item={item} width="100%" height={item.image ? 192 : 120} radius={0} logoSize={64} c={c} />
 
       {/* Content */}
       <View style={{ padding: 16, gap: 10 }}>
@@ -181,13 +257,9 @@ function NewsCard({ item, onPress, isLast, c }: { item: NewsItem; onPress: () =>
       }}
     >
       {/* Thumbnail */}
-      <Image
-        source={imgSrc(item.image)}
-        style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: c.border, flexShrink: 0, borderWidth: 1, borderColor: c.border }}
-        contentFit="cover"
-        cachePolicy="memory-disk"
-        transition={150}
-      />
+      <View style={{ flexShrink: 0 }}>
+        <NewsArt item={item} width={44} height={44} radius={10} logoSize={30} c={c} />
+      </View>
 
       {/* Content */}
       <View style={{ flex: 1, gap: 4 }}>
@@ -264,16 +336,18 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        {/* Hero image */}
-        <View style={{ paddingHorizontal: 20 }}>
-          <Image
-            source={imgSrc(item.image)}
-            style={{ width: "100%", height: 220, borderRadius: 16, backgroundColor: c.card }}
-            contentFit="cover"
-        cachePolicy="memory-disk"
-        transition={150}
-          />
-        </View>
+        {/* Hero image — only when there is one */}
+        {item.image ? (
+          <View style={{ paddingHorizontal: 20 }}>
+            <Image
+              source={imgSrc(item.image)}
+              style={{ width: "100%", height: 220, borderRadius: 16, backgroundColor: c.card }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={150}
+            />
+          </View>
+        ) : null}
 
         {/* Meta */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, marginTop: 18, flexWrap: "wrap" }}>
@@ -300,6 +374,41 @@ function DetailModal({ item, onClose }: { item: NewsItem; onClose: () => void })
             <ArticleBlock key={i} block={block} c={c} />
           ))}
         </View>
+
+        {/* Imported articles are summaries; the original has the detail. */}
+        {item.sourceUrl ? (
+          <TouchableOpacity
+            onPress={() => Linking.openURL(item.sourceUrl!).catch(() => {})}
+            activeOpacity={0.85}
+            accessibilityRole="link"
+            style={{
+              marginHorizontal: 20,
+              marginTop: 24,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              borderWidth: 1,
+              borderColor: c.border,
+              backgroundColor: c.card,
+              borderRadius: 12,
+              paddingVertical: 13,
+            }}
+          >
+            <Text style={{ fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 14, color: GREEN }}>
+              {/\/announcements\/(corporate|accounts)\//.test(item.sourceUrl) ? "Open the original notice" : "View on the MSE website"}
+            </Text>
+            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+              <Path d="M14 4h6v6M20 4l-8 8" stroke={GREEN} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M19 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4" stroke={GREEN} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
+        ) : null}
+        {item.sourceUrl ? (
+          <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 11, color: MUTED, marginHorizontal: 20, marginTop: 8, textAlign: "center" }}>
+            Imported from the Malawi Stock Exchange website.
+          </Text>
+        ) : null}
       </ScrollView>
     </ReAnimated.View>
   );
@@ -480,8 +589,10 @@ export default function NewsScreen() {
     );
   }, [data, query]);
 
-  const featured = filtered[0];
-  const rest = filtered.slice(1);
+  // Lead with the newest story that has a picture; most imported notices
+  // have none, and a logo makes a weak cover. Falls back to the newest.
+  const featured = filtered.find((n) => n.image) ?? filtered[0];
+  const rest = filtered.filter((n) => n !== featured);
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
