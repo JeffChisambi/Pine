@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import Svg, { Path, Circle } from "react-native-svg";
 import { EyeOpenIcon, EyeClosedIcon, HistoryIcon, PortfolioAnalyticsIcon, SearchIcon as SearchGlyph } from "@/components/icons/AppIcons";
-import { portfolioApi } from "../../services/api";
+import { portfolioApi, type Holding as ApiHolding } from "../../services/api";
 import { useBalanceVisibility } from "../../contexts/balance-visibility";
 import { getStockLogo } from "../../utils/stock-logos";
 import { useColors } from "@/hooks/useColors";
@@ -130,9 +130,12 @@ export default function PortfolioScreen() {
         // portfolioValue = Σ(qty × live price) of owned assets only —
         // wallet cash is separate money shown on the home screen.
         setTotalValue(`K ${Number(s.portfolioValue ?? 0).toLocaleString()}`);
+        // Price gain or loss on the shares held. Buying fees are a cost, not
+        // a fall in price, so a fresh purchase reads as 0 here.
         const gain = Number(s.totalUnrealizedPnl ?? 0);
-        const gainPct = Number(s.totalPnlPercent ?? 0);
-        setTotalGain(`${gain > 0 ? '+' : gain < 0 ? '-' : ''}K ${Math.abs(gain).toLocaleString()} (${gainPct}%)`);
+        const gainPct = s.totalPnlPercent;
+        const pctText = gainPct === null || gainPct === undefined ? "" : ` (${gainPct > 0 ? "+" : ""}${gainPct.toFixed(2)}%)`;
+        setTotalGain(`${gain > 0 ? '+' : gain < 0 ? '-' : ''}K ${Math.abs(gain).toLocaleString(undefined, { maximumFractionDigits: 2 })}${pctText}`);
         setGainDirection(gain > 0 ? "up" : gain < 0 ? "down" : "flat");
       })
       .catch(() => {
@@ -142,19 +145,25 @@ export default function PortfolioScreen() {
 
     portfolioApi.getHoldings()
       .then((h) => {
-        setHoldings(h.map((item: any) => ({
-          id: item.stockId,
-          ticker: item.symbol,
-          name: item.name,
-          logo: getStockLogo(item.symbol),
-          price: `K ${Number(item.currentPrice || 0).toLocaleString()}`,
-          change: `${Number(item.pnlPercent || 0) > 0 ? '+' : ''}${Number(item.pnlPercent || 0)}%`,
-          positive: Number(item.pnlPercent || 0) >= 0,
-          flat: Number(item.pnlPercent || 0) === 0,
-          shares: String(item.quantity || 0),
-          value: `K ${Number(item.marketValue || 0).toLocaleString()}`,
-          changePct: `${Number(item.pnlPercent || 0)}%`,
-        })));
+        setHoldings(h.map((item: ApiHolding) => {
+          // A holding with no price, or no return to report, shows a dash —
+          // never a 0% that would claim the stock had not moved.
+          const pct = item.pnlPercent;
+          const known = pct !== null && pct !== undefined;
+          return {
+            id: item.stockId,
+            ticker: item.symbol,
+            name: item.name,
+            logo: getStockLogo(item.symbol),
+            price: item.currentPrice === null ? "—" : `K ${Number(item.currentPrice).toLocaleString()}`,
+            change: known ? `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%` : "—",
+            positive: !known || pct >= 0,
+            flat: !known || pct === 0,
+            shares: String(item.quantity || 0),
+            value: item.marketValue === null ? "Price unavailable" : `K ${Number(item.marketValue).toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+            changePct: known ? `${pct.toFixed(2)}%` : "—",
+          };
+        }));
       })
       .catch(() => {});
   }, []);

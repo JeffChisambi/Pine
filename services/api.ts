@@ -540,15 +540,42 @@ export interface DepositPreview {
 // Mirrors the backend's GET /portfolio/summary response exactly. The previous
 // shape ({totalValue, totalGain, ...}) never matched the server, so the
 // portfolio balance always rendered as 0 while holdings updated fine.
+/**
+ * Mirrors the backend's PortfolioSummary (GET /portfolio/summary).
+ *
+ * Unrealised P&L is the PRICE gain or loss: market value minus what the
+ * shares cost at the exchange. Buying fees are reported separately in
+ * `fees`, so a purchase at an unchanged price shows no loss. A percentage is
+ * null when there is nothing to divide by; the daily figures are null when
+ * there is no earlier price to measure from.
+ */
 export interface PortfolioSummary {
   cashBalance: number;
+  /** What was paid for the shares held, fees included. */
   totalInvested: number;
+  /** What the shares held cost at the exchange, fees excluded. */
+  costBasis: number;
+  /** Buying fees attached to the shares held. */
+  fees: number;
   totalMarketValue: number;
+  /** Price gain or loss on the shares held. */
   totalUnrealizedPnl: number;
-  totalPnlPercent: number;
+  totalPnlPercent: number | null;
+  /** After fees: market value − total invested. */
+  netUnrealizedPnl: number;
+  netPnlPercent: number | null;
+  /** What sales have made, after all costs. */
+  realizedPnl: number;
+  realizedPricePnl: number;
   portfolioValue: number;
-  dailyChange: number;
-  dailyChangePct: number;
+  dailyChange: number | null;
+  dailyChangePct: number | null;
+  holdingsCount: number;
+  pricedHoldings: number;
+  unpricedHoldings: number;
+  staleHoldings: number;
+  /** The newest price date used. */
+  asOf: string | null;
 }
 
 // Mirrors the backend's HoldingDetail (GET /portfolio/holdings) exactly.
@@ -558,32 +585,66 @@ export interface Holding {
   name: string;
   sector: string;
   quantity: number;
+  /** Per share, fees included. */
   averageCost: number;
-  currentPrice: number;
-  previousClose: number;
-  marketValue: number;
+  /** Per share, fees excluded: the price paid at the exchange. */
+  averagePrice: number;
+  /** Null when the stock has no price at all. */
+  currentPrice: number | null;
+  /** What today's move is measured from; null when there is no earlier price. */
+  previousClose: number | null;
+  priceStatus: 'live' | 'stale' | 'unavailable';
+  priceDate: string | null;
+  marketValue: number | null;
   costBasis: number;
-  unrealizedPnl: number;
-  pnlPercent: number;
-  dailyChange: number;
-  dailyChangePct: number;
+  fees: number;
+  totalInvested: number;
+  unrealizedPnl: number | null;
+  /** Price return since purchase, %. */
+  pnlPercent: number | null;
+  netUnrealizedPnl: number | null;
+  netPnlPercent: number | null;
+  /** The stock's own move today — the same figure the Market tab shows. */
+  stockChangePct: number | null;
+  /** The investor's move today on this holding. */
+  dailyChange: number | null;
+  dailyChangePct: number | null;
   weight: number;
 }
 
-// Mirrors the backend's PerformanceMetrics (GET /portfolio/performance).
-// Returns are measured against the nearest daily snapshot (±2 days) for the
-// 1d / 7d / 30d / 365d windows; lifetime is current value vs total cost.
+// Mirrors the backend's PerformanceResponse (GET /portfolio/performance).
+//
+// Time-weighted returns on the stocks held: purchases and sales are netted
+// out at execution value, so investing more money is never counted as
+// growth. A return is null when there is not enough history to measure it.
+export interface PerformanceSeriesPoint {
+  date: string;
+  /** Market value of the stocks held that day. */
+  value: number;
+  /** Net money traded in since the period began. */
+  netInvested: number;
+  /** Investment gain since the period began, contributions excluded. */
+  gain: number;
+  /** Time-weighted return since the period began, %. */
+  returnPct: number;
+}
+
 export interface PortfolioPerformance {
-  dailyReturn: number;
-  dailyReturnPct: number;
-  weeklyReturn: number;
-  weeklyReturnPct: number;
-  monthlyReturn: number;
-  monthlyReturnPct: number;
-  yearlyReturn: number;
-  yearlyReturnPct: number;
-  lifetimeReturn: number;
-  lifetimeReturnPct: number;
+  period: string;
+  dailyReturn: number | null;
+  dailyReturnPct: number | null;
+  weeklyReturn: number | null;
+  weeklyReturnPct: number | null;
+  monthlyReturn: number | null;
+  monthlyReturnPct: number | null;
+  yearlyReturn: number | null;
+  yearlyReturnPct: number | null;
+  lifetimeReturn: number | null;
+  lifetimeReturnPct: number | null;
+  periodReturnPct: number | null;
+  periodGain: number | null;
+  series: PerformanceSeriesPoint[];
+  methodology: string;
 }
 
 // One daily portfolio snapshot (GET /portfolio/history). Written by the
@@ -611,8 +672,7 @@ export const portfolioApi = {
   getHoldings: (): Promise<Holding[]> =>
     request<Holding[]>('/portfolio/holdings'),
 
-  // NOTE: the backend ignores `period` — it always returns every window at
-  // once. The param is kept so callers can key their cache on it.
+  /** Returns for every window, plus a daily series for `period`. */
   getPerformance: (period?: string): Promise<PortfolioPerformance> =>
     request<PortfolioPerformance>(`/portfolio/performance${period ? `?period=${period}` : ''}`),
 

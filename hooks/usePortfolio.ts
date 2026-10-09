@@ -4,7 +4,7 @@ import {
   Holding,
   PortfolioSummary,
   PortfolioPerformance,
-  PortfolioSnapshotPoint,
+  PerformanceSeriesPoint,
 } from '../services/api';
 
 export const portfolioKeys = {
@@ -61,50 +61,28 @@ export function usePortfolioSummary() {
 export const PERFORMANCE_PERIODS = ['1W', '1M', '3M', '1Y', 'ALL'] as const;
 export type PerformancePeriod = typeof PERFORMANCE_PERIODS[number];
 
-/** How many daily snapshots to pull for each period. Snapshots are one row
- *  per (business) day, so these are generous upper bounds; the series is
- *  trimmed client-side to the period's real date window. */
-const PERIOD_DAYS: Record<PerformancePeriod, number> = {
-  '1W': 7,
-  '1M': 31,
-  '3M': 92,
-  '1Y': 366,
-  ALL: 3650,
-};
-
 export interface PortfolioPerformanceData {
-  /** All-window return metrics from GET /portfolio/performance. */
   metrics: PortfolioPerformance;
-  /** Chronological snapshots inside the period window (may be empty for a new user). */
-  series: PortfolioSnapshotPoint[];
+  /** One point per day for the period; empty for a portfolio with no history. */
+  series: PerformanceSeriesPoint[];
 }
 
 /**
- * Snapshot series + return metrics for the Portfolio Analytics chart.
+ * Investment performance for the Portfolio Analytics chart.
  *
- * The backend has no period-aware series endpoint: GET /portfolio/performance
- * returns fixed 1d/7d/30d/365d/lifetime metrics and GET /portfolio/history
- * returns the last `limit` daily snapshots. This hook fetches both in one go
- * and clips the history to the selected period so the chart, the "vs period
- * start" delta and the metrics all describe the same window.
+ * The server computes the series and the returns together, time-weighted and
+ * with trades netted out. This used to chart raw portfolio value from
+ * /portfolio/history and call its change growth, which counted every
+ * purchase as a gain.
  */
 export function usePortfolioPerformance(period: PerformancePeriod) {
   return useQuery<PortfolioPerformanceData, Error>({
     queryKey: portfolioKeys.performance(period),
     queryFn: async () => {
-      const [metrics, history] = await Promise.all([
-        portfolioApi.getPerformance(period),
-        portfolioApi.getHistory(PERIOD_DAYS[period]),
-      ]);
-
-      let series = Array.isArray(history) ? history : [];
-      if (period !== 'ALL') {
-        const from = Date.now() - PERIOD_DAYS[period] * 24 * 60 * 60 * 1000;
-        series = series.filter((p) => new Date(p.date).getTime() >= from);
-      }
-      // Defensive: the API promises chronological order, but the chart relies on it.
-      series = [...series].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
+      const metrics = await portfolioApi.getPerformance(period);
+      const series = [...(metrics.series ?? [])].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
       return { metrics, series };
     },
     staleTime: 60_000,

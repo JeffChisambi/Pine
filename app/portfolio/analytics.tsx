@@ -114,9 +114,6 @@ function SinglePointChart({ value, primary }: { value: number; primary: string }
   );
 }
 
-function isSameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
 
 export default function PortfolioAnalyticsScreen() {
   const SCREEN_W = useLayoutWidth();
@@ -136,83 +133,87 @@ export default function PortfolioAnalyticsScreen() {
   // whether their investments are actually performing.
   const liveValue = summary ? Number(summary.totalMarketValue ?? 0) : null;
 
-  const chartData = useMemo<PricePoint[]>(() => {
-    const series = perf?.series ?? [];
-    // holdingsValue matches liveValue above — both are stocks at market.
-    const pts: { date: string; close: number }[] = series.map((s) => ({
-      date: s.date,
-      close: Number(s.holdingsValue ?? 0),
-    }));
-
-    if (liveValue !== null) {
-      const today = new Date();
-      const last = pts[pts.length - 1];
-      if (last && isSameDay(new Date(last.date), today)) {
-        // Today's snapshot is stale by definition (cron runs at close) — show live.
-        pts[pts.length - 1] = { date: last.date, close: liveValue };
-      } else if (pts.length > 0) {
-        pts.push({ date: today.toISOString(), close: liveValue });
-      }
-    }
-
-    const base = pts[0]?.close ?? 0;
-    return pts.map((p) => ({
-      date: p.date,
-      close: p.close,
-      volume: 0,
-      changePct: base > 0 ? ((p.close - base) / base) * 100 : null,
-    }));
-  }, [perf?.series, liveValue]);
+  // The chart is investment RETURN, time-weighted with purchases and sales
+  // netted out by the server. It used to plot portfolio value and call the
+  // change growth, so buying shares looked like a gain.
+  const chartData = useMemo<PricePoint[]>(
+    () =>
+      (perf?.series ?? []).map((p) => ({
+        date: p.date,
+        close: p.returnPct,
+        volume: 0,
+        changePct: p.returnPct,
+      })),
+    [perf?.series],
+  );
 
   const hasHistory = chartData.length >= 2;
-  const first = chartData[0];
-  const lastPt = chartData[chartData.length - 1];
-  const changeAbs = hasHistory && first && lastPt ? lastPt.close - first.close : 0;
-  const changePct = hasHistory && first && first.close > 0 ? (changeAbs / first.close) * 100 : 0;
-  const direction: "up" | "down" | "flat" = changeAbs > 0 ? "up" : changeAbs < 0 ? "down" : "flat";
+  const periodReturn = perf?.metrics?.periodReturnPct ?? null;
+  const periodGain = perf?.metrics?.periodGain ?? null;
+  const direction: "up" | "down" | "flat" =
+    periodGain === null || periodGain === 0 ? "flat" : periodGain > 0 ? "up" : "down";
   const changeColor = direction === "up" ? GREEN : direction === "down" ? RED : c.mutedForeground;
 
-  const headlineValue = liveValue ?? lastPt?.close ?? null;
+  const headlineValue = liveValue;
 
   // Best / worst holding by unrealized %, only when there is something to rank.
   const ranked = useMemo(() => {
-    const withPnl = holdings.filter((h) => Number(h.quantity) > 0);
+    // Only holdings with a known return can be ranked.
+    const withPnl = holdings.filter((h) => Number(h.quantity) > 0 && h.pnlPercent !== null);
     if (withPnl.length === 0) return { best: null, worst: null };
     const sorted = [...withPnl].sort((a, b) => Number(b.pnlPercent) - Number(a.pnlPercent));
     return { best: sorted[0], worst: sorted.length > 1 ? sorted[sorted.length - 1] : null };
   }, [holdings]);
 
-  const unrealized = Number(summary?.totalUnrealizedPnl ?? 0);
-  const unrealizedPct = Number(summary?.totalPnlPercent ?? 0);
-  const dailyReturn = Number(perf?.metrics?.dailyReturn ?? 0);
-  const dailyReturnPct = Number(perf?.metrics?.dailyReturnPct ?? 0);
+  const pnlColor = (n: number | null) => (n === null ? c.text : n > 0 ? GREEN : n < 0 ? RED : c.text);
+  const pctOrDash = (n: number | null | undefined) => (n === null || n === undefined ? undefined : fmtPct(n));
 
-  const pnlColor = (n: number) => (n > 0 ? GREEN : n < 0 ? RED : c.text);
+  const today = summary?.dailyChange ?? null;
+  const realized = summary ? Number(summary.realizedPnl ?? 0) : 0;
 
   const tiles: { label: string; value: string; sub?: string; color?: string }[] = [
-    { label: "Invested", value: summary ? fmtK(Number(summary.totalInvested ?? 0)) : "—" },
+    {
+      label: "Invested",
+      value: summary ? fmtK(Number(summary.costBasis ?? 0)) : "—",
+      sub: "at purchase prices",
+    },
+    {
+      label: "Fees paid",
+      value: summary ? fmtK(Number(summary.fees ?? 0)) : "—",
+      sub: "on shares you hold",
+    },
+    {
+      // Price gain or loss: zero for a purchase at an unchanged price.
+      label: "Unrealised gain",
+      value: summary ? fmtSigned(Number(summary.totalUnrealizedPnl ?? 0)) : "—",
+      sub: pctOrDash(summary?.totalPnlPercent),
+      color: summary ? pnlColor(Number(summary.totalUnrealizedPnl ?? 0)) : undefined,
+    },
+    {
+      label: "After fees",
+      value: summary ? fmtSigned(Number(summary.netUnrealizedPnl ?? 0)) : "—",
+      sub: pctOrDash(summary?.netPnlPercent),
+      color: summary ? pnlColor(Number(summary.netUnrealizedPnl ?? 0)) : undefined,
+    },
+    {
+      label: "Today",
+      value: today === null ? "—" : fmtSigned(today),
+      sub: pctOrDash(summary?.dailyChangePct),
+      color: pnlColor(today),
+    },
     {
       label: "Cash (not charted)",
       value: summary ? fmtK(Number(summary.cashBalance ?? 0)) : "—",
       sub: "uninvested",
     },
-    {
-      label: "Unrealized P&L",
-      value: summary ? fmtSigned(unrealized) : "—",
-      sub: summary ? fmtPct(unrealizedPct) : undefined,
-      color: summary ? pnlColor(unrealized) : undefined,
-    },
-    {
-      label: "Today",
-      value: perf ? fmtSigned(dailyReturn) : "—",
-      sub: perf ? fmtPct(dailyReturnPct) : undefined,
-      color: perf ? pnlColor(dailyReturn) : undefined,
-    },
+    ...(realized !== 0
+      ? [{ label: "Realised from sales", value: fmtSigned(realized), sub: "after fees", color: pnlColor(realized) }]
+      : []),
     ...(ranked.best
-      ? [{ label: "Best holding", value: ranked.best.symbol, sub: fmtPct(Number(ranked.best.pnlPercent)), color: pnlColor(Number(ranked.best.pnlPercent)) }]
+      ? [{ label: "Best holding", value: ranked.best.symbol, sub: pctOrDash(ranked.best.pnlPercent), color: pnlColor(ranked.best.pnlPercent) }]
       : []),
     ...(ranked.worst
-      ? [{ label: "Worst holding", value: ranked.worst.symbol, sub: fmtPct(Number(ranked.worst.pnlPercent)), color: pnlColor(Number(ranked.worst.pnlPercent)) }]
+      ? [{ label: "Worst holding", value: ranked.worst.symbol, sub: pctOrDash(ranked.worst.pnlPercent), color: pnlColor(ranked.worst.pnlPercent) }]
       : []),
   ];
 
@@ -265,10 +266,12 @@ export default function PortfolioAnalyticsScreen() {
 
             <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 8 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: c.card, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1, borderColor: c.border }}>
-                {hasHistory && direction === "up" && <ArrowUpIcon color={GREEN} />}
-                {hasHistory && direction === "down" && <ArrowDownIcon color={RED} />}
-                <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: hasHistory ? changeColor : c.text }}>
-                  {hasHistory ? `${fmtSigned(changeAbs)} (${fmtPct(changePct)})` : "No change yet"}
+                {periodGain !== null && direction === "up" && <ArrowUpIcon color={GREEN} />}
+                {periodGain !== null && direction === "down" && <ArrowDownIcon color={RED} />}
+                <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 13, color: periodGain !== null ? changeColor : c.text }}>
+                  {periodGain !== null && periodReturn !== null
+                    ? `${fmtSigned(periodGain)} (${fmtPct(periodReturn)})`
+                    : "No return yet"}
                 </Text>
               </View>
               <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 12, color: c.mutedForeground }}>{periodLabel[period]}</Text>
@@ -299,7 +302,16 @@ export default function PortfolioAnalyticsScreen() {
             </View>
           ) : hasHistory ? (
             <View style={{ opacity: perfFetching ? 0.6 : 1 }}>
-              <PriceChart data={chartData} positive={direction !== "down"} period={period} valuePrefix="K " emptyMessage="Not enough history for this period" />
+              <Text style={{ fontFamily: "PlusJakartaSans_500Medium", fontSize: 11, color: MUTED, marginHorizontal: 24, marginBottom: 6 }}>
+                Return on your stocks — money you added or took out is not counted
+              </Text>
+              <PriceChart
+                data={chartData}
+                positive={direction !== "down"}
+                period={period}
+                formatValue={(n) => `${n > 0 ? "+" : ""}${n.toFixed(2)}%`}
+                emptyMessage="Not enough history for this period"
+              />
             </View>
           ) : (
             <SinglePointChart value={headlineValue ?? 0} primary={c.primary} />
@@ -340,8 +352,9 @@ export default function PortfolioAnalyticsScreen() {
           </View>
 
           <Text style={{ fontFamily: "PlusJakartaSans_400Regular", fontSize: 10, color: MUTED, marginHorizontal: 24, marginBottom: 8 }}>
-            Holdings only, uninvested cash excluded. Recorded daily after market
-            close and after every settled trade.
+            Returns are time-weighted on the stocks you hold, before fees: buying or
+            selling shares is not counted as growth. Gain and loss are measured from
+            the price you paid. Uninvested cash is excluded.
           </Text>
         </View>
       </ScrollView>

@@ -79,11 +79,17 @@ export interface PriceChartProps {
   period: string;
   /** Prefix in the scrub tooltip, e.g. "MWK " (stock) or "K " (portfolio). */
   valuePrefix?: string;
+  /**
+   * Formats a value for the tooltip and the axis, replacing the prefix and
+   * the default number style. Portfolio Analytics passes one so it can chart
+   * a return in % rather than an amount.
+   */
+  formatValue?: (n: number) => string;
   /** Message shown when fewer than two points are available. */
   emptyMessage?: string;
 }
 
-export function PriceChart({ data, positive, period, valuePrefix = "MWK ", emptyMessage = "Insufficient data for this period" }: PriceChartProps) {
+export function PriceChart({ data, positive, period, valuePrefix = "MWK ", emptyMessage = "Insufficient data for this period", formatValue }: PriceChartProps) {
   const SCREEN_W = useLayoutWidth();
   const c = useColors();
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
@@ -194,7 +200,9 @@ export function PriceChart({ data, positive, period, valuePrefix = "MWK ", empty
 
   const activeIdx   = selectedIdx !== null ? selectedIdx : data.length - 1;
   const activePt    = data[activeIdx];
-  const priceTxt    = `${valuePrefix}${activePt.close.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const priceTxt    = formatValue
+    ? formatValue(activePt.close)
+    : `${valuePrefix}${activePt.close.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const dateTxt     = new Date(activePt.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: period === "1Y" || period === "5Y" || period === "ALL" ? "numeric" : undefined });
 
   return (
@@ -212,7 +220,7 @@ export function PriceChart({ data, positive, period, valuePrefix = "MWK ", empty
           return (
             <React.Fragment key={i}>
               <Line x1={Y_PAD} y1={y} x2={SCREEN_W - PAD_R} y2={y} stroke={SVG_GRID} strokeWidth={1} strokeLinecap="round" strokeDasharray="3 3" />
-              <SvgText x={Y_PAD - 6} y={y + 4} textAnchor="end" fill={SVG_LABEL} fontSize={10} fontFamily="PlusJakartaSans_400Regular">{fmtYLabel(price)}</SvgText>
+              <SvgText x={Y_PAD - 6} y={y + 4} textAnchor="end" fill={SVG_LABEL} fontSize={10} fontFamily="PlusJakartaSans_400Regular">{formatValue ? formatValue(price) : fmtYLabel(price)}</SvgText>
             </React.Fragment>
           );
         })}
